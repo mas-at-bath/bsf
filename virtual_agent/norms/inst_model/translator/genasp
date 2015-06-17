@@ -1,0 +1,461 @@
+#!/usr/bin/perl
+use File::Basename;
+
+use lib dirname($0);
+use InstAL::Parser;
+use InstAL::LiteralPool;
+use strict;
+use IO::File;
+use Data::Dumper;
+use vars qw/$DEBUG $OPDEBUG/;
+use Devel::SimpleTrace;
+
+$DEBUG   = $ENV{IALDBG};
+$OPDEBUG = 1;
+use Getopt::Std;
+my %options;
+getopts( "d:g:o:m:", \%options );
+
+my $domain     = $options{d};
+my $ground     = $options{g};
+my $multifile  = $options{m};
+my $outputfile = $options{o};
+
+my $output = IO::File->new;
+
+@ARGV
+  or die(
+	"Usage : genasp [-m multifile] [-d domain] [-o output] <filename1> ... \n");
+print STDERR "genasp starting\n" if $DEBUG;
+
+my $p = InstAL::Parser->new;
+print STDERR "created parser\n" if $DEBUG;
+my $lp = InstAL::LiteralPool->lp();
+print STDERR "got lp\n" if $DEBUG;
+my @insts;
+
+foreach (@ARGV) {
+	my $fn = $_;
+	my $st = IO::File->new;
+	print STDERR "File name is $fn\n";
+	$st->open("<$fn") or die($@);
+	print STDERR ">> Parsing  $fn \n" if $DEBUG;
+	my $inst = $p->parseStream( $st, $lp, $fn );
+	print STDERR "<<Parsed  $fn \n" if $DEBUG;
+	push @insts, $inst;
+	$lp->addInst($inst);
+	$st->close;
+}
+
+my $multi;
+if ($multifile) {
+	my $fn = $_;
+	my $st = IO::File->new;
+
+	print STDERR "File name is $multifile\n";
+	$st->open("<$multifile") or die($@);
+	print STDERR ">> Parsing  $multifile \n" if $DEBUG;
+	$multi = $p->parseStream( $st, $lp, $multifile );
+	print STDERR "<<Parsed  $multifile \n" if $DEBUG;
+	$lp->addInst($multi);    # do i want to do this?
+	$st->close;
+
+}
+
+if ($domain) {
+	my $lps = IO::File->new;
+	print STDERR ">>Openning $domain for domain info\n" if $DEBUG;
+	$lps->open("<$domain") or die( "Can't open domain: $domain" . $@ );
+	$lp->loadStream($lps);
+
+	print STDERR "<<Opened $domain for domain info\n" if $DEBUG;
+	$lps->close;
+}
+
+# STAGE 2
+
+$lp->resolveReferences();
+
+# STAGE 3 resolve var types
+foreach (@insts) {
+	print STDERR ">>Resolving Variables in ", $_->name, "\n" if $DEBUG;
+	$_->resolveVars($lp);
+	print STDERR "<<Resolved Variables in ", $_->name, "\n" if $DEBUG;
+}
+
+$multi->resolveVars($lp) if $multi;
+
+# STAGE 4 resolve possible  base literals (from declared events and fluents);
+foreach (@insts) {
+	$_->resolveBaseLiterals($lp);
+}
+$multi->resolveBaseLiterals($lp) if $multi;
+
+if ($OPDEBUG) {
+	my $baseliterals = IO::File->new;
+	$baseliterals->open(">$outputfile.baseliterals");
+	$baseliterals->print( $lp->toString );
+	$baseliterals->close;
+}
+
+#STAGE 5 build literal base
+foreach (@insts) {
+	$_->resolveInitialUsedLiterals($lp);
+}
+
+my $nliterals = 0;
+my $newlits   = @{ $lp->typeANY->getAllUsedLiterals() };
+my $i         = 0;
+do {
+
+	print STDERR "Pass $i : $newlits\n" if $DEBUG;
+	$i++;    
+	foreach (@insts) {
+		$_->resolveUsedLiterals($lp);
+	}
+
+	$nliterals = $newlits;
+	$newlits   = @{ $lp->typeANY->getAllUsedLiterals() };
+} while ( $newlits > $nliterals );
+
+if ($OPDEBUG) {
+	my $usedliterals = IO::File->new;
+	$usedliterals->open(">$outputfile.usedliterals");
+	$usedliterals->print( $lp->toString );
+	$usedliterals->close;
+
+}
+
+my @asp;
+## Write ifluent types
+foreach ( @{ $lp->typeFluent->getAllUsedLiterals } ) {
+	push @asp, ASP::Rule->new(
+		ASP::Atom->new( 'ifluent', [ ASP::Atom->new( $_->name ) ] ) );
+}
+
+#,@{$lp->typeViolEvent->getAllUsedLiterals}) ++
+foreach ( ( @{ $lp->typeEvent->getAllUsedLiterals } ) ) {
+	my $evatom = ASP::Atom->new( $_->name );
+	push @asp, ASP::Rule->new( ASP::Atom->new( 'event', [$evatom] ) );
+
+	# HACK docreate
+	if ($_->type->evtype ne InstAL::Event::VIOL()
+		&& $_->type->name ne 'docreate' )
+	{
+		push @asp,
+		  ASP::Rule->new(
+			ASP::Atom->new( 'event', [ ASP::Atom->new( 'viol', [$evatom] ) ] )
+		  );
+	}
+}
+# write event types
+#@{$lp->typeViolEvent->getAllUsedLiterals} ++
+foreach ((@{ $lp->typeEvent->getAllUsedLiterals } ) ) {
+	my $event = $_->type;
+	my $evtype;
+	if ( $event->evtype eq InstAL::Event::EXO() ) {
+		$evtype = 'ex';
+	}
+	elsif ( $event->evtype eq InstAL::Event::INST() ) {
+		$evtype = 'inst';
+	}
+	elsif ( $event->evtype eq InstAL::Event::VIOL() ) {
+		$evtype = 'viol';
+	}
+	else {
+		die "bad event type " . $event->evtype;
+	}
+
+	push @asp,
+	  ASP::Rule->new(
+		ASP::Atom->new(
+			'evtype', [ ASP::Atom->new( $_->name ), ASP::Atom->new($evtype) ]
+		)
+	  );
+
+	push @asp,
+	  ASP::Rule->new(
+		ASP::Atom->new(
+			'evinst',
+			[
+				ASP::Atom->new( $_->name ), ASP::Atom->new( $event->inst->name )
+			]
+		)
+	  );
+
+	if (   $event->evtype ne InstAL::Event::VIOL()
+		&& $_->type->name ne 'docreate' )
+	{
+		push @asp,
+		  ASP::Rule->new(
+			ASP::Atom->new(
+				'evtype',
+				[
+					ASP::Atom->new( 'viol', [ ASP::Atom->new( $_->name ) ] ),
+					ASP::Atom->new('viol')
+				]
+			)
+		  );
+
+		push @asp,
+		  ASP::Rule->new(
+			ASP::Atom->new(
+				'evinst',
+				[
+					ASP::Atom->new( 'viol', [ ASP::Atom->new( $_->name ) ] ),
+					ASP::Atom->new( $event->inst->name )
+				]
+			)
+		  );
+	}
+}
+
+# now generate obl causal rules.
+foreach ( @{ $lp->typeObl->getAllUsedLiterals } ) {
+	my $atom = $_->atom;
+	push @asp, new ASP::Comment("causal rules for ".$_->name);
+	print STDERR "++++++ $_:", $_->name, " $atom \n" if $DEBUG;
+
+	my ( $e, $d, $v ) = $atom->args;
+	print STDERR "obl is ", $_->name, " e: ", $e->tostring, " d: ",
+	  $d->tostring, " v: ", $v->tostring, "\n"
+	  if $DEBUG;
+	my ( $head, $body );
+	my $I = new ASP::Atom('I');
+	my $iatom = new ASP::Atom( 'instant', [$I] );
+	$body = [];
+
+	# occured(V,I):- holdsat(obl(E,D,V),I),occured(D,I),
+	#     event(E;D;V),instant(I).
+	my $head = new ASP::Atom( 'occured', [ $v, $I ] );
+	push @{$body}, new ASP::Atom( 'holdsat', [ $atom, $I ] );
+	push @{$body}, new ASP::Atom( 'occured', [ $d,    $I ] );
+	push @{$body}, $iatom;
+	
+	push @asp, new ASP::Rule( $head, $body );
+
+	#---
+
+	# terminated(obl(E,D,V),I):- occured(E,I),
+	#     holdsat(obl(E,D,V),I),
+	#     event(E;D;V),instant(I).
+	$head = new ASP::Atom( 'terminated', [ $atom, $I ] );
+	$body = [];
+
+	push @{$body}, new ASP::Atom( 'holdsat', [ $atom, $I ] );
+	push @{$body}, new ASP::Atom( 'occured', [ $d,    $I ] );
+	push @{$body}, $iatom;
+
+	push @asp, new ASP::Rule( $head, $body );
+
+	# terminated(obl(E,D,V),I):- occured(D,I),
+	#     holdsat(obl(E,D,V),I),
+	#     event(E;D;V),instant(I).
+	$head = new ASP::Atom( 'terminated', [ $atom, $I ] );
+	$body = [];
+
+	push @{$body}, new ASP::Atom( 'holdsat', [ $atom, $I ] );
+	push @{$body}, new ASP::Atom( 'occured', [ $e,    $I ] );
+	push @{$body}, $iatom;
+	push @asp, new ASP::Rule( $head, $body );
+}
+
+## Now generate creation events
+foreach my $lit ( @{ InstAL::LiteralPool->lp->typeEvent->getAllUsedLiterals } )
+{
+	my $event = $lit->type;
+	my $inst  = $event->inst;
+	if ( $event->flags->{'create'} ) {
+		push @asp,new ASP::Comment('Creation effects for event '.$lit->name);
+		my $evcond =
+		  new ASP::Atom( 'occured', [ $lit->atom, new ASP::Atom('I') ] );
+
+		#		print "CHECKING ", $lit->name, "\n";
+		my $iatom = new ASP::Atom('I');
+		my $live  = new ASP::Atom(
+			'initiated',
+			[
+				new ASP::Atom( 'live', [ new ASP::Atom( $inst->name ) ] ),
+				$iatom
+			]
+		);
+		my $notlive = new ASP::Atom(
+			'holdsat',
+			[
+				new ASP::Atom( 'live', [ new ASP::Atom( $inst->name ) ] ),
+				$iatom
+			]
+		);
+		$notlive->add_tag('NOT');
+		my @body;
+		push @body,
+		  new ASP::Atom( 'occured', [ new ASP::Atom( $lit->name ), $iatom ] );
+		push @body, $notlive;
+		push @body, new ASP::Atom( 'instant', [$iatom] );
+		push @asp,  new ASP::Rule( $live, \@body );
+	}
+}
+
+# Now generate all dest events.
+foreach my $inst (@insts) {
+
+	foreach
+	  my $elit ( @{ InstAL::LiteralPool->lp->typeEvent->getAllUsedLiterals } )
+	{
+		my $event = $elit->type;
+		if (   !$event->flags->{'dest'}
+			|| !$event->inst == $inst )
+		{
+			next;
+		}
+		push @asp,new ASP::Comment('Start of destruction effects for event '.$elit->name);
+		
+		foreach my $flit (
+			@{ InstAL::LiteralPool->lp->typeFluent->getAllUsedLiterals } )
+		{
+			my $fl = $flit->type;
+			print STDERR "looking at literal ", $flit->name, " with type ",
+			  $fl->name, "\n"
+			  if $DEBUG;
+
+			my $flinst;
+
+#EVIL HACK need to determine which literals are
+# associated with each institution, and this seems to be the best way of doing it
+# For Perm and Pow literals we take the event type,
+# for Obl we guess at the target event
+
+			my $fromevent;
+			print "Guessing inst for ", $flit->name, " with type ", $flit->type,
+			  ":", $flit->type->name, "\n"
+			  if $DEBUG;
+			if ( $flit->type->UNIVERSAL::isa('InstAL::Fluent') ) {
+				next if $flit->type->is_static();
+
+				if ( $flit->type->name eq 'live' ) {
+					my $instname = $flit->atom->{-args}->[0]->name;
+					$flinst = $lp->insts->{$instname};
+
+					#print STDERR "LIve atom with inst $flinst\n";
+				}
+				else {
+					$flinst = $flit->type->inst;
+				}
+			}
+			elsif ( $flit->type->name eq 'Perm' ) {
+				my $evname = $flit->atom->{-args}->[0]->tostring;
+				$fromevent = $lp->get_literal($evname)->type;
+			}
+			elsif ( $flit->type->name eq 'Pow' ) {
+				my $evname = $flit->atom->{-args}->[1]->tostring;
+				$fromevent = $lp->get_literal($evname)->type;
+
+			}
+			elsif ( $flit->type->name eq 'Obl' ) {
+				my $evname = $flit->atom->{-args}->[1]->tostring;
+				$fromevent = $lp->get_literal($evname)->type;
+			}
+			if ($fromevent) {
+				$flinst = $fromevent->inst;
+			}
+			die "Can't continue without institution for fluent ", $flit->name,
+			  "\n"
+			  if !$flinst;
+
+			if ( $flinst == $inst ) {
+				my $comment = join "",
+				  (
+					"Terminator for LITERAL ",
+					$flit->name, " and event ", $elit->name, " in inst ",
+					$inst->name, "\n"
+				  )
+				  if $DEBUG;
+				print STDERR $comment;
+
+				my $iatom  = new ASP::Atom('I');
+				my $evcond =
+				  new ASP::Atom( 'occured', [ $elit->atom, $iatom ] );
+
+				my $head =
+				  new ASP::Atom( 'terminated',
+					[ new ASP::Atom( $flit->name ), $iatom ] );
+				my @body;
+
+				push @body, new ASP::Atom( 'occured',
+					[ new ASP::Atom( $elit->name ), $iatom ] );
+
+				push @body, new ASP::Atom(
+					'holdsat',
+					[
+						new ASP::Atom( 'live',
+							[ new ASP::Atom( $inst->name ) ] ),
+						$iatom
+					]
+				);
+
+				push @body, new ASP::Atom( 'instant', [$iatom] );
+				my $rule = new ASP::Rule( $head, \@body );
+				$rule->set_comment($comment);
+
+				push @asp, $rule;
+			}
+		}
+		push @asp,new ASP::Comment('End of destruction effects for event '.$elit->name);
+		
+	}
+}
+
+# Now generate all institituional ASP
+foreach (@insts) {
+	push @asp, @{ $_->generateASP };
+}
+
+if ($multi) {
+	push @asp, @{ $multi->generateASP };
+
+	foreach my $event ( values %{ $multi->{-events} } ) {
+		if ( $event->evtype eq InstAL::Event::EXO() ) {
+			foreach ( @{ $event->getAllUsedLiterals } ) {
+				my $rule = ASP::Rule->new(
+					ASP::Atom->new(
+						'evtype',
+						[ ASP::Atom->new( $_->name ), ASP::Atom->new('env') ]
+					)
+				);
+
+				push @asp, $rule;
+			}
+		}
+	}
+}
+if ($outputfile) {
+	$output->open(">$outputfile");
+}
+else {
+	$output->fdopen( fileno(STDOUT), "w" );
+}
+
+# for some reason we generate duplicate rules, this is a HACK to cut
+# them out
+my %seenrules;
+
+foreach (@asp) {
+	if ( ref($_) ne "ASP::Rule"  &&  ref($_) ne 'ASP::Comment') {
+		print $_, Dumper($_), "\n";
+		die();
+	}
+	my $str = $_->toString;
+	if ( $seenrules{$str} ) {
+		print STDERR "Skipping duplicate rule: $str\n" if $DEBUG;
+	}
+	else {
+		$seenrules{$str} = 1;
+		$output->print( $str, "\n" );
+	}
+}
+
+if ($ground) {
+	$output->print(`cat  $ground`);
+}
+
+$output->close;

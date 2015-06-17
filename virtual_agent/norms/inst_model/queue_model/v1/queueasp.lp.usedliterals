@@ -1,0 +1,213 @@
+-----------------
+===ANY===
+Literals:
+ NONE
+SubTypes:
+   -----------------
+   ===Agent===
+   Literals:
+   Internal: '1','2'
+   All     : '1','2'
+   Used    : '1','2'
+   -----------------
+   ===EvType===
+   Literals:
+   Internal: 'act','ex','viol'
+   All     : 'act','ex','viol'
+   Used    : 
+   -----------------
+   ===Event===
+   Literals:
+    NONE
+   SubTypes:
+      -----------------
+      ===EV_createQueue===
+      Literals:
+      Internal: 'createQueue'
+      All     : 'createQueue'
+      Used    : 'createQueue'
+      -----------------
+      ===EV_iniMove===
+      Literals:
+      Internal: 'iniMove(1,p1,t0)','iniMove(1,p1,t1)','iniMove(1,p1,t2)','iniMove(1,p2,t0)','iniMove(1,p2,t1)','iniMove(1,p2,t2)','iniMove(2,p1,t0)','iniMove(2,p1,t1)','iniMove(2,p1,t2)','iniMove(2,p2,t0)','iniMove(2,p2,t1)','iniMove(2,p2,t2)'
+      All     : 'iniMove(1,p1,t0)','iniMove(1,p1,t1)','iniMove(1,p1,t2)','iniMove(1,p2,t0)','iniMove(1,p2,t1)','iniMove(1,p2,t2)','iniMove(2,p1,t0)','iniMove(2,p1,t1)','iniMove(2,p1,t2)','iniMove(2,p2,t0)','iniMove(2,p2,t1)','iniMove(2,p2,t2)'
+      Used    : 'iniMove(1,p1,t0)','iniMove(1,p1,t1)','iniMove(1,p1,t2)','iniMove(1,p2,t0)','iniMove(1,p2,t1)','iniMove(1,p2,t2)','iniMove(2,p1,t0)','iniMove(2,p1,t1)','iniMove(2,p1,t2)','iniMove(2,p2,t0)','iniMove(2,p2,t1)','iniMove(2,p2,t2)'
+      -----------------
+      ===EV_iniMoved===
+      Literals:
+      Internal: 'iniMoved(1,p1,t0)','iniMoved(1,p1,t1)','iniMoved(1,p1,t2)','iniMoved(1,p2,t0)','iniMoved(1,p2,t1)','iniMoved(1,p2,t2)','iniMoved(2,p1,t0)','iniMoved(2,p1,t1)','iniMoved(2,p1,t2)','iniMoved(2,p2,t0)','iniMoved(2,p2,t1)','iniMoved(2,p2,t2)'
+      All     : 'iniMoved(1,p1,t0)','iniMoved(1,p1,t1)','iniMoved(1,p1,t2)','iniMoved(1,p2,t0)','iniMoved(1,p2,t1)','iniMoved(1,p2,t2)','iniMoved(2,p1,t0)','iniMoved(2,p1,t1)','iniMoved(2,p1,t2)','iniMoved(2,p2,t0)','iniMoved(2,p2,t1)','iniMoved(2,p2,t2)'
+      Used    : 'iniMoved(1,p1,t0)','iniMoved(1,p1,t1)','iniMoved(1,p1,t2)','iniMoved(1,p2,t0)','iniMoved(1,p2,t1)','iniMoved(1,p2,t2)','iniMoved(2,p1,t0)','iniMoved(2,p1,t1)','iniMoved(2,p1,t2)','iniMoved(2,p2,t0)','iniMoved(2,p2,t1)','iniMoved(2,p2,t2)'
+      -----------------
+      ===EV_move===
+      Literals:
+      Internal: 'move(1,p1,t0)','move(1,p1,t1)','move(1,p1,t2)','move(1,p2,t0)','move(1,p2,t1)','move(1,p2,t2)','move(2,p1,t0)','move(2,p1,t1)','move(2,p1,t2)','move(2,p2,t0)','move(2,p2,t1)','move(2,p2,t2)'
+      All     : 'move(1,p1,t0)','move(1,p1,t1)','move(1,p1,t2)','move(1,p2,t0)','move(1,p2,t1)','move(1,p2,t2)','move(2,p1,t0)','move(2,p1,t1)','move(2,p1,t2)','move(2,p2,t0)','move(2,p2,t1)','move(2,p2,t2)'
+      Used    : 'move(1,p1,t0)','move(1,p1,t1)','move(1,p1,t2)','move(1,p2,t0)','move(1,p2,t1)','move(1,p2,t2)','move(2,p1,t0)','move(2,p1,t1)','move(2,p1,t2)','move(2,p2,t0)','move(2,p2,t1)','move(2,p2,t2)'
+      -----------------
+      ===EV_newArrival===
+      Literals:
+      Internal: 'newArrival(1,t0)','newArrival(1,t1)','newArrival(1,t2)','newArrival(2,t0)','newArrival(2,t1)','newArrival(2,t2)'
+      All     : 'newArrival(1,t0)','newArrival(1,t1)','newArrival(1,t2)','newArrival(2,t0)','newArrival(2,t1)','newArrival(2,t2)'
+      Used    : 'newArrival(1,t0)','newArrival(1,t1)','newArrival(1,t2)','newArrival(2,t0)','newArrival(2,t1)','newArrival(2,t2)'
+      -----------------
+      ===ViolEvent===
+      Literals:
+       NONE
+      SubTypes:
+         -----------------
+         ===EV_VIOL__viol_createQueue===
+         Literals:
+         Internal: '_viol_createQueue'
+         All     : '_viol_createQueue'
+         Used    : 
+         -----------------
+         ===EV_VIOL__viol_iniMove===
+         Literals:
+         Internal: '_viol_iniMove(1,p1,t0)','_viol_iniMove(1,p1,t1)','_viol_iniMove(1,p1,t2)','_viol_iniMove(1,p2,t0)','_viol_iniMove(1,p2,t1)','_viol_iniMove(1,p2,t2)','_viol_iniMove(2,p1,t0)','_viol_iniMove(2,p1,t1)','_viol_iniMove(2,p1,t2)','_viol_iniMove(2,p2,t0)','_viol_iniMove(2,p2,t1)','_viol_iniMove(2,p2,t2)'
+         All     : '_viol_iniMove(1,p1,t0)','_viol_iniMove(1,p1,t1)','_viol_iniMove(1,p1,t2)','_viol_iniMove(1,p2,t0)','_viol_iniMove(1,p2,t1)','_viol_iniMove(1,p2,t2)','_viol_iniMove(2,p1,t0)','_viol_iniMove(2,p1,t1)','_viol_iniMove(2,p1,t2)','_viol_iniMove(2,p2,t0)','_viol_iniMove(2,p2,t1)','_viol_iniMove(2,p2,t2)'
+         Used    : 
+         -----------------
+         ===EV_VIOL__viol_iniMoved===
+         Literals:
+         Internal: '_viol_iniMoved(1,p1,t0)','_viol_iniMoved(1,p1,t1)','_viol_iniMoved(1,p1,t2)','_viol_iniMoved(1,p2,t0)','_viol_iniMoved(1,p2,t1)','_viol_iniMoved(1,p2,t2)','_viol_iniMoved(2,p1,t0)','_viol_iniMoved(2,p1,t1)','_viol_iniMoved(2,p1,t2)','_viol_iniMoved(2,p2,t0)','_viol_iniMoved(2,p2,t1)','_viol_iniMoved(2,p2,t2)'
+         All     : '_viol_iniMoved(1,p1,t0)','_viol_iniMoved(1,p1,t1)','_viol_iniMoved(1,p1,t2)','_viol_iniMoved(1,p2,t0)','_viol_iniMoved(1,p2,t1)','_viol_iniMoved(1,p2,t2)','_viol_iniMoved(2,p1,t0)','_viol_iniMoved(2,p1,t1)','_viol_iniMoved(2,p1,t2)','_viol_iniMoved(2,p2,t0)','_viol_iniMoved(2,p2,t1)','_viol_iniMoved(2,p2,t2)'
+         Used    : 
+         -----------------
+         ===EV_VIOL__viol_move===
+         Literals:
+         Internal: '_viol_move(1,p1,t0)','_viol_move(1,p1,t1)','_viol_move(1,p1,t2)','_viol_move(1,p2,t0)','_viol_move(1,p2,t1)','_viol_move(1,p2,t2)','_viol_move(2,p1,t0)','_viol_move(2,p1,t1)','_viol_move(2,p1,t2)','_viol_move(2,p2,t0)','_viol_move(2,p2,t1)','_viol_move(2,p2,t2)'
+         All     : '_viol_move(1,p1,t0)','_viol_move(1,p1,t1)','_viol_move(1,p1,t2)','_viol_move(1,p2,t0)','_viol_move(1,p2,t1)','_viol_move(1,p2,t2)','_viol_move(2,p1,t0)','_viol_move(2,p1,t1)','_viol_move(2,p1,t2)','_viol_move(2,p2,t0)','_viol_move(2,p2,t1)','_viol_move(2,p2,t2)'
+         Used    : 
+         -----------------
+         ===EV_VIOL__viol_newArrival===
+         Literals:
+         Internal: '_viol_newArrival(1,t0)','_viol_newArrival(1,t1)','_viol_newArrival(1,t2)','_viol_newArrival(2,t0)','_viol_newArrival(2,t1)','_viol_newArrival(2,t2)'
+         All     : '_viol_newArrival(1,t0)','_viol_newArrival(1,t1)','_viol_newArrival(1,t2)','_viol_newArrival(2,t0)','_viol_newArrival(2,t1)','_viol_newArrival(2,t2)'
+         Used    : 
+   -----------------
+   ===Fluent===
+   Literals:
+    NONE
+   SubTypes:
+      -----------------
+      ===DomFluent===
+      Literals:
+       NONE
+      -----------------
+      ===FA__PERM_createQueue===
+      Literals:
+      Internal: '_PERM_createQueue'
+      All     : '_PERM_createQueue'
+      Used    : 
+      -----------------
+      ===FA__PERM_iniMove===
+      Literals:
+      Internal: '_PERM_iniMove'
+      All     : '_PERM_iniMove'
+      Used    : 
+      -----------------
+      ===FA__PERM_iniMoved===
+      Literals:
+      Internal: '_PERM_iniMoved'
+      All     : '_PERM_iniMoved'
+      Used    : 
+      -----------------
+      ===FA__PERM_move===
+      Literals:
+      Internal: '_PERM_move'
+      All     : '_PERM_move'
+      Used    : 
+      -----------------
+      ===FA__PERM_newArrival===
+      Literals:
+      Internal: '_PERM_newArrival'
+      All     : '_PERM_newArrival'
+      Used    : 
+      -----------------
+      ===FA__POW_iniMove===
+      Literals:
+      Internal: '_POW_iniMove'
+      All     : '_POW_iniMove'
+      Used    : 
+      -----------------
+      ===FA__POW_iniMoved===
+      Literals:
+      Internal: '_POW_iniMoved'
+      All     : '_POW_iniMoved'
+      Used    : 
+      -----------------
+      ===FA_agentType===
+      Literals:
+      Internal: 'agentType(1,normal)','agentType(2,normal)'
+      All     : 'agentType(1,normal)','agentType(2,normal)'
+      Used    : 'agentType(1,normal)','agentType(2,normal)'
+      -----------------
+      ===FA_endOfQueue===
+      Literals:
+      Internal: 'endOfQueue(p1,t0)','endOfQueue(p1,t1)','endOfQueue(p1,t2)','endOfQueue(p2,t0)','endOfQueue(p2,t1)','endOfQueue(p2,t2)'
+      All     : 'endOfQueue(p1,t0)','endOfQueue(p1,t1)','endOfQueue(p1,t2)','endOfQueue(p2,t0)','endOfQueue(p2,t1)','endOfQueue(p2,t2)'
+      Used    : 'endOfQueue(p2,t0)'
+      -----------------
+      ===FA_inQueue===
+      Literals:
+      Internal: 'inQueue(1,p1,t0)','inQueue(1,p1,t1)','inQueue(1,p1,t2)','inQueue(1,p2,t0)','inQueue(1,p2,t1)','inQueue(1,p2,t2)','inQueue(2,p1,t0)','inQueue(2,p1,t1)','inQueue(2,p1,t2)','inQueue(2,p2,t0)','inQueue(2,p2,t1)','inQueue(2,p2,t2)'
+      All     : 'inQueue(1,p1,t0)','inQueue(1,p1,t1)','inQueue(1,p1,t2)','inQueue(1,p2,t0)','inQueue(1,p2,t1)','inQueue(1,p2,t2)','inQueue(2,p1,t0)','inQueue(2,p1,t1)','inQueue(2,p1,t2)','inQueue(2,p2,t0)','inQueue(2,p2,t1)','inQueue(2,p2,t2)'
+      Used    : 'inQueue(1,p1,t0)','inQueue(1,p1,t1)','inQueue(1,p1,t2)','inQueue(1,p2,t0)','inQueue(1,p2,t1)','inQueue(1,p2,t2)','inQueue(2,p1,t0)','inQueue(2,p1,t1)','inQueue(2,p1,t2)','inQueue(2,p2,t0)','inQueue(2,p2,t1)','inQueue(2,p2,t2)'
+      -----------------
+      ===FA_live===
+      Literals:
+      Internal: 'live(queue)'
+      All     : 'live(queue)'
+      Used    : 'live(queue)'
+      -----------------
+      ===FA_next===
+      Literals:
+      Internal: 'next(t0,t0)','next(t0,t1)','next(t0,t2)','next(t1,t0)','next(t1,t1)','next(t1,t2)','next(t2,t0)','next(t2,t1)','next(t2,t2)'
+      All     : 'next(t0,t0)','next(t0,t1)','next(t0,t2)','next(t1,t0)','next(t1,t1)','next(t1,t2)','next(t2,t0)','next(t2,t1)','next(t2,t2)'
+      Used    : 'next(t0,t1)','next(t1,t2)'
+      -----------------
+      ===NormFluent===
+      Literals:
+       NONE
+      SubTypes:
+         -----------------
+         ===Obl===
+         Literals:
+          NONE
+         -----------------
+         ===Perm===
+         Literals:
+         Internal: 'perm(iniMove(1,p1,t0))','perm(iniMove(1,p1,t1))','perm(iniMove(1,p1,t2))','perm(iniMove(1,p2,t0))','perm(iniMove(1,p2,t1))','perm(iniMove(1,p2,t2))','perm(iniMove(2,p1,t0))','perm(iniMove(2,p1,t1))','perm(iniMove(2,p1,t2))','perm(iniMove(2,p2,t0))','perm(iniMove(2,p2,t1))','perm(iniMove(2,p2,t2))','perm(iniMoved(1,p1,t0))','perm(iniMoved(1,p1,t1))','perm(iniMoved(1,p1,t2))','perm(iniMoved(1,p2,t0))','perm(iniMoved(1,p2,t1))','perm(iniMoved(1,p2,t2))','perm(iniMoved(2,p1,t0))','perm(iniMoved(2,p1,t1))','perm(iniMoved(2,p1,t2))','perm(iniMoved(2,p2,t0))','perm(iniMoved(2,p2,t1))','perm(iniMoved(2,p2,t2))','perm(move(1,p1,t0))','perm(move(1,p1,t1))','perm(move(1,p1,t2))','perm(move(1,p2,t0))','perm(move(1,p2,t1))','perm(move(1,p2,t2))','perm(move(2,p1,t0))','perm(move(2,p1,t1))','perm(move(2,p1,t2))','perm(move(2,p2,t0))','perm(move(2,p2,t1))','perm(move(2,p2,t2))','perm(newArrival(2,t1))'
+         All     : 'perm(iniMove(1,p1,t0))','perm(iniMove(1,p1,t1))','perm(iniMove(1,p1,t2))','perm(iniMove(1,p2,t0))','perm(iniMove(1,p2,t1))','perm(iniMove(1,p2,t2))','perm(iniMove(2,p1,t0))','perm(iniMove(2,p1,t1))','perm(iniMove(2,p1,t2))','perm(iniMove(2,p2,t0))','perm(iniMove(2,p2,t1))','perm(iniMove(2,p2,t2))','perm(iniMoved(1,p1,t0))','perm(iniMoved(1,p1,t1))','perm(iniMoved(1,p1,t2))','perm(iniMoved(1,p2,t0))','perm(iniMoved(1,p2,t1))','perm(iniMoved(1,p2,t2))','perm(iniMoved(2,p1,t0))','perm(iniMoved(2,p1,t1))','perm(iniMoved(2,p1,t2))','perm(iniMoved(2,p2,t0))','perm(iniMoved(2,p2,t1))','perm(iniMoved(2,p2,t2))','perm(move(1,p1,t0))','perm(move(1,p1,t1))','perm(move(1,p1,t2))','perm(move(1,p2,t0))','perm(move(1,p2,t1))','perm(move(1,p2,t2))','perm(move(2,p1,t0))','perm(move(2,p1,t1))','perm(move(2,p1,t2))','perm(move(2,p2,t0))','perm(move(2,p2,t1))','perm(move(2,p2,t2))','perm(newArrival(2,t1))'
+         Used    : 'perm(iniMove(1,p1,t0))','perm(iniMove(1,p1,t1))','perm(iniMove(1,p1,t2))','perm(iniMove(1,p2,t0))','perm(iniMove(1,p2,t1))','perm(iniMove(1,p2,t2))','perm(iniMove(2,p1,t0))','perm(iniMove(2,p1,t1))','perm(iniMove(2,p1,t2))','perm(iniMove(2,p2,t0))','perm(iniMove(2,p2,t1))','perm(iniMove(2,p2,t2))','perm(iniMoved(1,p1,t0))','perm(iniMoved(1,p1,t1))','perm(iniMoved(1,p1,t2))','perm(iniMoved(1,p2,t0))','perm(iniMoved(1,p2,t1))','perm(iniMoved(1,p2,t2))','perm(iniMoved(2,p1,t0))','perm(iniMoved(2,p1,t1))','perm(iniMoved(2,p1,t2))','perm(iniMoved(2,p2,t0))','perm(iniMoved(2,p2,t1))','perm(iniMoved(2,p2,t2))','perm(move(1,p1,t0))','perm(move(1,p1,t1))','perm(move(1,p1,t2))','perm(move(1,p2,t0))','perm(move(1,p2,t1))','perm(move(1,p2,t2))','perm(move(2,p1,t0))','perm(move(2,p1,t1))','perm(move(2,p1,t2))','perm(move(2,p2,t0))','perm(move(2,p2,t1))','perm(move(2,p2,t2))','perm(newArrival(2,t1))'
+         -----------------
+         ===Pow===
+         Literals:
+         Internal: 'pow(queue,iniMove(1,p1,t0))','pow(queue,iniMove(1,p1,t1))','pow(queue,iniMove(1,p1,t2))','pow(queue,iniMove(1,p2,t0))','pow(queue,iniMove(1,p2,t1))','pow(queue,iniMove(1,p2,t2))','pow(queue,iniMove(2,p1,t0))','pow(queue,iniMove(2,p1,t1))','pow(queue,iniMove(2,p1,t2))','pow(queue,iniMove(2,p2,t0))','pow(queue,iniMove(2,p2,t1))','pow(queue,iniMove(2,p2,t2))','pow(queue,iniMoved(1,p1,t0))','pow(queue,iniMoved(1,p1,t1))','pow(queue,iniMoved(1,p1,t2))','pow(queue,iniMoved(1,p2,t0))','pow(queue,iniMoved(1,p2,t1))','pow(queue,iniMoved(1,p2,t2))','pow(queue,iniMoved(2,p1,t0))','pow(queue,iniMoved(2,p1,t1))','pow(queue,iniMoved(2,p1,t2))','pow(queue,iniMoved(2,p2,t0))','pow(queue,iniMoved(2,p2,t1))','pow(queue,iniMoved(2,p2,t2))'
+         All     : 'pow(queue,iniMove(1,p1,t0))','pow(queue,iniMove(1,p1,t1))','pow(queue,iniMove(1,p1,t2))','pow(queue,iniMove(1,p2,t0))','pow(queue,iniMove(1,p2,t1))','pow(queue,iniMove(1,p2,t2))','pow(queue,iniMove(2,p1,t0))','pow(queue,iniMove(2,p1,t1))','pow(queue,iniMove(2,p1,t2))','pow(queue,iniMove(2,p2,t0))','pow(queue,iniMove(2,p2,t1))','pow(queue,iniMove(2,p2,t2))','pow(queue,iniMoved(1,p1,t0))','pow(queue,iniMoved(1,p1,t1))','pow(queue,iniMoved(1,p1,t2))','pow(queue,iniMoved(1,p2,t0))','pow(queue,iniMoved(1,p2,t1))','pow(queue,iniMoved(1,p2,t2))','pow(queue,iniMoved(2,p1,t0))','pow(queue,iniMoved(2,p1,t1))','pow(queue,iniMoved(2,p1,t2))','pow(queue,iniMoved(2,p2,t0))','pow(queue,iniMoved(2,p2,t1))','pow(queue,iniMoved(2,p2,t2))'
+         Used    : 'pow(queue,iniMove(1,p1,t0))','pow(queue,iniMove(1,p1,t1))','pow(queue,iniMove(1,p1,t2))','pow(queue,iniMove(1,p2,t0))','pow(queue,iniMove(1,p2,t1))','pow(queue,iniMove(1,p2,t2))','pow(queue,iniMove(2,p1,t0))','pow(queue,iniMove(2,p1,t1))','pow(queue,iniMove(2,p1,t2))','pow(queue,iniMove(2,p2,t0))','pow(queue,iniMove(2,p2,t1))','pow(queue,iniMove(2,p2,t2))','pow(queue,iniMoved(1,p1,t0))','pow(queue,iniMoved(1,p1,t1))','pow(queue,iniMoved(1,p1,t2))','pow(queue,iniMoved(1,p2,t0))','pow(queue,iniMoved(1,p2,t1))','pow(queue,iniMoved(1,p2,t2))','pow(queue,iniMoved(2,p1,t0))','pow(queue,iniMoved(2,p1,t1))','pow(queue,iniMoved(2,p1,t2))','pow(queue,iniMoved(2,p2,t0))','pow(queue,iniMoved(2,p2,t1))','pow(queue,iniMoved(2,p2,t2))'
+   -----------------
+   ===Inst===
+   Literals:
+   Internal: 'queue'
+   All     : 'queue'
+   Used    : 'queue'
+   -----------------
+   ===Position===
+   Literals:
+   Internal: 'p1','p2'
+   All     : 'p1','p2'
+   Used    : 'p1','p2'
+   -----------------
+   ===Time===
+   Literals:
+   Internal: 't0','t1','t2'
+   All     : 't0','t1','t2'
+   Used    : 't0','t1','t2'
+   -----------------
+   ===Type===
+   Literals:
+   Internal: 'normal'
+   All     : 'normal'
+   Used    : 'normal'

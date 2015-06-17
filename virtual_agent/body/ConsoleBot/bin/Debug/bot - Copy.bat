@@ -1,0 +1,9 @@
+ConsoleBot.exe -u uniofbath2 -p bathstudent
+ConsoleBot.exe -u uniofbath3 -p bathstudent
+ConsoleBot.exe -u uniofbath4 -p bathstudent
+ConsoleBot.exe -u uniofbath5 -p bathstudent
+ConsoleBot.exe -u bathuni1 -p bathstudent
+ConsoleBot.exe -u bathuni2 -p bathstudent
+ConsoleBot.exe -u bathuni3 -p bathstudent
+ConsoleBot.exe -u bathuni5 -p bathstudent
+ConsoleBot.exe -u bathuni6 -p bathstudent

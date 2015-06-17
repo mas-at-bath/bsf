@@ -1,0 +1,33 @@
+% institution name
+% dynamic institution established containing affected parties of the crash
+institution crashgroup;
+
+% types
+type Agent;    
+type Victim;
+type InsuranceState;
+type CrimeType;
+type PoliceUnit;
+type CollisionLaneMember;
+type FreeLaneMember;
+
+% events 
+exogenous event crashed(Agent, Victim);  
+inst event intClaimCompensation(Victim, Agent);
+inst event intRequestMerge(CollisionLaneMember, FreeLaneMember);
+
+% fluents 
+%% add agent to mergepairing, as there could be multiple accidents, plus this helps resolve info
+fluent mergePairing(CollisionLaneMember,FreeLaneMember, Agent);
+
+
+crashed(Agent, Victim) generates intClaimCompensation(Victim, Agent);
+crashed(Agent, Victim) generates intRequestMerge(CollisionLaneMember, FreeLaneMember) if mergePairing(CollisionLaneMember, FreeLaneMember, Agent);
+
+
+% initially 
+initially perm(intClaimCompensation(Victim, Agent)), pow(intClaimCompensation(Victim, Agent));
+initially perm(intRequestMerge(CollisionLaneMember, FreeLaneMember)), pow(intRequestMerge(CollisionLaneMember, FreeLaneMember));
+%initially mergePairing(centralMember3, centralMember6, centralMember1);
+%initially mergePairing(centralMember4, centralMember7, centralMember1);
+

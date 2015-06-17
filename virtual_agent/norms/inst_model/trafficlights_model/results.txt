@@ -1,0 +1,9 @@
+Answer: 1
+observed(upcomingRedLight(centralMember1),trafficlights,0) occurred(upcomingRedLight(centralMember1),trafficlights,0) occurred(viol(upcomingRedLight(centralMember1)),trafficlights,0) occurred(iniOblSlowDown(centralMember1),trafficlights,0) holdsat(obl(reduceSpeed(centralMember1),deadline,vioSlowDown(centralMember1)),trafficlights,1) 
+SATISFIABLE
+
+Models      : 1     
+Time        : 0.000
+  Prepare   : 0.000
+  Prepro.   : 0.000
+  Solving   : 0.000

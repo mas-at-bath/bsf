@@ -1,0 +1,54 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% VSL institution based on earlier queue_model
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+%%% institution vsl
+institution vsl;
+
+%%% component 
+type Agent;
+type Follower;
+type Position;
+type Speed;
+
+%%% exogenous event	
+exogenous event deadline; 
+exogenous event emergencyBrake(Agent);
+exogenous event slowDown(Follower, Speed);
+
+%%% institutional events
+inst event iniOblSlowDown(Agent);
+
+%%% obligations
+obligation fluent obl(slowDown(Follower, Speed), deadline, vioSlowDown(Follower));
+
+%%% violation event
+violation event vioSlowDown(Follower);
+
+%%% fluents
+fluent speedMode(Follower, Speed);
+fluent vehiclePosition(Follower, Position);
+
+emergencyBrake(Agent) generates iniOblSlowDown(Agent);
+%% if vehicle is p1 i.e. directly behind, slow it down alot
+iniOblSlowDown(Agent) initiates perm(slowDown(Follower,Speed)), obl(slowDown(Follower,slow), deadline, vioSlowDown(Follower)) if vehiclePosition(Follower,p1);
+%% if its in p2 slow it down to mediumSlow
+iniOblSlowDown(Agent) initiates perm(slowDown(Follower,Speed)), obl(slowDown(Follower,mediumSlow), deadline, vioSlowDown(Follower)) if vehiclePosition(Follower,p2);
+%% if its in p3 slow it down to medium
+iniOblSlowDown(Agent) initiates perm(slowDown(Follower,Speed)), obl(slowDown(Follower,medium), deadline, vioSlowDown(Follower)) if vehiclePosition(Follower,p3);
+
+
+%%% initiate permissions and empowerment  
+initially perm(deadline);
+initially perm(iniOblSlowDown(Agent)), pow(iniOblSlowDown(Agent));	
+
+initially speedMode(centralMember2, normal);
+initially speedMode(centralMember3, normal);
+initially speedMode(centralMember4, normal);
+
+%initially vehiclePosition(centralMember1, p2);
+%initially vehiclePosition(centralMember2, p1);
+%initially vehiclePosition(centralMember3, p3);
+
+

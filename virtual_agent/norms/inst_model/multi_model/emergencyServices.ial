@@ -1,0 +1,41 @@
+% institution name
+% institution with responsibility for police, fire, ambulance
+institution emergencyServices;
+
+% types
+type Agent;    
+type Victim;
+type InsuranceState;
+type CrimeType;
+type PoliceUnit;
+type CollisionLaneMember;
+type FreeLaneMember;
+
+% events 
+exogenous event crimeReport(Agent, CrimeType);  
+exogenous event dispatchUnit(Agent, PoliceUnit);
+exogenous event deadline; 
+
+%inst event intOblSendSinglePoliceUnit(Agent,PoliceUnit);
+
+%%% obligations
+obligation fluent obl(dispatchUnit(Agent, PoliceUnit), deadline, vioDispatchUnit(Agent, PoliceUnit));
+
+%%% violation event
+violation event vioDispatchUnit(Agent, PoliceUnit);
+
+% fluents 
+fluent crimeCommitted(Agent, CrimeType);
+
+crimeReport(Agent, CrimeType) initiates crimeCommitted(Agent, CrimeType);
+%crimeReport(Agent, CrimeType) generates intOblSendSinglePoliceUnit(Agent, PoliceUnit); %when crimeCommitted(Agent, noInsurance); %if light crime
+%intOblSendSinglePoliceUnit(Agent, PoliceUnit) initiates obl(dispatchUnit(Agent, policeUnit1), deadline, vioDispatchUnit(Agent, policeUnit1));
+obl(dispatchUnit(Agent, policeUnit1), deadline, vioDispatchUnit(Agent, policeUnit1)) when crimeCommitted(Agent, noInsurance);
+
+
+% initially 
+initially perm(deadline);
+initially perm(crimeReport(Agent, CrimeType));
+%initially perm(intOblSendSinglePoliceUnit(Agent, PoliceUnit)), pow(intOblSendSinglePoliceUnit(Agent, PoliceUnit));
+
+

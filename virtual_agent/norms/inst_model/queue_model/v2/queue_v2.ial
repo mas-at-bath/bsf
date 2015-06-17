@@ -1,0 +1,48 @@
+%%% institution queue 
+institution queue;
+
+%%% component 
+type Agent;
+type Position;
+%type Time; 
+type Type; 
+
+%%% creation event
+create event createQueue;
+
+%%% exogenous event
+exogenous event newArrival(Agent);     % agent arrives 
+exogenous event move(Agent,Position);   % Agent moves to Position . 
+
+%%% institutional events
+inst event iniMove(Agent,Position);       % Agent moves to Position. 
+inst event iniMoved(Agent,Position);      % Agent ALREADY moved to Position. 
+
+
+%%% fluents
+fluent inQueue(Agent,Position);     % Agent is at position Position in the queue . 
+fluent endOfQueue(Position);	    % Position is the end of current queue. 
+fluent agentType(Agent,Type);       % Agent's type is Type. 
+%fluent next(Time, Time);
+
+%%% rule 1: if new arrived agent is normal, then it becomes the new end of queue and update the corresponding fluents with the agent and queue. 
+newArrival(Agent) generates iniMove(Agent,Position) if agentType(Agent, normal), endOfQueue(Position);   
+iniMove(Agent,P) initiates perm(move(Agent,P)); 
+
+move(Agent, Position2) generates iniMoved(Agent,Position2);
+iniMoved(Agent, Position2) terminates inQueue(Agent, Position1) if inQueue(Agent, Position1); 
+iniMoved(Agent, Position2) initiates inQueue(Agent, Position2); 
+
+%%% initial states : let's start with only one agent 1 at position p1 in the queue at time 1. 
+initially inQueue(1,p1);
+initially endOfQueue(p2), agentType(1,normal), agentType(2,normal);  
+
+%%% initiate permissions and empowerment  
+initially pow(iniMove(Agent,Position)), pow(iniMoved(Agent,Position));
+initially perm(iniMove(Agent,Position)), perm(iniMoved(Agent,Position));
+
+
+%%% new agent 2 arrives at time 1, which is a normal agent.  
+initially perm(newArrival(2)), agentType(2,normal);
+
+

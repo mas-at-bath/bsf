@@ -1,0 +1,18 @@
+<map id="G" name="G">
+<area shape="rect" id="node1_0" href="./Term.html" title="jason.asSyntax.Term" alt="" coords="744,251,861,303"/>
+<area shape="rect" id="node3_1" href="./StringTerm.html" title="jason.asSyntax.StringTerm" alt="" coords="917,366,1035,418"/>
+<area shape="rect" id="node4_2" href="./PlanBody.html" title="jason.asSyntax.PlanBody" alt="" coords="1081,366,1199,418"/>
+<area shape="rect" id="node5_3" href="./ObjectTerm.html" title="jason.asSyntax.ObjectTerm" alt="" coords="1244,366,1369,418"/>
+<area shape="rect" id="node6_4" href="./NumberTerm.html" title="jason.asSyntax.NumberTerm" alt="" coords="734,366,871,418"/>
+<area shape="rect" id="node7_5" href="./LogicalFormula.html" title="jason.asSyntax.LogicalFormula" alt="" coords="53,366,205,418"/>
+<area shape="rect" id="node9_6" href="./ListTerm.html" title="jason.asSyntax.ListTerm" alt="" coords="343,366,460,418"/>
+<area shape="rect" id="node10_7" href="./DefaultTerm.html" title="jason.asSyntax.DefaultTerm" alt="" coords="1415,377,1529,407"/>
+<area shape="rect" id="node2_8" href="./Structure.html" title="jason.asSyntax.Structure" alt="" coords="939,14,1040,45"/>
+<area shape="rect" id="node8_9" href="./ListTermImpl.html" title="jason.asSyntax.ListTermImpl" alt="" coords="223,497,361,527"/>
+<area shape="rect" id="node11_10" href="./BinaryStructure.html" title="jason.asSyntax.BinaryStructure" alt="" coords="684,127,815,158"/>
+<area shape="rect" id="node12_11" href="./ArithFunctionTerm.html" title="jason.asSyntax.ArithFunctionTerm" alt="" coords="712,497,893,527"/>
+<area shape="rect" id="node13_12" href="../util/ToDOM.html" title="jason.util.ToDOM" alt="" coords="521,110,639,175"/>
+<area shape="rect" id="node14_13" href="http://java.sun.com/j2se/1.4.2/docs/api/java/lang/Cloneable.html" title="java.lang.Cloneable" alt="" coords="216,110,333,175"/>
+<area shape="rect" id="node16_14" href="http://java.sun.com/j2se/1.4.2/docs/api/java/lang/Comparable.html" title="java.lang.Comparable" alt="" coords="861,110,1022,175"/>
+<area shape="rect" id="node18_15" href="http://java.sun.com/j2se/1.4.2/docs/api/java/io/Serializable.html" title="java.io.Serializable" alt="" coords="1370,110,1491,175"/>
+</map>

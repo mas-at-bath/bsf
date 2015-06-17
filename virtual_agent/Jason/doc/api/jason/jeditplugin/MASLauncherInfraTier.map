@@ -1,0 +1,6 @@
+<map id="G" name="G">
+<area shape="rect" id="node1_0" href="../infra/centralised/CentralisedMASLauncherAnt.html" title="jason.infra.centralised.CentralisedMASLauncherAnt" alt="" coords="16,249,288,293"/>
+<area shape="rect" id="node2_1" href="../infra/jade/JadeMASLauncherAnt.html" title="jason.infra.jade.JadeMASLauncherAnt" alt="" coords="135,353,353,397"/>
+<area shape="rect" id="node3_2" href="./MASLauncherInfraTier.html" title="jason.jeditplugin.MASLauncherInfraTier" alt="" coords="136,137,352,189"/>
+<area shape="rect" id="node7_3" href="http://java.sun.com/j2se/1.4.2/docs/api/java/lang/Runnable.html" title="java.lang.Runnable" alt="" coords="185,11,303,77"/>
+</map>

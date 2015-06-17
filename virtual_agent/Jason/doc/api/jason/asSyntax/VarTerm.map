@@ -1,0 +1,10 @@
+<map id="G" name="G">
+<area shape="rect" id="node1_0" href="./VarTerm.html" title="jason.asSyntax.VarTerm" alt="" coords="444,126,543,157"/>
+<area shape="rect" id="node2_1" href="./UnnamedVar.html" title="jason.asSyntax.UnnamedVar" alt="" coords="425,222,561,253"/>
+<area shape="rect" id="node3_2" href="./StringTerm.html" title="jason.asSyntax.StringTerm" alt="" coords="15,11,134,63"/>
+<area shape="rect" id="node4_3" href="./PlanBody.html" title="jason.asSyntax.PlanBody" alt="" coords="180,11,297,63"/>
+<area shape="rect" id="node5_4" href="./ObjectTerm.html" title="jason.asSyntax.ObjectTerm" alt="" coords="343,11,468,63"/>
+<area shape="rect" id="node6_5" href="./NumberTerm.html" title="jason.asSyntax.NumberTerm" alt="" coords="514,11,651,63"/>
+<area shape="rect" id="node7_6" href="./LiteralImpl.html" title="jason.asSyntax.LiteralImpl" alt="" coords="697,22,809,53"/>
+<area shape="rect" id="node8_7" href="./ListTerm.html" title="jason.asSyntax.ListTerm" alt="" coords="855,11,972,63"/>
+</map>

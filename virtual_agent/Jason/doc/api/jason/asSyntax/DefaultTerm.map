@@ -1,0 +1,10 @@
+<map id="G" name="G">
+<area shape="rect" id="node1_0" href="./Term.html" title="jason.asSyntax.Term" alt="" coords="496,139,613,191"/>
+<area shape="rect" id="node7_1" href="./DefaultTerm.html" title="jason.asSyntax.DefaultTerm" alt="" coords="498,257,611,287"/>
+<area shape="rect" id="node2_2" href="./StringTermImpl.html" title="jason.asSyntax.StringTermImpl" alt="" coords="555,369,711,399"/>
+<area shape="rect" id="node3_3" href="./SourceInfo.html" title="jason.asSyntax.SourceInfo" alt="" coords="757,369,873,399"/>
+<area shape="rect" id="node4_4" href="./ObjectTermImpl.html" title="jason.asSyntax.ObjectTermImpl" alt="" coords="16,369,179,399"/>
+<area shape="rect" id="node5_5" href="./NumberTermImpl.html" title="jason.asSyntax.NumberTermImpl" alt="" coords="225,369,399,399"/>
+<area shape="rect" id="node6_6" href="./Literal.html" title="jason.asSyntax.Literal" alt="" coords="445,369,510,399"/>
+<area shape="rect" id="node8_7" href="http://java.sun.com/j2se/1.4.2/docs/api/java/io/Serializable.html" title="java.io.Serializable" alt="" coords="601,11,722,77"/>
+</map>

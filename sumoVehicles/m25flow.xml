@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<flows>
+<!-- so from data, longest vehicle length we have is 11.6m. From a note found on google, UK gov define > 12m for rigid vehicle, 16m for articulated. So we can define this as 'lorry' safely enough I think. 7m is a delivery van kind of length-->
+
+
+<vType id="normalVehicle" maxSpeed="40" length="4" guiShape="passenger"/>
+<vType id="vanVehicle" maxSpeed="40" length="5" guiShape="passenger/van"/>
+<vType id="lorry" maxSpeed="27" length="14" guiShape="transport"/>
+<vType id="delivery" maxSpeed="35" length="9" guiShape="delivery"/>
+
+<interval begin="0" end="900">
+<flow id="c0" type="normalVehicle" from="14394795" to="19825229" number="200" departSpeed="30" departLane="0" speedFactor="1" speedDev="0.1"/>
+</interval>
+<interval begin="0" end="900">
+<flow id="c1" type="normalVehicle" from="14394795" to="19825229" number="400" departSpeed="29" departLane="1" speedFactor="1" speedDev="0.1"/>
+</interval>
+<interval begin="0" end="900">
+<flow id="c2" type="normalVehicle" from="14394795" to="19825229" number="100" departSpeed="28" departLane="2" speedFactor="1" speedDev="0.1"/>
+</interval>
+
+<interval begin="0" end="900">
+<flow id="v2" type="vanVehicle" from="14394795" to="19825229" number="100" departSpeed="28" departLane="1" speedFactor="1" speedDev="0.1"/>
+</interval>
+<interval begin="0" end="900">
+<flow id="v1" type="vanVehicle" from="14394795" to="19825229" number="153" departSpeed="27" departLane="2" speedFactor="1" speedDev="0.1"/>
+</interval>
+
+<interval begin="0" end="900">
+<flow id="d2" type="delivery" from="14394795" to="19825229" number="63" departSpeed="27" departLane="2" speedFactor="1" speedDev="0.1"/>
+</interval>
+<interval begin="0" end="900">
+<flow id="d3" type="delivery" from="14394795" to="19825229" number="20" departSpeed="26" departLane="3" speedFactor="1" speedDev="0.1"/>
+</interval>
+
+<interval begin="0" end="900">
+<flow id="l3" type="lorry" from="14394795" to="19825229" number="69" departSpeed="25" departLane="3" speedFactor="1" speedDev="0.1"/>
+</interval>
+
+</flows>

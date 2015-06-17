@@ -1,0 +1,23 @@
+<map id="G" name="G">
+<area shape="rect" id="node1_0" href="./DefaultArithFunction.html" title="jason.asSemantics.DefaultArithFunction" alt="" coords="979,139,1117,170"/>
+<area shape="rect" id="node3_1" href="../functions/time.html" title="jason.functions.time" alt="" coords="16,233,83,277"/>
+<area shape="rect" id="node4_2" href="../functions/pi.html" title="jason.functions.pi" alt="" coords="128,233,195,277"/>
+<area shape="rect" id="node5_3" href="../functions/log.html" title="jason.functions.log" alt="" coords="240,233,307,277"/>
+<area shape="rect" id="node6_4" href="../functions/floor.html" title="jason.functions.floor" alt="" coords="352,233,419,277"/>
+<area shape="rect" id="node7_5" href="../functions/e.html" title="jason.functions.e" alt="" coords="464,233,531,277"/>
+<area shape="rect" id="node8_6" href="../functions/ceil.html" title="jason.functions.ceil" alt="" coords="576,233,643,277"/>
+<area shape="rect" id="node9_7" href="../functions/Sum.html" title="jason.functions.Sum" alt="" coords="688,233,755,277"/>
+<area shape="rect" id="node10_8" href="../functions/StdDev.html" title="jason.functions.StdDev" alt="" coords="801,233,890,277"/>
+<area shape="rect" id="node11_9" href="../functions/Sqrt.html" title="jason.functions.Sqrt" alt="" coords="936,233,1003,277"/>
+<area shape="rect" id="node12_10" href="../functions/RuleToFunction.html" title="jason.functions.RuleToFunction" alt="" coords="1048,233,1205,277"/>
+<area shape="rect" id="node13_11" href="../functions/Round.html" title="jason.functions.Round" alt="" coords="1251,233,1330,277"/>
+<area shape="rect" id="node14_12" href="../functions/Random.html" title="jason.functions.Random" alt="" coords="1375,233,1470,277"/>
+<area shape="rect" id="node15_13" href="../functions/Min.html" title="jason.functions.Min" alt="" coords="1516,233,1583,277"/>
+<area shape="rect" id="node16_14" href="../functions/Max.html" title="jason.functions.Max" alt="" coords="1628,233,1695,277"/>
+<area shape="rect" id="node17_15" href="../functions/Length.html" title="jason.functions.Length" alt="" coords="1741,233,1822,277"/>
+<area shape="rect" id="node18_16" href="../functions/Count.html" title="jason.functions.Count" alt="" coords="1867,233,1941,277"/>
+<area shape="rect" id="node19_17" href="../functions/Average.html" title="jason.functions.Average" alt="" coords="1986,233,2083,277"/>
+<area shape="rect" id="node20_18" href="../functions/Abs.html" title="jason.functions.Abs" alt="" coords="2129,233,2196,277"/>
+<area shape="rect" id="node2_19" href="./ArithFunction.html" title="jason.asSemantics.ArithFunction" alt="" coords="894,18,1029,70"/>
+<area shape="rect" id="node22_20" href="http://java.sun.com/j2se/1.4.2/docs/api/java/io/Serializable.html" title="java.io.Serializable" alt="" coords="1074,11,1195,77"/>
+</map>

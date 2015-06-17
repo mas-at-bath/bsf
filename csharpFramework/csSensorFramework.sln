@@ -1,0 +1,20 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "csSensorFramework", "csSensorFramework\csSensorFramework.csproj", "{935A40A3-0091-4BF2-A0EC-3AF8180C44FE}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{935A40A3-0091-4BF2-A0EC-3AF8180C44FE}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{935A40A3-0091-4BF2-A0EC-3AF8180C44FE}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{935A40A3-0091-4BF2-A0EC-3AF8180C44FE}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{935A40A3-0091-4BF2-A0EC-3AF8180C44FE}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

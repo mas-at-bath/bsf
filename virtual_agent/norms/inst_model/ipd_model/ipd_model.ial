@@ -1,0 +1,54 @@
+%%% institution
+institution ipd;
+
+%%% component
+type Agent;
+type Player;
+
+%%% Create Event
+create event createIPD;
+
+%%% exogenous event
+exogenous event detected(Player);
+exogenous event avoidCollision(Agent, Player);
+exogenous event greet(Agent, Player);
+exogenous event deadline;
+
+%%% normative events
+inst event intDetected(Player);
+
+%%% violation event
+violation event violpoliteness(Agent);
+
+%%% fluents
+fluent friends(Agent, Player);
+noninertial fluent lowIPD(Agent, Player);
+noninertial fluent highIPD(Agent, Player);
+
+%%% obligation fluents
+obligation fluent obl(avoidCollision(Agent, Player), deadline, violpoliteness(Agent));
+obligation fluent obl(greet(Agent,Player), deadline, violpoliteness(Agent));
+
+%%% generates rules
+detected(Player) generates intDetected(Player);
+
+%%% consequence rules
+lowIPD(Agent, Player) when friends(Agent, Player);
+highIPD(Agent, Player) when not lowIPD(Agent, Player);
+
+%intimate(Agent1, Agent2) when , lowIPD(Agent2, Agent1);
+%stranger(Agent1, Agent2) initiates highIPD(Agent1, Agent2), highIPD(Agent2, Agent1);
+
+intDetected(Player) initiates perm(avoidCollision(Agent, Player)), obl(avoidCollision(Agent, Player), deadline, violpoliteness(Agent)) if highIPD(Agent, Player);
+
+intDetected(Player) initiates perm(greet(Agent, Player)), obl(greet(Agent, Player), deadline, violpoliteness(Agent)) if lowIPD(Agent, Player);
+
+
+initially perm(detected(Player));
+initially perm(intDetected(Player));
+initially pow(intDetected(Player));
+
+%initially friends(jason1,player1);
+%initially friends(jason2,player1);
+
+

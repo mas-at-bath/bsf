@@ -1,0 +1,48 @@
+% institution name
+% insurance institution, details of affected parties sent to these guys? maybe if party didnt have insurance they get reported to police as well?
+institution insurer;
+% types
+type Agent;    
+type Victim;
+type InsuranceState;
+type CrimeType;
+type PoliceUnit;
+type CollisionLaneMember;
+type FreeLaneMember;
+
+
+% events 
+exogenous event checkInsurance(Agent);  
+exogenous event pay(Victim);
+exogenous event deadline; 
+
+%inst event intOblPay(Victim);
+%inst event intClaimCompensation(Victim, Agent);
+inst event intCrimeCommitted(Agent, CrimeType);
+
+
+%%% obligations
+obligation fluent obl(pay(Victim), deadline, vioPay(Victim));
+
+%%% violation event
+violation event vioPay(Victim);
+
+% fluents 
+fluent carInsuranceState(Agent,InsuranceState);
+fluent payee(Victim, Agent);
+
+%checkInsurance(Agent) generates intOblPay(Victim) if payee(Victim, Agent); %not availble in t0 so fails, use when instead
+obl(pay(Victim), deadline, vioPay(Victim)) when payee(Victim,Agent);
+checkInsurance(Agent) generates intCrimeCommitted(Agent, noInsurance) if carInsuranceState(Agent, invalid);
+%intOblPay(Victim) initiates obl(pay(Victim), deadline, vioPay(Victim)); % if vehiclePosition(Agent,p1);
+
+
+% initially 
+%initially payee(victim2,centralMember1);
+initially perm(deadline);
+initially perm(checkInsurance(Agent));
+%initially perm(intOblPay(Victim)), pow(intOblPay(Victim));	
+initially perm(intCrimeCommitted(Agent, CrimeType)), pow(intCrimeCommitted(Agent, CrimeType));
+initially carInsuranceState(centralMember1, invalid);
+%initially insuranceState(centralMember2, valid);
+

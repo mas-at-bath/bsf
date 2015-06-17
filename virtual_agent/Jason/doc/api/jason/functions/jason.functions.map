@@ -1,0 +1,20 @@
+<map id="G" name="G">
+<area shape="rect" id="node1_0" href="./time.html" title="jason.functions.time" alt="" coords="15,14,75,45"/>
+<area shape="rect" id="node2_1" href="./pi.html" title="jason.functions.pi" alt="" coords="128,14,165,45"/>
+<area shape="rect" id="node3_2" href="./log.html" title="jason.functions.log" alt="" coords="218,14,267,45"/>
+<area shape="rect" id="node4_3" href="./floor.html" title="jason.functions.floor" alt="" coords="314,14,374,45"/>
+<area shape="rect" id="node5_4" href="./e.html" title="jason.functions.e" alt="" coords="429,14,462,45"/>
+<area shape="rect" id="node6_5" href="./ceil.html" title="jason.functions.ceil" alt="" coords="517,14,569,45"/>
+<area shape="rect" id="node7_6" href="./Sum.html" title="jason.functions.Sum" alt="" coords="615,14,676,45"/>
+<area shape="rect" id="node8_7" href="./StdDev.html" title="jason.functions.StdDev" alt="" coords="722,14,811,45"/>
+<area shape="rect" id="node9_8" href="./Sqrt.html" title="jason.functions.Sqrt" alt="" coords="857,14,916,45"/>
+<area shape="rect" id="node10_9" href="./RuleToFunction.html" title="jason.functions.RuleToFunction" alt="" coords="961,14,1119,45"/>
+<area shape="rect" id="node11_10" href="./Round.html" title="jason.functions.Round" alt="" coords="1165,14,1243,45"/>
+<area shape="rect" id="node12_11" href="./Random.html" title="jason.functions.Random" alt="" coords="1289,14,1383,45"/>
+<area shape="rect" id="node13_12" href="./Min.html" title="jason.functions.Min" alt="" coords="1429,14,1483,45"/>
+<area shape="rect" id="node14_13" href="./Max.html" title="jason.functions.Max" alt="" coords="1529,14,1589,45"/>
+<area shape="rect" id="node15_14" href="./Length.html" title="jason.functions.Length" alt="" coords="1634,14,1715,45"/>
+<area shape="rect" id="node16_15" href="./Count.html" title="jason.functions.Count" alt="" coords="1761,14,1834,45"/>
+<area shape="rect" id="node17_16" href="./Average.html" title="jason.functions.Average" alt="" coords="1879,14,1977,45"/>
+<area shape="rect" id="node18_17" href="./Abs.html" title="jason.functions.Abs" alt="" coords="2022,14,2079,45"/>
+</map>

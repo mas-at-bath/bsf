@@ -1,0 +1,57 @@
+%% genasp" -d "domain.idc" -o "queueASP.lp" "queue.ial"
+
+%%% institution 
+institution queue;
+
+%%% component 
+type Agent;
+type Position;
+type Time; 
+type Type; 
+
+%%% creation event
+create event createQueue;
+
+%%% exogenous event
+exogenous event newArrival(Agent,Time);     % agent arrives at time Time    
+exogenous event move(Agent,Position,Time);   % agent ID moves to P at time Time. 
+
+%%% normative events
+inst event iniMove(Agent,Position,Time);       % agent ID movesto P2 at time Time. 
+inst event iniMoved(Agent,Position,Time);      % agent ID ALREADY moved to P2 at time Time. 
+
+
+%%% fluents
+fluent inQueue(Agent,Position,Time);     % agent ID is at position Position at time Time in the queue . 
+fluent endOfQueue(Position, Time);
+fluent agentType(Agent,Type); 
+fluent next(Time, Time);
+
+%%% rule 2: if new arrived agent is normal, then the agent A becomes the new end of queue and update the corresponding fluents with A. 
+newArrival(Agent,T) generates iniMove(Agent,Position,T) if agentType(Agent, normal), endOfQueue(Position, T);   
+iniMove(Agent,P,T) initiates perm(move(Agent,P,T)); 
+
+%move(Agent, Position2, T) generates iniMoved(Agent, Position1, Position2, T) if inQueue(Agent, Position1);
+%iniMoved(Agent, Position1, Position2, T) initiates inQueue(Agent, Position, T); 
+%iniMoved(Agent, Position1, Position2, T) terminates inQueue(Agent, Position1, T); 
+
+move(Agent, Position2, T) generates iniMoved(Agent,Position2, T);
+iniMoved(Agent, Position2, T) terminates inQueue(Agent, Position1, T) if inQueue(Agent, Position1, T); 
+iniMoved(Agent, Position2, T) initiates inQueue(Agent, Position2, T); 
+
+%%% initial states : let's start with only one agent 1 in the queue at time 1. 
+initially inQueue(1,p1,t0);
+initially endOfQueue(p2, t0), agentType(1,normal), agentType(2,normal);  
+
+%%% initiate permissions for exo-events 
+%initially perm(newArrival(Agent,Time));
+initially pow(iniMove(Agent,Position,T)), pow(iniMoved(Agent,Position,T));
+initially perm(iniMove(Agent,Position,T)), perm(iniMoved(Agent,Position,T));
+
+%%% others 
+initially next(t0,t1), next(t1,t2);
+
+%%% new agent 2 arrives at time 1, which is a normal agent.  
+initially perm(newArrival(2,t1)), agentType(2,normal);
+
+

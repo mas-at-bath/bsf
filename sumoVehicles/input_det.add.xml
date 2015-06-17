@@ -1,0 +1,7 @@
+<additional xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	    	<inductionLoop id="obs1" lane="14394795_2" pos="25.0" freq="0.5" file="detector1.xml"/>
+		<inductionLoop id="obs2" lane="14394795_2" pos="800.0" freq="0.5" file="detector2.xml"/>
+		<inductionLoop id="obs3" lane="34706943_2" pos="10.0" freq="0.5" file="detector3.xml"/>
+		<inductionLoop id="obs4" lane="34706943_2" pos="800.0" freq="0.5" file="detector3.xml"/>
+		<inductionLoop id="obs5" lane="188881551_2" pos="10.0" freq="0.5" file="detector3.xml"/>
+</additional>

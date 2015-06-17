@@ -1,0 +1,22 @@
+MAS convoyScenarioOne {
+
+	infrastructure: Centralised
+
+	environment: CustomXMPP.XMPPWorld
+
+	agents:	 
+
+	 kickStartVSL; //simple agent to kick start centralMembers to run their appropriate scenario
+	
+	 centralMember1 agentArchClass CustomXMPP.VehicleArch; 
+	 centralMember2 agentArchClass CustomXMPP.VehicleArch;
+	 centralMember3 agentArchClass CustomXMPP.VehicleArch;
+	 centralMember4 agentArchClass CustomXMPP.VehicleArch;
+	 centralMember5 agentArchClass CustomXMPP.VehicleArch;
+
+	//add [verbose=2] for debugging
+	
+	aslSourcePath: "asl";
+} 	                                                                 
+
+

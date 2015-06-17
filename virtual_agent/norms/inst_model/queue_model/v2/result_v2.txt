@@ -1,0 +1,9 @@
+Answer: 1
+occured(newArrival(2),t1) occured(createQueue,t0) occured(iniMove(2,p2),t1) 
+SATISFIABLE
+
+Models      : 1     
+Time        : 0.010
+  Prepare   : 0.010
+  Prepro.   : 0.000
+  Solving   : 0.000

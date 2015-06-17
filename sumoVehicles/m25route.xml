@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<vType id="brokenVeh" maxSpeed="0.001" color="0,1,0" minGap="1" tau="3" sigma="1.65" length="4.00"/>
+	<!--vType id="BSFCar" maxSpeed="40.0" color="1,0,0"/-->
+
+	<!--replace BSF car with normalCar params for VSL example-->
+	<vType id="BSFCar" length="4.00" maxSpeed="40.00" guiShape="passenger" speedFactor="1.3" tau="3" sigma="1.65" accel="4.6" minGap="0.1" color="1,0.3,0.3"/>
+
+  <route id="dummyRoute" departLane="2" edges="14394795 34706943">
+	<stop lane="14394795_2" endPos="28" duration="50000"/>
+  </route>
+  <route id="m25" departLane="2" edges="14394795 34706943 188881551 23189135 140992312 3256124 131470133 23189048 4837085 19825229">
+  </route>
+
+</routes>

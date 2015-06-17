@@ -1,0 +1,245 @@
+-----------------
+===ANY===
+Literals:
+ NONE
+SubTypes:
+   -----------------
+   ===Agent===
+   Literals:
+   Internal: 'jason'
+   All     : 'jason'
+   Used    : 'jason'
+   -----------------
+   ===EvType===
+   Literals:
+   Internal: 'act','ex','viol'
+   All     : 'act','ex','viol'
+   Used    : 
+   -----------------
+   ===Event===
+   Literals:
+    NONE
+   SubTypes:
+      -----------------
+      ===EV_createQueue===
+      Literals:
+      Internal: 'createQueue'
+      All     : 'createQueue'
+      Used    : 'createQueue'
+      -----------------
+      ===EV_deadline===
+      Literals:
+      Internal: 'deadline'
+      All     : 'deadline'
+      Used    : 'deadline'
+      -----------------
+      ===EV_detectDisable===
+      Literals:
+      Internal: 'detectDisable(jason)'
+      All     : 'detectDisable(jason)'
+      Used    : 'detectDisable(jason)'
+      -----------------
+      ===EV_iniOblQueueLast===
+      Literals:
+      Internal: 'iniOblQueueLast(jason,disable)','iniOblQueueLast(jason,normal)'
+      All     : 'iniOblQueueLast(jason,disable)','iniOblQueueLast(jason,normal)'
+      Used    : 'iniOblQueueLast(jason,disable)','iniOblQueueLast(jason,normal)'
+      -----------------
+      ===EV_iniOblYield===
+      Literals:
+      Internal: 'iniOblYield(jason)'
+      All     : 'iniOblYield(jason)'
+      Used    : 'iniOblYield(jason)'
+      -----------------
+      ===EV_newArrival===
+      Literals:
+      Internal: 'newArrival(jason,disable)','newArrival(jason,normal)'
+      All     : 'newArrival(jason,disable)','newArrival(jason,normal)'
+      Used    : 'newArrival(jason,disable)','newArrival(jason,normal)'
+      -----------------
+      ===EV_queueLast===
+      Literals:
+      Internal: 'queueLast(jason)'
+      All     : 'queueLast(jason)'
+      Used    : 'queueLast(jason)'
+      -----------------
+      ===EV_vioQueue===
+      Literals:
+      Internal: 'vioQueue(jason)'
+      All     : 'vioQueue(jason)'
+      Used    : 
+      -----------------
+      ===EV_vioYield===
+      Literals:
+      Internal: 'vioYield(jason)'
+      All     : 'vioYield(jason)'
+      Used    : 
+      -----------------
+      ===EV_yield===
+      Literals:
+      Internal: 'yield(jason)'
+      All     : 'yield(jason)'
+      Used    : 'yield(jason)'
+      -----------------
+      ===ViolEvent===
+      Literals:
+       NONE
+      SubTypes:
+         -----------------
+         ===EV_VIOL__viol_createQueue===
+         Literals:
+         Internal: '_viol_createQueue'
+         All     : '_viol_createQueue'
+         Used    : 
+         -----------------
+         ===EV_VIOL__viol_deadline===
+         Literals:
+         Internal: '_viol_deadline'
+         All     : '_viol_deadline'
+         Used    : 
+         -----------------
+         ===EV_VIOL__viol_detectDisable===
+         Literals:
+         Internal: '_viol_detectDisable(jason)'
+         All     : '_viol_detectDisable(jason)'
+         Used    : 
+         -----------------
+         ===EV_VIOL__viol_iniOblQueueLast===
+         Literals:
+         Internal: '_viol_iniOblQueueLast(jason,disable)','_viol_iniOblQueueLast(jason,normal)'
+         All     : '_viol_iniOblQueueLast(jason,disable)','_viol_iniOblQueueLast(jason,normal)'
+         Used    : 
+         -----------------
+         ===EV_VIOL__viol_iniOblYield===
+         Literals:
+         Internal: '_viol_iniOblYield(jason)'
+         All     : '_viol_iniOblYield(jason)'
+         Used    : 
+         -----------------
+         ===EV_VIOL__viol_newArrival===
+         Literals:
+         Internal: '_viol_newArrival(jason,disable)','_viol_newArrival(jason,normal)'
+         All     : '_viol_newArrival(jason,disable)','_viol_newArrival(jason,normal)'
+         Used    : 
+         -----------------
+         ===EV_VIOL__viol_queueLast===
+         Literals:
+         Internal: '_viol_queueLast(jason)'
+         All     : '_viol_queueLast(jason)'
+         Used    : 
+         -----------------
+         ===EV_VIOL__viol_yield===
+         Literals:
+         Internal: '_viol_yield(jason)'
+         All     : '_viol_yield(jason)'
+         Used    : 
+   -----------------
+   ===Fluent===
+   Literals:
+    NONE
+   SubTypes:
+      -----------------
+      ===DomFluent===
+      Literals:
+       NONE
+      -----------------
+      ===FA__PERM_createQueue===
+      Literals:
+      Internal: '_PERM_createQueue'
+      All     : '_PERM_createQueue'
+      Used    : 
+      -----------------
+      ===FA__PERM_deadline===
+      Literals:
+      Internal: '_PERM_deadline'
+      All     : '_PERM_deadline'
+      Used    : 
+      -----------------
+      ===FA__PERM_detectDisable===
+      Literals:
+      Internal: '_PERM_detectDisable'
+      All     : '_PERM_detectDisable'
+      Used    : 
+      -----------------
+      ===FA__PERM_iniOblQueueLast===
+      Literals:
+      Internal: '_PERM_iniOblQueueLast'
+      All     : '_PERM_iniOblQueueLast'
+      Used    : 
+      -----------------
+      ===FA__PERM_iniOblYield===
+      Literals:
+      Internal: '_PERM_iniOblYield'
+      All     : '_PERM_iniOblYield'
+      Used    : 
+      -----------------
+      ===FA__PERM_newArrival===
+      Literals:
+      Internal: '_PERM_newArrival'
+      All     : '_PERM_newArrival'
+      Used    : 
+      -----------------
+      ===FA__PERM_queueLast===
+      Literals:
+      Internal: '_PERM_queueLast'
+      All     : '_PERM_queueLast'
+      Used    : 
+      -----------------
+      ===FA__PERM_yield===
+      Literals:
+      Internal: '_PERM_yield'
+      All     : '_PERM_yield'
+      Used    : 
+      -----------------
+      ===FA__POW_iniOblQueueLast===
+      Literals:
+      Internal: '_POW_iniOblQueueLast'
+      All     : '_POW_iniOblQueueLast'
+      Used    : 
+      -----------------
+      ===FA__POW_iniOblYield===
+      Literals:
+      Internal: '_POW_iniOblYield'
+      All     : '_POW_iniOblYield'
+      Used    : 
+      -----------------
+      ===FA_live===
+      Literals:
+      Internal: 'live(queue)'
+      All     : 'live(queue)'
+      Used    : 'live(queue)'
+      -----------------
+      ===NormFluent===
+      Literals:
+       NONE
+      SubTypes:
+         -----------------
+         ===Obl===
+         Literals:
+         Internal: 'obl(queueLast(jason),deadline,vioQueue(jason))','obl(yield(jason),deadline,vioYield(jason))'
+         All     : 'obl(queueLast(jason),deadline,vioQueue(jason))','obl(yield(jason),deadline,vioYield(jason))'
+         Used    : 'obl(queueLast(jason),deadline,vioQueue(jason))','obl(yield(jason),deadline,vioYield(jason))'
+         -----------------
+         ===Perm===
+         Literals:
+         Internal: 'perm(deadline)','perm(detectDisable(jason))','perm(iniOblQueueLast(jason,disable))','perm(iniOblQueueLast(jason,normal))','perm(iniOblYield(jason))','perm(newArrival(jason,disable))','perm(newArrival(jason,normal))','perm(queueLast(jason))','perm(yield(jason))'
+         All     : 'perm(deadline)','perm(detectDisable(jason))','perm(iniOblQueueLast(jason,disable))','perm(iniOblQueueLast(jason,normal))','perm(iniOblYield(jason))','perm(newArrival(jason,disable))','perm(newArrival(jason,normal))','perm(queueLast(jason))','perm(yield(jason))'
+         Used    : 'perm(deadline)','perm(detectDisable(jason))','perm(iniOblQueueLast(jason,disable))','perm(iniOblQueueLast(jason,normal))','perm(iniOblYield(jason))','perm(newArrival(jason,disable))','perm(newArrival(jason,normal))','perm(queueLast(jason))','perm(yield(jason))'
+         -----------------
+         ===Pow===
+         Literals:
+         Internal: 'pow(queue,iniOblQueueLast(jason,disable))','pow(queue,iniOblQueueLast(jason,normal))','pow(queue,iniOblYield(jason))'
+         All     : 'pow(queue,iniOblQueueLast(jason,disable))','pow(queue,iniOblQueueLast(jason,normal))','pow(queue,iniOblYield(jason))'
+         Used    : 'pow(queue,iniOblQueueLast(jason,disable))','pow(queue,iniOblQueueLast(jason,normal))','pow(queue,iniOblYield(jason))'
+   -----------------
+   ===Inst===
+   Literals:
+   Internal: 'queue'
+   All     : 'queue'
+   Used    : 'queue'
+   -----------------
+   ===Type===
+   Literals:
+   Internal: 'disable','normal'
+   All     : 'disable','normal'
+   Used    : 'disable','normal'

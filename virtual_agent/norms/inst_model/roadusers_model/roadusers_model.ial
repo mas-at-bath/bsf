@@ -1,0 +1,36 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Roadusers institution based on earlier queue_model
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%% institution roadusers 
+institution roadusers;
+
+%%% component 
+type Agent;
+
+%%% exogenous event
+exogenous event deadline; 
+exogenous event changeLane(Agent);
+exogenous event flashLights(Agent);
+
+%%% obligations
+obligation fluent obl(changeLane(Agent), deadline, vioMove(Agent));
+
+%%% institutional events
+inst event iniOblChangeLane(Agent);
+
+%%% violation event
+violation event vioMove(Agent); 
+
+%%% fluents
+
+%%% rule 1: for new arrival agent %%% 
+flashLights(Agent) generates iniOblChangeLane(Agent);
+iniOblChangeLane(Agent) initiates perm(changeLane(Agent)), obl(changeLane(Agent), deadline, vioMove(Agent));
+
+%%% initiate permissions and empowerment  
+initially perm(deadline);
+%initially perm(flashLights(Agent));
+initially perm(iniOblChangeLane(Agent)), pow(iniOblChangeLane(Agent));

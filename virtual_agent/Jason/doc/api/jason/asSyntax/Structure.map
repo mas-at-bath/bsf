@@ -1,0 +1,13 @@
+<map id="G" name="G">
+<area shape="rect" id="node1_0" href="./Trigger.html" title="jason.asSyntax.Trigger" alt="" coords="16,331,101,362"/>
+<area shape="rect" id="node2_1" href="./Term.html" title="jason.asSyntax.Term" alt="" coords="999,321,1116,373"/>
+<area shape="rect" id="node3_2" href="./Structure.html" title="jason.asSyntax.Structure" alt="" coords="484,113,585,143"/>
+<area shape="rect" id="node4_3" href="./Pred.html" title="jason.asSyntax.Pred" alt="" coords="156,331,220,362"/>
+<area shape="rect" id="node5_4" href="./PlanBodyImpl.html" title="jason.asSyntax.PlanBodyImpl" alt="" coords="255,211,399,242"/>
+<area shape="rect" id="node6_5" href="./Plan.html" title="jason.asSyntax.Plan" alt="" coords="98,211,158,242"/>
+<area shape="rect" id="node7_6" href="./ListTermImpl.html" title="jason.asSyntax.ListTermImpl" alt="" coords="989,211,1126,242"/>
+<area shape="rect" id="node8_7" href="./InternalActionLiteral.html" title="jason.asSyntax.InternalActionLiteral" alt="" coords="750,211,943,242"/>
+<area shape="rect" id="node9_8" href="./BinaryStructure.html" title="jason.asSyntax.BinaryStructure" alt="" coords="1172,211,1303,242"/>
+<area shape="rect" id="node11_9" href="./ArithFunctionTerm.html" title="jason.asSyntax.ArithFunctionTerm" alt="" coords="444,211,625,242"/>
+<area shape="rect" id="node10_10" href="./Atom.html" title="jason.asSyntax.Atom" alt="" coords="500,14,569,45"/>
+</map>

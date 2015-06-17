@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<!-- generated on 10/20/13 19:19:18 by SUMO duarouter Version 0.18.0
+<?xml version="1.0" encoding="UTF-8"?>
+
+<configuration xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/duarouterConfiguration.xsd">
+
+    <input>
+        <net-file value="m25j10.net"/>
+        <trip-files value="m25-trips.xml"/>
+    </input>
+
+    <output>
+        <output-file value="m25route.xml"/>
+    </output>
+
+    <processing>
+        <ignore-errors value="true"/>
+    </processing>
+
+</configuration>
+-->
+
+<routes xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="http://sumo.sf.net/xsd/routes_file.xsd">
+    <vehicle id="0" depart="0.00">
+        <routeDistribution last="0">
+            <route cost="418.72" probability="1.00000000" edges="14394795 34706943 188881551 23189135 140992312 131764939 145474183 34705057 23406864#2 23406864#3 23406864#4 23406864#5 23406864#6 34705152#0 34705152#1 131470133 23189048 4837085 19825229"/>
+        </routeDistribution>
+    </vehicle>
+    <vehicle id="1" depart="1.00">
+        <routeDistribution last="0">
+            <route cost="418.72" probability="1.00000000" edges="14394795 34706943 188881551 23189135 140992312 131764939 145474183 34705057 23406864#2 23406864#3 23406864#4 23406864#5 23406864#6 34705152#0 34705152#1 131470133 23189048 4837085 19825229"/>
+        </routeDistribution>
+    </vehicle>
+    <vehicle id="2" depart="2.00">
+        <routeDistribution last="0">
+            <route cost="418.72" probability="1.00000000" edges="14394795 34706943 188881551 23189135 140992312 131764939 145474183 34705057 23406864#2 23406864#3 23406864#4 23406864#5 23406864#6 34705152#0 34705152#1 131470133 23189048 4837085 19825229"/>
+        </routeDistribution>
+    </vehicle>
+    <vehicle id="3" depart="3.00">
+        <routeDistribution last="0">
+            <route cost="418.72" probability="1.00000000" edges="14394795 34706943 188881551 23189135 140992312 131764939 145474183 34705057 23406864#2 23406864#3 23406864#4 23406864#5 23406864#6 34705152#0 34705152#1 131470133 23189048 4837085 19825229"/>
+        </routeDistribution>
+    </vehicle>
+    <vehicle id="4" depart="4.00">
+        <routeDistribution last="0">
+            <route cost="418.72" probability="1.00000000" edges="14394795 34706943 188881551 23189135 140992312 131764939 145474183 34705057 23406864#2 23406864#3 23406864#4 23406864#5 23406864#6 34705152#0 34705152#1 131470133 23189048 4837085 19825229"/>
+        </routeDistribution>
+    </vehicle>
+    <vehicle id="5" depart="5.00">
+        <routeDistribution last="0">
+            <route cost="418.72" probability="1.00000000" edges="14394795 34706943 188881551 23189135 140992312 131764939 145474183 34705057 23406864#2 23406864#3 23406864#4 23406864#5 23406864#6 34705152#0 34705152#1 131470133 23189048 4837085 19825229"/>
+        </routeDistribution>
+    </vehicle>
+</routes>

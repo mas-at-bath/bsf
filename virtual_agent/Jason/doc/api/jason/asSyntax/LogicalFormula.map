@@ -1,0 +1,11 @@
+<map id="G" name="G">
+<area shape="rect" id="node1_0" href="./Term.html" title="jason.asSyntax.Term" alt="" coords="123,139,240,191"/>
+<area shape="rect" id="node5_1" href="./LogicalFormula.html" title="jason.asSyntax.LogicalFormula" alt="" coords="189,267,341,319"/>
+<area shape="rect" id="node2_2" href="./Rule.html" title="jason.asSyntax.Rule" alt="" coords="16,150,77,181"/>
+<area shape="rect" id="node3_3" href="./RelExpr.html" title="jason.asSyntax.RelExpr" alt="" coords="17,385,109,415"/>
+<area shape="rect" id="node4_4" href="./Plan.html" title="jason.asSyntax.Plan" alt="" coords="286,150,346,181"/>
+<area shape="rect" id="node6_5" href="./LogExpr.html" title="jason.asSyntax.LogExpr" alt="" coords="155,385,251,415"/>
+<area shape="rect" id="node7_6" href="./Literal.html" title="jason.asSyntax.Literal" alt="" coords="297,385,362,415"/>
+<area shape="rect" id="node8_7" href="./InternalActionLiteral.html" title="jason.asSyntax.InternalActionLiteral" alt="" coords="407,385,601,415"/>
+<area shape="rect" id="node9_8" href="http://java.sun.com/j2se/1.4.2/docs/api/java/lang/Cloneable.html" title="java.lang.Cloneable" alt="" coords="257,11,375,77"/>
+</map>

@@ -1,0 +1,12 @@
+<map id="G" name="G">
+<area shape="rect" id="node1_0" href="./Trigger.html" title="jason.asSyntax.Trigger" alt="" coords="288,275,373,306"/>
+<area shape="rect" id="node2_1" href="./Structure.html" title="jason.asSyntax.Structure" alt="" coords="111,29,212,59"/>
+<area shape="rect" id="node4_2" href="./Pred.html" title="jason.asSyntax.Pred" alt="" coords="16,275,80,306"/>
+<area shape="rect" id="node7_3" href="./Plan.html" title="jason.asSyntax.Plan" alt="" coords="287,155,347,186"/>
+<area shape="rect" id="node3_4" href="./SourceInfo.html" title="jason.asSyntax.SourceInfo" alt="" coords="419,275,535,306"/>
+<area shape="rect" id="node5_5" href="./PlanLibrary.html" title="jason.asSyntax.PlanLibrary" alt="" coords="258,29,377,59"/>
+<area shape="rect" id="node6_6" href="./PlanBody.html" title="jason.asSyntax.PlanBody" alt="" coords="125,265,243,317"/>
+<area shape="rect" id="node8_7" href="./LogicalFormula.html" title="jason.asSyntax.LogicalFormula" alt="" coords="581,265,733,317"/>
+<area shape="rect" id="node10_8" href="http://java.sun.com/j2se/1.4.2/docs/api/java/lang/Cloneable.html" title="java.lang.Cloneable" alt="" coords="589,11,707,77"/>
+<area shape="rect" id="node12_9" href="http://java.sun.com/j2se/1.4.2/docs/api/java/io/Serializable.html" title="java.io.Serializable" alt="" coords="422,11,543,77"/>
+</map>

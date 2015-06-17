@@ -1,0 +1,33 @@
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+% Roadusers institution based on earlier queue_model
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+%%% institution trafficlights 
+institution trafficlights;
+
+%%% component 
+type Agent;
+
+%%% exogenous event
+exogenous event deadline; 
+exogenous event reduceSpeed(Agent);
+exogenous event upcomingRedLight(Agent);
+
+%%% obligations
+obligation fluent obl(reduceSpeed(Agent), deadline, vioSlowDown(Agent));
+
+%%% institutional events
+inst event iniOblSlowDown(Agent);
+
+%%% violation event
+violation event vioSlowDown(Agent); 
+
+%%% rule 1: for new arrival agent %%% 
+upcomingRedLight(Agent) generates iniOblSlowDown(Agent);
+iniOblSlowDown(Agent) initiates perm(reduceSpeed(Agent)), obl(reduceSpeed(Agent), deadline, vioSlowDown(Agent));
+
+%%% initiate permissions and empowerment  
+initially perm(deadline);
+initially perm(iniOblSlowDown(Agent)), pow(iniOblSlowDown(Agent));

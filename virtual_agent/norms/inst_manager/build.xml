@@ -1,0 +1,135 @@
+<project name="MyProject" default="dist" basedir="." xmlns:sonar="antlib:org.sonar.ant">
+    <description>
+        Norms build file
+    </description>
+  <!-- set global properties for this build -->
+  <property name="src" location="src"/>
+  <property name="build" location="build"/>
+  <property name="dist"  location="dist"/>
+  
+<!-- Define the Sonar properties -->
+<property name="sonar.projectKey" value="org.codehaus.sonar:inst_manager" />
+<property name="sonar.projectName" value="BSF inst_manager component" />
+<property name="sonar.projectVersion" value="1.0" />
+<property name="sonar.language" value="java" />
+<property name="sonar.sources" value="src" />
+<property name="sonar.binaries" value="build" />
+<property name="sonar.sourceEncoding" value="UTF-8" />
+<property name="sonar.jdbc.url" value="jdbc:mysql://localhost:3306/sonar?useUnicode=true&amp;characterEncoding=utf8" />
+<property name="sonar.jdbc.driverClassName" value="com.mysql.jdbc.Driver" />
+<property name="sonar.jdbc.username" value="sonar" />
+<property name="sonar.jdbc.password" value="sonar" />
+
+  <path id="project.class.path">
+    <fileset dir="../../../javaFramework/lib/smack">
+        <include name="**/*.jar" />
+    </fileset>
+    <fileset dir="../../../javaFramework/lib/jena">
+        <include name="**/*.jar" />
+    </fileset>
+    <fileset dir="../../../javaFramework/lib/json">
+        <include name="**/*.jar" />
+    </fileset>
+    <fileset dir="../../../javaFramework/lib/sonar">
+        <include name="**/*.jar" />
+    </fileset>
+      <fileset erroronmissingdir="false" dir="../../../javaFramework/dist">
+        <include name="**/*.jar" />
+    </fileset>
+
+    <fileset dir="./lib">
+        <include name="**/*.jar" />
+    </fileset>
+	
+  </path>
+  
+  <property name="dep_cp" value="${toString:project.class.path}" />
+
+  <target name="init">
+    <!-- Create the build directory structure used by compile -->
+    <mkdir dir="${build}"/>
+    <mkdir dir="${dist}"/>
+  </target>
+
+  <target name="compile" depends="init"
+        description="compile the source " >
+
+    <javac srcdir="${src}" destdir="${build}" includeantruntime="false">
+	<classpath refid="project.class.path"/>
+    </javac>
+  </target>
+
+  <target name="dist" depends="compile"
+        description="generate the distribution" >
+    <!-- Create the distribution directory -->
+    <mkdir dir="${dist}"/>
+	    <copy todir="${dist}" flatten="true">
+	<path>
+		<pathelement path="${dep_cp}"/>
+	</path>
+    </copy>
+    <!-- Now can set up the paths for these jar files -->  
+    <path id="dist-classpath">
+	<fileset dir="${dist}">
+		<include name="**/*.jar" />
+	</fileset>
+    </path>
+    <property name="dist_cp" value="${toString:dist-classpath}" />
+    <manifestclasspath property="lib.list" jarfile="inst.jar">
+	<classpath refid="dist-classpath" />
+    </manifestclasspath>
+
+    <!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
+    <jar jarfile="${dist}/inst.jar" basedir="${build}">
+	<manifest>
+                <attribute name="Main-Class" value="edu.bath.InstManager"/>
+		<attribute name="Class-Path" value=". ${lib.list}"/>
+        </manifest>
+	</jar>
+  </target>
+  
+    <target name="roadusers-inst" depends="dist" description="Run Roadusers Institution" >
+       <!--echo message="Dist Classpath: ${dist_cp}" /-->
+        <!-- There might be a tidier way to do this, but using java -jar ignores classpath it seems -->
+	<java fork="true" classpath="${dist_cp}" classname="edu.bath.InstManager"> 
+		<arg line="192.168.0.8 instmanager jasonpassword roadusers_model.ial roadusers_model"/>
+	</java>
+    </target>
+
+    <target name="trafficlights-inst" depends="dist" description="Run Traffic Lights Institution" >
+       <!--echo message="Dist Classpath: ${dist_cp}" /-->
+        <!-- There might be a tidier way to do this, but using java -jar ignores classpath it seems -->
+	<java fork="true" classpath="${dist_cp}" classname="edu.bath.InstManager"> 
+		<arg line="192.168.0.8 instmanager jasonpassword trafficlights_model.ial trafficlights_model"/>
+	</java>
+    </target>
+
+    <target name="vsl-inst" depends="dist" description="Run Variable Speed Limit Institution" >
+	<java fork="true" classpath="${dist_cp}" classname="edu.bath.InstManager"> 
+		<arg line="192.168.0.8 instmanager jasonpassword vsl_model.ial vsl_model"/>
+	</java>
+    </target>
+
+    <target name="multi-inst" depends="dist" description="Run Accident Multiple-Institution" >
+	<java fork="true" classpath="${dist_cp}" classname="edu.bath.InstManager"> 
+		<arg line="192.168.0.8 instmanager jasonpassword multi_model.ial multi_model"/>
+	</java>
+    </target>
+
+<target name="sonar" depends="compile" description="Perform sonar code analysis">
+    <taskdef uri="antlib:org.sonar.ant" resource="org/sonar/ant/antlib.xml">
+	<classpath refid="project.class.path"/>
+    </taskdef>
+ 
+    <!-- Execute Sonar -->
+    <sonar:sonar />
+</target>
+
+
+  <target name="clean"
+        description="clean up" >
+    <!-- Delete the ${build} and ${dist} directory trees -->
+    <delete failonerror="no" dir="${build}"/>
+    <delete failonerror="no" dir="${dist}"/>
+  </target>
+</project>

@@ -1,0 +1,72 @@
+<project name="BSF" default="build" basedir=".">
+    <description>
+        Core BSF build file
+    </description>
+  
+  <target name="build">
+	<ant antfile="build.xml" dir="./javaFramework" target="dist" inheritrefs="false" inheritall="false"/>
+	<ant antfile="build.xml" dir="./rdfUtils" target="dist" inheritrefs="false" inheritall="false"/>
+	<ant antfile="build.xml" dir="./xmppVehicle" target="dist" inheritrefs="false" inheritall="false"/>
+	<ant antfile="build.xml" dir="./convoyScenario" target="dist" inheritrefs="false" inheritall="false"/>
+	<ant antfile="build.xml" dir="./xmppViewer" target="compile" inheritrefs="false" inheritall="false"/>
+	<ant antfile="build.xml" dir="./sumoVehicles" target="dist" inheritrefs="false" inheritall="false"/>
+	<ant antfile="build.xml" dir="./testharness" target="dist" inheritrefs="false" inheritall="false"/>
+	<ant antfile="build.xml" dir="./areaOfInterest" target="dist" inheritrefs="false" inheritall="false"/>
+	<ant antfile="build.xml" dir="./asterisk" target="dist" inheritrefs="false" inheritall="false"/>
+	<ant antfile="build.xml" dir="./hue" target="dist" inheritrefs="false" inheritall="false"/>
+	<ant antfile="build.xml" dir="./tivo" target="dist" inheritrefs="false" inheritall="false"/>
+	<ant antfile="build.xml" dir="./virtual_agent/norms/inst_manager" target="dist" inheritrefs="false" inheritall="false"/>
+  </target>
+  
+    <target name="clean">
+  	<ant antfile="build.xml" dir="./javaFramework" target="clean" inheritrefs="false" inheritall="false"/>
+	<ant antfile="build.xml" dir="./rdfUtils" target="clean" inheritrefs="false" inheritall="false"/>	
+	<ant antfile="build.xml" dir="./xmppVehicle" target="clean" inheritrefs="false" inheritall="false"/>	
+	<ant antfile="build.xml" dir="./convoyScenario" target="clean" inheritrefs="false" inheritall="false"/>
+	<ant antfile="build.xml" dir="./xmppViewer" target="clean" inheritrefs="false" inheritall="false"/>
+	<ant antfile="build.xml" dir="./sumoVehicles" target="clean" inheritrefs="false" inheritall="false"/>
+	<ant antfile="build.xml" dir="./testharness" target="clean" inheritrefs="false" inheritall="false"/>
+	<ant antfile="build.xml" dir="./areaOfInterest" target="clean" inheritrefs="false" inheritall="false"/>
+	<ant antfile="build.xml" dir="./asterisk" target="clean" inheritrefs="false" inheritall="false"/>
+	<ant antfile="build.xml" dir="./hue" target="clean" inheritrefs="false" inheritall="false"/>
+	<ant antfile="build.xml" dir="./tivo" target="clean" inheritrefs="false" inheritall="false"/>
+	<ant antfile="build.xml" dir="./virtual_agent/norms/inst_manager" target="clean" inheritrefs="false" inheritall="false"/>
+   </target>
+   
+   <target name="jason-scenario1" depends="build">	
+	<ant antfile="build.xml" dir="./convoyScenario" target="run-scenario1" inheritrefs="false" inheritall="false"/>
+   </target>
+   
+   <target name="jason-scenario2" depends="build">	
+	<ant antfile="build.xml" dir="./convoyScenario" target="run-scenario2" inheritrefs="false" inheritall="false"/>
+   </target>
+   
+   <target name="jason-scenario3" depends="build">	
+	<ant antfile="build.xml" dir="./convoyScenario" target="run-scenario3" inheritrefs="false" inheritall="false"/>
+   </target>
+   
+   <target name="rdfMonitor" depends="build">	
+	<ant antfile="build.xml" dir="./rdfUtils" target="run-rdfMonitor" inheritrefs="false" inheritall="false"/>
+   </target>
+   
+   <target name="xmppViewer" depends="build">	
+	<ant antfile="build.xml" dir="./xmppViewer" target="run" inheritrefs="false" inheritall="false"/>
+   </target>
+   
+   <target name="replayExampleLog" depends="build">	
+	<ant antfile="build.xml" dir="./rdfUtils" target="run-rdfReplayer-example" inheritrefs="false" inheritall="false"/>
+   </target>
+   
+   <target name="run-4vehicles" depends="build">	
+	<ant antfile="build.xml" dir="./xmppVehicle" target="run-4" inheritrefs="false" inheritall="false"/>
+   </target>
+   
+    <target name="run-5vehicles" depends="build">	
+	<ant antfile="build.xml" dir="./xmppVehicle" target="run-5" inheritrefs="false" inheritall="false"/>
+   </target>
+
+    <target name="test" depends="build">	
+	<ant antfile="build.xml" dir="./testharness" target="run" inheritrefs="false" inheritall="false"/>
+   </target>
+
+</project>

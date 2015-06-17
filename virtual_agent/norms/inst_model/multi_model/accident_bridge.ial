@@ -1,0 +1,76 @@
+%% ----------------------------------
+% To define a bridge institution 
+% - name of institution is: bridge
+% - a special type has to be defined : Inst 
+% - all events/fluents used in the later cross rules have to be declared  
+% - all the cross fluents asscociated with later cross rules have to be declared 
+%		* key words for this are: cross fluent xxx 
+% - all cross rules are defined by 'xgenerates', 'xinitiates' and 'xterminates' 
+% - remember to initiate cross fluents 
+%% -----------------------------------
+
+%% emergency services
+%% insurance company - anyone not got insurance, add to police
+%% merge/affected group - did anyone witness it, inform police. crashed driver informs police of vehicle name that caused it. and informs ambulance his health is bad
+
+
+% institution name
+institution bridge;
+% types
+type Inst;   % special for bridge institution 
+type Agent;    
+type Victim;
+type InsuranceState;
+type CrimeType;
+type PoliceUnit;
+type CollisionLaneMember;
+type FreeLaneMember;
+
+% events 
+inst event intClaimCompensation(Victim, Agent);
+inst event intRequestMerge(CollisionLaneMember, FreeLaneMember);
+inst event intPerformMerge(CollisionLaneMember, FreeLaneMember);
+inst event intCrimeCommitted(Agent, CrimeType);
+exogenous event checkInsurance(Agent); 
+exogenous event crimeReport(Agent, CrimeType);   
+
+% fluents 
+fluent payee(Victim, Agent);
+%fluent mergePairing(CollisionLaneMember,FreeLaneMember, Agent);
+
+% cross fluents, initiate power or generate power
+cross fluent gpow(Inst, checkInsurance(Agent), Inst);
+cross fluent gpow(Inst, intPerformMerge(CollisionLaneMember, FreeLaneMember), Inst);
+cross fluent gpow(Inst, crimeReport(Agent, CrimeType), Inst);  
+cross fluent ipow(Inst, payee(Victim, Agent), Inst); 
+%cross fluent ipow(Inst, mergePairing(CollisionLaneMember,FreeLaneMember, Agent), Inst); 
+
+% x-inst generation rules 
+
+intClaimCompensation(Victim, Agent) xinitiates payee(Victim, Agent);
+intClaimCompensation(Victim, Agent) xgenerates checkInsurance(Agent);
+intCrimeCommitted(Agent, CrimeType) xgenerates crimeReport(Agent, CrimeType);
+%intRequestMerge(CollisionLaneMember, FreeLaneMember) xinitiates mergePairing(CollisionLaneMember,FreeLaneMember, Agent);
+intRequestMerge(CollisionLaneMember, FreeLaneMember) xgenerates intPerformMerge(CollisionLaneMember, FreeLaneMember);
+
+% x-inst consequence rules
+
+
+% initially 
+initially gpow(crashgroup, checkInsurance(Agent), insurer); 
+initially gpow(insurer, crimeReport(Agent, CrimeType), emergencyServices); 
+initially gpow(crashgroup, intPerformMerge(CollisionLaneMember, FreeLaneMember), motorwaymanagement);
+initially ipow(crashgroup, payee(Victim, Agent), insurer); 
+%initially ipow(crashgroup, mergePairing(CollisionLaneMember,FreeLaneMember, Agent), motorwaymanagement); 
+
+
+
+
+
+
+
+
+
+
+
+

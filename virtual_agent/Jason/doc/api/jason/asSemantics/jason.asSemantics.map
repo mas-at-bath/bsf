@@ -1,0 +1,25 @@
+<map id="G" name="G">
+<area shape="rect" id="node1_0" href="./Unifier.html" title="jason.asSemantics.Unifier" alt="" coords="16,143,93,174"/>
+<area shape="rect" id="node2_1" href="./TransitionSystem.html" title="jason.asSemantics.TransitionSystem" alt="" coords="139,143,312,174"/>
+<area shape="rect" id="node3_2" href="./TransitionSystem.State.html" title="jason.asSemantics.TransitionSystem.State" alt="" coords="357,11,507,306"/>
+<area shape="rect" id="node4_3" href="./QueryCacheSimple.html" title="jason.asSemantics.QueryCacheSimple" alt="" coords="552,143,741,174"/>
+<area shape="rect" id="node5_4" href="./QueryCacheKey.html" title="jason.asSemantics.QueryCacheKey" alt="" coords="787,143,952,174"/>
+<area shape="rect" id="node6_5" href="./QueryCacheAdv.html" title="jason.asSemantics.QueryCacheAdv" alt="" coords="998,143,1165,174"/>
+<area shape="rect" id="node7_6" href="./Option.html" title="jason.asSemantics.Option" alt="" coords="1211,143,1291,174"/>
+<area shape="rect" id="node8_7" href="./Message.html" title="jason.asSemantics.Message" alt="" coords="1337,143,1439,174"/>
+<area shape="rect" id="node9_8" href="./InternalAction.html" title="jason.asSemantics.InternalAction" alt="" coords="1485,133,1627,185"/>
+<area shape="rect" id="node16_9" href="./DefaultInternalAction.html" title="jason.asSemantics.DefaultInternalAction" alt="" coords="1341,369,1542,399"/>
+<area shape="rect" id="node18_10" href="./ConcurrentInternalAction.html" title="jason.asSemantics.ConcurrentInternalAction" alt="" coords="1587,369,1751,399"/>
+<area shape="rect" id="node10_11" href="./Intention.html" title="jason.asSemantics.Intention" alt="" coords="1673,143,1770,174"/>
+<area shape="rect" id="node11_12" href="./IntendedMeans.html" title="jason.asSemantics.IntendedMeans" alt="" coords="1816,143,1973,174"/>
+<area shape="rect" id="node12_13" href="./GoalListenerForMetaEvents.html" title="jason.asSemantics.GoalListenerForMetaEvents" alt="" coords="1953,369,2218,399"/>
+<area shape="rect" id="node13_14" href="./GoalListener.html" title="jason.asSemantics.GoalListener" alt="" coords="2019,133,2151,185"/>
+<area shape="rect" id="node14_15" href="./GoalListener.GoalStates.html" title="jason.asSemantics.GoalListener.GoalStates" alt="" coords="2197,75,2347,242"/>
+<area shape="rect" id="node15_16" href="./Event.html" title="jason.asSemantics.Event" alt="" coords="2393,143,2466,174"/>
+<area shape="rect" id="node17_17" href="./DefaultArithFunction.html" title="jason.asSemantics.DefaultArithFunction" alt="" coords="2489,369,2669,399"/>
+<area shape="rect" id="node19_18" href="./CircumstanceListener.html" title="jason.asSemantics.CircumstanceListener" alt="" coords="2691,133,2901,185"/>
+<area shape="rect" id="node20_19" href="./Circumstance.html" title="jason.asSemantics.Circumstance" alt="" coords="2946,143,3086,174"/>
+<area shape="rect" id="node21_20" href="./ArithFunction.html" title="jason.asSemantics.ArithFunction" alt="" coords="2511,133,2646,185"/>
+<area shape="rect" id="node22_21" href="./Agent.html" title="jason.asSemantics.Agent" alt="" coords="3132,143,3207,174"/>
+<area shape="rect" id="node23_22" href="./ActionExec.html" title="jason.asSemantics.ActionExec" alt="" coords="3253,143,3374,174"/>
+</map>

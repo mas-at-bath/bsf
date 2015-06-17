@@ -1,0 +1,26 @@
+LLWearable version 22
+cyborg eyes red
+
+	permissions 0
+	{
+		base_mask	7fffffff
+		owner_mask	7fffffff
+		group_mask	00000000
+		everyone_mask	00000000
+		next_owner_mask	00082000
+		creator_id	1cf1776e-e2bf-48a9-a733-0a1bf11b2bd2
+		owner_id	1cf1776e-e2bf-48a9-a733-0a1bf11b2bd2
+		last_owner_id	1cf1776e-e2bf-48a9-a733-0a1bf11b2bd2
+		group_id	00000000-0000-0000-0000-000000000000
+	}
+	sale_info	0
+	{
+		sale_type	not
+		sale_price	10
+	}
+type 3
+parameters 2
+98 1
+99 0
+textures 1
+3 f54a0c32-3cd1-d49a-5b4f-7b792bebc204

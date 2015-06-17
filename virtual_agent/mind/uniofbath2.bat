@@ -1,0 +1,1 @@
+java -jar mind.jar 172.16.125.2 uniofbath2 bathstudent member_pc.asl

@@ -1,0 +1,5 @@
+<map id="G" name="G">
+<area shape="rect" id="node1_0" href="./InfrastructureFactory.html" title="jason.infra.InfrastructureFactory" alt="" coords="109,11,309,63"/>
+<area shape="rect" id="node2_1" href="./centralised/CentralisedFactory.html" title="jason.infra.centralised.CentralisedFactory" alt="" coords="15,123,201,167"/>
+<area shape="rect" id="node3_2" href="./jade/JadeFactory.html" title="jason.infra.jade.JadeFactory" alt="" coords="246,123,375,167"/>
+</map>

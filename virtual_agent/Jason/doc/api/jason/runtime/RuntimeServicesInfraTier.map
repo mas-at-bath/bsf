@@ -1,0 +1,5 @@
+<map id="G" name="G">
+<area shape="rect" id="node1_0" href="../infra/centralised/CentralisedRuntimeServices.html" title="jason.infra.centralised.CentralisedRuntimeServices" alt="" coords="16,123,283,167"/>
+<area shape="rect" id="node2_1" href="../infra/jade/JadeRuntimeServices.html" title="jason.infra.jade.JadeRuntimeServices" alt="" coords="329,123,541,167"/>
+<area shape="rect" id="node3_2" href="./RuntimeServicesInfraTier.html" title="jason.runtime.RuntimeServicesInfraTier" alt="" coords="171,11,413,63"/>
+</map>

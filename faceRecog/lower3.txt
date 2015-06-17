@@ -1,0 +1,9 @@
+8 vin data/vin2/vin_13.jpg
+8 vin data/vin2/vin_12.jpg
+8 vin data/vin2/vin_11.jpg
+9 personH Cambridge_FaceDB/s8/1.pgm
+9 personH Cambridge_FaceDB/s8/2.pgm
+9 personH Cambridge_FaceDB/s8/3.pgm
+5 personE Cambridge_FaceDB/s5/1.pgm
+5 personE Cambridge_FaceDB/s5/2.pgm
+5 personE Cambridge_FaceDB/s5/3.pgm

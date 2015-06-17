@@ -1,0 +1,9 @@
+Answer: 1
+holdsat(obl(queueLast(3),deadline,vioQueue(3)),t2) holdsat(obl(yield(1),deadline,vioYield(1)),t2) holdsat(obl(yield(2),deadline,vioYield(2)),t2) 
+SATISFIABLE
+
+Models      : 1     
+Time        : 0.030
+  Prepare   : 0.030
+  Prepro.   : 0.000
+  Solving   : 0.000

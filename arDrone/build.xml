@@ -1,0 +1,101 @@
+<project name="RDF Utils" default="dist" basedir=".">
+    <description>
+        arDrone build file v1
+    </description>
+  <!-- set global properties for this build -->
+  <property name="src" location="src"/>
+  <property name="build" location="build"/>
+  <property name="run"  location="run"/>
+  <property name="dist"  location="dist"/>
+  
+  
+  <path id="project.class.path">
+      <fileset dir="${lib}/../../javaFramework/dist/lib">
+        <include name="**/*.jar" />
+    </fileset>
+    <fileset dir="${lib}/../../javaFramework/lib/smack">
+        <include name="**/*.jar" />
+    </fileset>
+    <fileset dir="${lib}/../../javaFramework/lib/jena">
+        <include name="**/*.jar" />
+    </fileset>
+    <fileset dir="lib">
+        <include name="**/*.jar" />
+    </fileset>
+  </path>
+  
+
+  <property name="dep_cp" value="${toString:project.class.path}" />
+  
+  <target name="init">
+    <!-- Create the time stamp -->
+    <tstamp/>
+    <!-- Create the build directory structure used by compile -->
+    <mkdir dir="${build}"/>
+  </target>
+
+  <target name="compile" depends="init"
+        description="compile the source " >
+		
+    <!-- Compile the java code from ${src} into ${build} -->
+    <javac srcdir="${src}" destdir="${build}" includeantruntime="false">
+	<classpath refid="project.class.path"/>
+    </javac>
+  </target>
+
+  <target name="dist" depends="compile"
+        description="generate the distribution" >
+    <!-- Create the distribution directory and copy jar files before we define our self contained classpath -->
+    <mkdir dir="${dist}/lib"/>
+    <copy todir="${dist}/lib" flatten="true">
+	<path>
+		<pathelement path="${dep_cp}"/>
+	</path>
+    </copy>
+	
+      <delete file="${dist}/lib/slf4j-api-1.5.6.jar"/>
+	  <delete file="${dist}/lib/slf4j-log4j12-1.5.6.jar"/>
+	 
+    <!-- Now can set up the paths for these jar files -->  
+    <path id="dist-classpath">
+	<fileset dir="${dist}/lib">
+		<include name="**/*.jar" />
+	</fileset>
+    </path>
+    <property name="dist_cp" value="${toString:dist-classpath}" />
+    <manifestclasspath property="lib.list" jarfile="rdfTools.jar">
+	<classpath refid="dist-classpath" />
+    </manifestclasspath>
+      
+    <!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
+    <jar jarfile="${dist}/lib/arDrone.jar" basedir="${build}">
+	<manifest>
+                <attribute name="Main-Class" value="edu.bath.arDrone.TestRDF"/>
+		<attribute name="Class-Path" value=". ${lib.list}"/>
+        </manifest>
+    </jar>
+  </target>
+
+    
+      <target name="run" depends="dist" description="Run arDrone gateway" >
+       <!--echo message="Dist Classpath: ${dist_cp}" /-->
+        <!-- There might be a tidier way to do this, but using java -jar ignores classpath it seems -->
+	<java fork="true" classpath="${dist_cp}" classname="edu.bath.arDrone.ARDroneGateway"> 
+	</java>
+    </target>
+	
+	 <target name="run-controller" depends="dist" description="Run arDrone controller" >
+       <!--echo message="Dist Classpath: ${dist_cp}" /-->
+        <!-- There might be a tidier way to do this, but using java -jar ignores classpath it seems -->
+	<java fork="true" classpath="${dist_cp}" classname="edu.bath.arDrone.ARDroneController"> 
+	</java>
+    </target>
+  
+  
+  <target name="clean"
+        description="clean up" >
+    <!-- Delete the ${build} and ${dist} directory trees -->
+    <delete dir="${build}"/>
+    <delete dir="${dist}"/>
+  </target>
+</project>

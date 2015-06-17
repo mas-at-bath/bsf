@@ -1,0 +1,28 @@
+LLWearable version 22
+[RC] Totally Transparant
+
+	permissions 0
+	{
+		base_mask	7fffffff
+		owner_mask	7fffffff
+		group_mask	00000000
+		everyone_mask	00000000
+		next_owner_mask	00082000
+		creator_id	03f3962d-f1a7-46cb-958f-78e80f2468e1
+		owner_id	03f3962d-f1a7-46cb-958f-78e80f2468e1
+		last_owner_id	03f3962d-f1a7-46cb-958f-78e80f2468e1
+		group_id	00000000-0000-0000-0000-000000000000
+	}
+	sale_info	0
+	{
+		sale_type	not
+		sale_price	10
+	}
+type 13
+parameters 0
+textures 5
+21 3a367d1c-bef1-6d43-7595-e88c1e3aadb3
+22 3a367d1c-bef1-6d43-7595-e88c1e3aadb3
+23 3a367d1c-bef1-6d43-7595-e88c1e3aadb3
+24 3a367d1c-bef1-6d43-7595-e88c1e3aadb3
+25 3a367d1c-bef1-6d43-7595-e88c1e3aadb3

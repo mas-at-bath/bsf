@@ -1,0 +1,17 @@
+<map id="G" name="G">
+<area shape="rect" id="node1_0" href="./RunProjectListener.html" title="jason.jeditplugin.RunProjectListener" alt="" coords="16,11,203,63"/>
+<area shape="rect" id="node11_1" href="./JasonID.html" title="jason.jeditplugin.JasonID" alt="" coords="63,126,156,157"/>
+<area shape="rect" id="node2_2" href="./NewProjectGUI.html" title="jason.jeditplugin.NewProjectGUI" alt="" coords="202,126,363,157"/>
+<area shape="rect" id="node3_3" href="./NewInternalActionGUI.html" title="jason.jeditplugin.NewInternalActionGUI" alt="" coords="409,126,626,157"/>
+<area shape="rect" id="node4_4" href="./NewEnvironmentGUI.html" title="jason.jeditplugin.NewEnvironmentGUI" alt="" coords="672,126,880,157"/>
+<area shape="rect" id="node5_5" href="./NewAgentGUI.html" title="jason.jeditplugin.NewAgentGUI" alt="" coords="441,22,593,53"/>
+<area shape="rect" id="node6_6" href="./MASLauncherInfraTier.html" title="jason.jeditplugin.MASLauncherInfraTier" alt="" coords="639,11,855,63"/>
+<area shape="rect" id="node7_7" href="./JasonProjectSideKickParser.html" title="jason.jeditplugin.JasonProjectSideKickParser" alt="" coords="901,22,1166,53"/>
+<area shape="rect" id="node8_8" href="./JasonProjectImporter.html" title="jason.jeditplugin.JasonProjectImporter" alt="" coords="1212,22,1420,53"/>
+<area shape="rect" id="node9_9" href="./JasonIDPlugin.html" title="jason.jeditplugin.JasonIDPlugin" alt="" coords="1466,22,1611,53"/>
+<area shape="rect" id="node10_10" href="./JasonIDOptionPanel.html" title="jason.jeditplugin.JasonIDOptionPanel" alt="" coords="1657,22,1855,53"/>
+<area shape="rect" id="node12_11" href="./Config.html" title="jason.jeditplugin.Config" alt="" coords="1901,22,1979,53"/>
+<area shape="rect" id="node13_12" href="./CheckVersion.html" title="jason.jeditplugin.CheckVersion" alt="" coords="2025,22,2167,53"/>
+<area shape="rect" id="node14_13" href="./AgentSpeakSideKickParser.html" title="jason.jeditplugin.AgentSpeakSideKickParser" alt="" coords="2213,22,2473,53"/>
+<area shape="rect" id="node15_14" href="./AboutGUI.html" title="jason.jeditplugin.AboutGUI" alt="" coords="2518,22,2629,53"/>
+</map>

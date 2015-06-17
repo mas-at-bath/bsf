@@ -1,0 +1,11 @@
+<map id="G" name="G">
+<area shape="rect" id="node1_0" href="./SMC.html" title="jason.asSyntax.patterns.goal.SMC" alt="" coords="16,14,83,45"/>
+<area shape="rect" id="node2_1" href="./SGA.html" title="jason.asSyntax.patterns.goal.SGA" alt="" coords="129,14,194,45"/>
+<area shape="rect" id="node3_2" href="./RC.html" title="jason.asSyntax.patterns.goal.RC" alt="" coords="240,14,291,45"/>
+<area shape="rect" id="node4_3" href="./OMC.html" title="jason.asSyntax.patterns.goal.OMC" alt="" coords="336,14,405,45"/>
+<area shape="rect" id="node5_4" href="./MG.html" title="jason.asSyntax.patterns.goal.MG" alt="" coords="451,14,506,45"/>
+<area shape="rect" id="node6_5" href="./EBDG.html" title="jason.asSyntax.patterns.goal.EBDG" alt="" coords="551,14,630,45"/>
+<area shape="rect" id="node7_6" href="./DG.html" title="jason.asSyntax.patterns.goal.DG" alt="" coords="675,14,727,45"/>
+<area shape="rect" id="node8_7" href="./BDG.html" title="jason.asSyntax.patterns.goal.BDG" alt="" coords="669,110,734,141"/>
+<area shape="rect" id="node9_8" href="./BC.html" title="jason.asSyntax.patterns.goal.BC" alt="" coords="773,14,824,45"/>
+</map>

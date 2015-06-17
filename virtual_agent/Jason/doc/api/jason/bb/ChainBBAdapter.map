@@ -1,0 +1,8 @@
+<map id="G" name="G">
+<area shape="rect" id="node1_0" href="./TextPersistentBB.html" title="jason.bb.TextPersistentBB" alt="" coords="15,134,193,165"/>
+<area shape="rect" id="node2_1" href="./JDBCPersistentBB.html" title="jason.bb.JDBCPersistentBB" alt="" coords="239,134,428,165"/>
+<area shape="rect" id="node3_2" href="./IndexedBB.html" title="jason.bb.IndexedBB" alt="" coords="474,134,595,165"/>
+<area shape="rect" id="node4_3" href="./ChainBBAdapter.html" title="jason.bb.ChainBBAdapter" alt="" coords="537,14,687,45"/>
+<area shape="rect" id="node5_4" href="./ChainBB.html" title="jason.bb.ChainBB" alt="" coords="641,134,740,165"/>
+<area shape="rect" id="node6_5" href="./BeliefBase.html" title="jason.bb.BeliefBase" alt="" coords="785,123,903,175"/>
+</map>

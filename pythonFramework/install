@@ -1,0 +1,27 @@
+tune these appropriately, basically you need pip, and then to install paho-mqtt and rdflib
+sudo su
+apt-get update
+apt-get install python-pip
+pip install paho-mqtt
+pip install rdflib
+
+copy BSF.py (https://bsf.googlecode.com/svn/trunk/pythonFramework/BSF.py) to same location as python code
+or svn checkout https://bsf.googlecode.com/svn/trunk/pythonFramework pythonBSF
+
+
+add to existing python file head:
+import sys
+import os
+from xml.sax.saxutils import escape
+import paho.mqtt.publish as publish
+import BSF
+from BSF import DataReading
+
+then to publish a reading, something like the following
+
+newReading = DataReading("http://127.0.0.1/PISensors", "http://127.0.0.1/PiSensors/Pi", BSF.current_milli_time())
+newReading.setTakenBy("http://127.0.0.1/components/houseSensors/piSensor1")
+newReading.addDataValue(None, "http://127.0.0.1/sensors/types#DHT22temperature", temperature, False)
+newReading.addDataValue(None, "http://127.0.0.1/sensors/types#DHT22humidity", humidity, False)
+msgString = "<RDF>"+escape(newReading.toRDF())+"</RDF>"
+publish.single("homeSensor", msgString, hostname="192.168.0.8")

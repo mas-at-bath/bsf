@@ -1,0 +1,37 @@
+% institution name
+% dynamic institution established containing affected parties of the crash
+institution motorwaymanagement;
+
+% types
+type Agent;    
+type Victim;
+type InsuranceState;
+type CrimeType;
+type PoliceUnit;
+type CollisionLaneMember;
+type FreeLaneMember;
+
+% events 
+exogenous event merge(FreeLaneMember,CollisionLaneMember);
+exogenous event deadline; 
+
+inst event intPerformMerge(CollisionLaneMember, FreeLaneMember);
+
+% fluents 
+%% add agent to mergepairing, as there could be multiple accidents, plus this helps resolve info
+fluent mergePairing(CollisionLaneMember,FreeLaneMember, Agent);
+
+%%test
+%%% obligations
+obligation fluent obl(merge(FreeLaneMember,CollisionLaneMember), deadline, vioMerge(FreeLaneMember));
+
+%% violations
+violation event vioMerge(FreeLaneMember);
+
+obl(merge(FreeLaneMember,CollisionLaneMember), deadline, vioMerge(FreeLaneMember)) when mergePairing(CollisionLaneMember,FreeLaneMember, Agent);
+
+intPerformMerge(CollisionLaneMember, FreeLaneMember) initiates obl(merge(FreeLaneMember,CollisionLaneMember), deadline, vioMerge(FreeLaneMember));
+
+
+
+
