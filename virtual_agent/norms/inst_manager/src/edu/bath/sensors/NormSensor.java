@@ -14,10 +14,14 @@ public class NormSensor extends Sensor {
 	public NormSensor(String server, String user, String pwd, String node) throws XMPPException {
 		super(server, user, pwd, node);
 	}
-	
-	public NormSensor(XMPPTCPConnection conn, String user, String pwd, String node) throws XMPPException {
-		super(conn, user, pwd, node);
+
+	public NormSensor(String server, String user, String pwd, String node, boolean useMQTT, int qos) throws XMPPException {
+		super(server, user, pwd, node, useMQTT, qos);
 	}
+	
+	//public NormSensor(XMPPTCPConnection conn, String user, String pwd, String node) throws XMPPException {
+	//	super(conn, user, pwd, node);
+	//}
 	
 	public void releaseNorm(String norms) {
 		JsonReading jr = new JsonReading();

@@ -54,6 +54,8 @@ public class VehicleArch extends AgArch {
 	private String instInitialVals = "";
 	private CopyOnWriteArrayList<String> obstaclesReactedToInVol = new CopyOnWriteArrayList<String>();
 	private CopyOnWriteArrayList<KnownCollisionNameLoc> knownCollisonPairs = new CopyOnWriteArrayList<KnownCollisionNameLoc>();
+	private static boolean useXMPP=false;
+	private static boolean useMQTT=false;
 
 	@Override 
 	public void init() 
@@ -70,6 +72,24 @@ public class VehicleArch extends AgArch {
 					XMPPServer = configArray[1];
 					//System.out.println("Using config declared IP address of openfire server as: " + XMPPServer);
 				}
+				if (line.contains("COMMUNICATION"))
+				{
+					String[] configArray = line.split("=");
+					if(configArray[1].equals("MQTT"))
+					{
+						useMQTT=true;
+					}
+					else if(configArray[1].equals("XMPP"))
+					{
+						useXMPP=true;
+					}
+					//System.out.println("Using config declared IP address of openfire server as: " + XMPPServer);
+				}
+			}
+			if (!useMQTT && !useXMPP)
+			{
+				System.out.println("no COMMUNICATION value found in config.txt, should be = MQTT or XMPP");
+				System.exit(1);
 			}
 		}
 		catch (Exception e) {
@@ -97,8 +117,6 @@ public class VehicleArch extends AgArch {
 				annotatedMethods.put(actionName, method);
 			}
 		}
-		//System.out.println("started customized agent arch and starting XMPP");
-		//System.out.println("started as agent " + getAgName());
 		myName = getAgName();
 		receivedData = new ArrayList<String>();
 
@@ -108,8 +126,17 @@ public class VehicleArch extends AgArch {
 		{
 			String myConnectionLogin=getAgName()+"-sender";
 			String myURI="http://127.0.0.1/agent/"+getAgName();
-			mySender = new WorkerSender(XMPPServer, myConnectionLogin, "jasonpassword", jasonSensorVehiclesCmds, "http://127.0.0.1/agent", myURI);
-			instSensor = new WorkerInstSender(XMPPServer, getAgName()+"-inst-sender", "jasonpassword", "NODE_PERCEPT");
+			if (useXMPP)
+			{
+				mySender = new WorkerSender(XMPPServer, myConnectionLogin, "jasonpassword", jasonSensorVehiclesCmds, "http://127.0.0.1/agent", myURI);
+				instSensor = new WorkerInstSender(XMPPServer, getAgName()+"-inst-sender", "jasonpassword", "NODE_PERCEPT");
+			}
+			else if (useMQTT)
+			{
+				mySender = new WorkerSender(XMPPServer, myConnectionLogin, "jasonpassword", jasonSensorVehiclesCmds, "http://127.0.0.1/agent", myURI, true, 0);
+				instSensor = new WorkerInstSender(XMPPServer, getAgName()+"-inst-sender", "jasonpassword", "NODE_PERCEPT", true, 0);
+			}
+
 		}
 		catch (XMPPException err)
 		{
@@ -124,7 +151,14 @@ public class VehicleArch extends AgArch {
 				String myConnectionLogin=getAgName()+"-JState";
 				//System.out.println("connecting as " + myConnectionLogin);
 				String myURI="http://127.0.0.1/agentJState/"+getAgName();
-				myJStateSender = new WorkerJStateSender(XMPPServer, myConnectionLogin, "jasonpassword", jasonSensorStates, "http://127.0.0.1/agentJState", myURI, getAgName(), getTS().getAg().getPL());
+				if (useXMPP)
+				{
+					myJStateSender = new WorkerJStateSender(XMPPServer, myConnectionLogin, "jasonpassword", jasonSensorStates, "http://127.0.0.1/agentJState", myURI, getAgName(), getTS().getAg().getPL());
+				}
+				else if (useMQTT)
+				{
+					myJStateSender = new WorkerJStateSender(XMPPServer, myConnectionLogin, "jasonpassword", jasonSensorStates, "http://127.0.0.1/agentJState", myURI, getAgName(), getTS().getAg().getPL(), true, 0);
+				}
 			}
 			catch (XMPPException err)
 			{

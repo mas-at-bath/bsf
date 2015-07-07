@@ -13,6 +13,11 @@ public class WorkerInstSender extends Sensor  {
 	public WorkerInstSender(String server, String user, String pwd, String node) throws XMPPException {
 		super(server, user, pwd, node);
 	}
+
+	public WorkerInstSender(String server, String user, String password, String node, boolean useMQTT, int qos) throws XMPPException 		{
+		super(server, user, node, password, useMQTT, qos);
+	}
+	
 	
 	/*public WorkerInstSender(Connection conn, String user, String pwd, String node) throws XMPPException {
 		super(conn, user, pwd, node);

@@ -32,6 +32,7 @@ public class ReadingMQTTReceiver implements MqttCallback {
 	@Override
   	public void messageArrived(String topic, MqttMessage message) throws Exception 
 	{
+		//System.out.println("got MQTT in BSF rec " + message);
 		String rdf = message.toString();		
 		rdf = rdf.replaceFirst("^<RDF(.*?)?>", "");
 		rdf = rdf.replaceFirst("</(rdf:)?RDF>$", "");
@@ -60,8 +61,5 @@ public class ReadingMQTTReceiver implements MqttCallback {
   	public void connectionLost(Throwable cause) 
 	{
 		System.out.println("Connection lost!!");
-		System.out.println(cause.getCause().toString());
-		System.out.println(cause.getMessage());
-		cause.printStackTrace();
 	}
 }

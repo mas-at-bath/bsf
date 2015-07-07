@@ -66,6 +66,14 @@
 
     <!-- Put everything in ${build} into the MyProject-${DSTAMP}.jar file -->
     <jar jarfile="${dist}/BSF.jar" basedir="${build}"/>
+
+	<jar destfile="BSFBundle.jar">
+		<zipgroupfileset dir="dist" includes="*.jar" />
+		<manifest>
+			<attribute name="Main-Class" value="Main.MainClass" />
+		</manifest>
+	</jar>
+
   </target>
 
 <target name="sonar" depends="compile" description="Perform sonar code analysis">

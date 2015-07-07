@@ -126,7 +126,10 @@ public class OpenhabInterface extends Sensor implements MqttCallback {
 						e.printStackTrace();
 					}
 				}
-				//System.out.println(rdf);
+				else
+				{
+					System.out.println("ignored reading due to time delay");
+				}
 			}
 		});
 		try {
@@ -203,6 +206,7 @@ public class OpenhabInterface extends Sensor implements MqttCallback {
 			String rdfOpenhab = pendingOpenhabMessages.poll();
 			while (rdfOpenhab != null)
 			{			
+				//System.out.println("Got message here XX");
 				try 
 				{
 					DataReading dr = DataReading.fromRDF(rdfOpenhab);
@@ -228,12 +232,25 @@ public class OpenhabInterface extends Sensor implements MqttCallback {
 							}		
 							else if (predName.equals("http://127.0.0.1/sensors/types#DHT22humidity"))
 							{
-								//Float tempVal = (Float)foundVal.object;
-								String strMsg = (String)foundVal.object;
+								//could maybe test types first
+								//if(foundVal.object.getClass().equals("java.lang.Double")))
+								Double tempVal = (Double)foundVal.object;
+								String strMsg =  Double.toString(tempVal);
 								System.out.println("Publishing message: "+strMsg);
             							MqttMessage message = new MqttMessage(strMsg.getBytes());
             							message.setQos(qos);
             							mqttSenderClient.publish("/openHAB/stateSubscriber/Humidity_GF_Bedroom1/state", message);
+								
+							}
+							else if (predName.equals("http://127.0.0.1/sensors/types#DHT22temperature"))
+							{
+								//System.out.println(foundVal.object.getClass());
+								Double tempVal = (Double)foundVal.object;
+								String strMsg =  Double.toString(tempVal);
+								System.out.println("Publishing message: "+strMsg);
+            							MqttMessage message = new MqttMessage(strMsg.getBytes());
+            							message.setQos(qos);
+            							mqttSenderClient.publish("/openHAB/stateSubscriber/Temperature_GF_Bedroom1/state", message);
 								
 							}
 							else if (predName.equals("http://127.0.0.1/sensors/types#light"))
@@ -248,8 +265,8 @@ public class OpenhabInterface extends Sensor implements MqttCallback {
 							}
 							else if (predName.equals("http://127.0.0.1/sensors/types#GasNO"))
 							{
-								Float tempVal = (Float)foundVal.object;
-								String strMsg = Float.toString(tempVal);
+								Double tempVal = (Double)foundVal.object;
+								String strMsg = Double.toString(tempVal);
 								System.out.println("Publishing message: "+strMsg);
             							MqttMessage message = new MqttMessage(strMsg.getBytes());
             							message.setQos(qos);
@@ -284,10 +301,41 @@ public class OpenhabInterface extends Sensor implements MqttCallback {
 							//}
 						}
 					}
+					else if (dr.getTakenBy().equals("http://127.0.0.1/components/hueInterface"))
+					{
+						String light=null;
+						String state=null;
+						for (Value foundVal : dr.findValues(null,null,null))
+						{
+							String predName = (String)foundVal.predicate;
+							if (predName.equals("http://127.0.0.1/components/lights/name"))
+							{
+								light=(String)foundVal.object;
+							}
+							if (predName.equals("http://127.0.0.1/components/lights/state"))
+							{
+								state=(String)foundVal.object;
+							}
+						}
+						if ((light!=null) && (state!=null))
+						{
+							System.out.println("set " + light + " to " + state);
+            						MqttMessage message = new MqttMessage(state.getBytes());
+            						message.setQos(qos);
+            						mqttSenderClient.publish("/openHAB/commandSubscriber/"+light+"/command", message);
+						}
+					}
+					else
+					{
+						System.out.println("received a reading but didnt handle it");
+						System.out.println("was taken by " + dr.getTakenBy());
+					}
 				}
 				catch(Exception e) 
 				{
+					System.out.println("Exception in converting received reading..");
 					System.out.println(e);
+					e.printStackTrace();
 				}
 				rdfOpenhab = pendingOpenhabMessages.poll();
 			}
@@ -308,12 +356,13 @@ public class OpenhabInterface extends Sensor implements MqttCallback {
 
 	public void convertAndSendOpenHABMsg(String fullNode, String msgState) {
 
+		//System.out.println("received on node: " + fullNode + ", msgState: " + msgState);
 		String[] nodeArray = fullNode.split("/");
-		//System.out.println(nodeArray[1]);
+		//System.out.println("array size is " + nodeArray.length);
 		if ((nodeArray[2].equals("commandUpdates")) && (nodeArray.length > 3))
 		{		
 			String itemName = nodeArray[2];
-
+		
 			try 
 			{				
 				DataReading testReading = new DataReading(getPrimaryHandle(), getCurrentLocation(), System.currentTimeMillis());
@@ -325,6 +374,32 @@ public class OpenhabInterface extends Sensor implements MqttCallback {
 				e.printStackTrace();
 			}
 		}
+		else if ((nodeArray[2].equals("commandPublisher")) && (nodeArray.length > 4))
+		{
+			if (nodeArray[3].equals("Light_GF_Bedroom1_Ceiling"))
+			{
+				System.out.println("Set Light_GF_Bedroom1_Ceiling " + msgState);
+				try 
+				{				
+					DataReading testReading = new DataReading(getPrimaryHandle(), getCurrentLocation(), System.currentTimeMillis());
+					testReading.setTakenBy("http://127.0.0.1/components/openhab");
+					testReading.addDataValue(null, "http://127.0.0.1/components/Light_GF_Bedroom1_Ceiling", msgState, false);
+					publish(testReading);
+				} 							
+				catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			else
+			{
+				System.out.println("need to convert "  + msgState + " from " + fullNode);
+			}
+		
+		}
+		else if ((nodeArray[2].equals("stateSubscriber")) || (nodeArray[2].equals("statePublisher")))
+		{
+			//System.out.println("statepub/sub: " + msgState + " from " + fullNode);
+		}
 		else
 		{
 			System.out.println("Not sure how to process " + msgState + " from " + fullNode);
@@ -334,13 +409,14 @@ public class OpenhabInterface extends Sensor implements MqttCallback {
 	@Override
 	public void connectionLost(Throwable cause) {
 	    System.out.println("MQTT Connection lost!!");
+	    cause.printStackTrace();
 
 	}
 
 	@Override
 	public void messageArrived(String topic, MqttMessage message) throws Exception 
 	{
-	 	System.out.println("received MQTT message " + message + " from " + topic);  
+	 	//System.out.println("received MQTT message " + message + " from " + topic);  
 		convertAndSendOpenHABMsg(topic,message.toString());
 	}
 

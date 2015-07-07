@@ -83,7 +83,8 @@ public class SumoXMPPSim extends Sensor {
 	private static boolean fakeJason = false;
 	
 	private boolean alreadyInsertedJasonVehicles = false;
-	private static boolean useMQTT=true;
+	private static boolean useMQTT=false;
+	private static boolean useXMPP=false;
 	
 	public SumoXMPPSim(String serverAddress, String id, String password, String nodeName, String currentLocation, String primaryHandle) throws XMPPException {
 		super(serverAddress, id, password, nodeName);
@@ -161,6 +162,24 @@ public class SumoXMPPSim extends Sensor {
 						fakeJason=true;
 					}
 				}
+				if (line.contains("COMMUNICATION"))
+				{
+					String[] configArray = line.split("=");
+					if(configArray[1].equals("MQTT"))
+					{
+						useMQTT=true;
+					}
+					else if(configArray[1].equals("XMPP"))
+					{
+						useXMPP=true;
+					}
+					//System.out.println("Using config declared IP address of openfire server as: " + XMPPServer);
+				}
+			}
+			if (!useMQTT && !useXMPP)
+			{
+				System.out.println("no COMMUNICATION value found in config.txt, should be = MQTT or XMPP");
+				System.exit(1);
 			}
 		}
 		catch (Exception e) 
@@ -173,7 +192,7 @@ public class SumoXMPPSim extends Sensor {
 		
 		System.out.println("Using defaults: " + XMPPServer + ", central, jasonpassword, jasonSensor, http://127.0.0.1/vehicleSensors, http://127.0.0.1/vehicleSensors/vehicle1");
 
-		if (!useMQTT)
+		if (useXMPP)
 		{
 			System.out.println("Using XMPP for comms");
 			SumoXMPPSim ps = new SumoXMPPSim(XMPPServer, vehicleName, "jasonpassword", jasonSensorVehicles , "http://127.0.0.1/vehicleSensors", "http://127.0.0.1/vehicleSensors/test1-vehicle");
@@ -331,17 +350,33 @@ public class SumoXMPPSim extends Sensor {
 		}	
 
 		System.out.println("Running as vehicle: " + vehicleName);
-		startupTime = System.currentTimeMillis(); 	
-
+		startupTime = System.currentTimeMillis(); 
+	
+		if (useXMPP)
+		{
+			System.out.println("XMPP subscription");
 			while(sensorClient == null) {
 				try {
-					sensorClient = new SensorMQTTClient(XMPPServer, vehicleName+"-receiver", "jasonpassword");
+					sensorClient = new SensorXMPPClient(XMPPServer, vehicleName+"-receiver", "jasonpassword");
 					System.out.println("Guess sensor connected OK then!");
 				} catch (Exception e1) {
 					System.out.println("Exception in establishing client.");
 					e1.printStackTrace();
 				}
-			}		
+			}
+		}
+		else if (useMQTT)
+		{
+			System.out.println("MQTT subscription");
+			try 
+			{		
+				sensorClient = new SensorMQTTClient(XMPPServer, vehicleName+"-receiver");
+				System.out.println("Guess sensor connected OK then!");
+			} catch (Exception e1) {
+				System.out.println("Exception in establishing client.");
+				e1.printStackTrace();
+			}
+		}
 
 			sensorClient.addHandler(jasonSensorVehiclesCmds, new ReadingHandler() 
 			{ 

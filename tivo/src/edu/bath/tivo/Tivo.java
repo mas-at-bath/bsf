@@ -2,8 +2,7 @@ package edu.bath.TivoBSF;
 
 import edu.bath.sensorframework.DataReading;
 import edu.bath.sensorframework.DataReading.Value;
-import edu.bath.sensorframework.client.ReadingHandler;
-import edu.bath.sensorframework.client.SensorClient;
+import edu.bath.sensorframework.client.*;
 import edu.bath.sensorframework.sensor.Sensor;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -27,7 +26,6 @@ public class Tivo extends Sensor {
 	private static String tivoNodeName = "tivo";
 	private long nanoToMili=1000000;
 	private static String componentName="tivo";
-	//private static WorkerNonThreadSender tivoMsgSender;
 	private static int receivedMessageCount =0;
 	private LinkedBlockingQueue<String> pendingTivoMessages = new LinkedBlockingQueue<String>();	
 	private long cycleTime=1000;
@@ -36,9 +34,18 @@ public class Tivo extends Sensor {
 	private static long startupDelay=1000L;
 	private static ServerSocket s = null;
 	private static client_handler myTivoClient;
+	private static boolean useXMPP=false;
+	private static boolean useMQTT=false;
+	private static Tivo ps;
 
 	public Tivo(String serverAddress, String id, String password, String nodeName, String currentLocation, String primaryHandle) throws XMPPException {
 		super(serverAddress, id, password, nodeName);
+		this.currentLocation = currentLocation;
+		this.primaryHandle = primaryHandle;
+	}
+
+	public Tivo(String serverAddress, String id, String password, String nodeName, String currentLocation, String primaryHandle, boolean useMQTT, int qos) throws XMPPException {
+		super(serverAddress, id, password, nodeName, useMQTT, qos);
 		this.currentLocation = currentLocation;
 		this.primaryHandle = primaryHandle;
 	}
@@ -60,6 +67,8 @@ public class Tivo extends Sensor {
 				}
                     	} catch (Exception e) 
 			{
+				System.out.println("error in shutdown");
+				e.printStackTrace();
                     	}
 		    }
 		});
@@ -86,7 +95,14 @@ public class Tivo extends Sensor {
 
 		
 		System.out.println("Using defaults: " + XMPPServer + ", " + componentName + ", jasonpassword, jasonSensor, http://127.0.0.1/TV, http://127.0.0.1/TV/Tivo");
-		Tivo ps = new Tivo(XMPPServer, componentName, "jasonpassword", homeSensors , "http://127.0.0.1/TV", "http://127.0.0.1/TV/Tivo");
+		if (useXMPP)
+		{
+			ps = new Tivo(XMPPServer, componentName, "jasonpassword", homeSensors , "http://127.0.0.1/TV", "http://127.0.0.1/TV/Tivo");
+		}
+		else if (useMQTT)
+		{
+			ps = new Tivo(XMPPServer, componentName, "jasonpassword", homeSensors , "http://127.0.0.1/TV", "http://127.0.0.1/TV/Tivo", true, 0);
+		}
 
 		Thread.currentThread().sleep(1000);
 		System.out.println("Created tivoSensor, now entering its logic!");
@@ -104,15 +120,35 @@ public class Tivo extends Sensor {
 	}
 
 
-	public void run() throws XMPPException {	
-		
-		while(sensorClient == null) {
-			try {
-				sensorClient = new SensorClient(XMPPServer, componentName+"-receiver", "jasonpassword");
+	public void run() throws XMPPException 
+	{	
+		if (useXMPP)
+		{
+			System.out.println("XMPP subscription");
+			while(sensorClient == null) 
+			{
+				try 
+				{
+					sensorClient = new SensorXMPPClient(XMPPServer, componentName+"-receiver", "jasonpassword");
+					System.out.println("Guess sensor connected OK then!");
+				} catch (Exception e1) {
+					System.out.println("Exception in establishing client.");
+					e1.printStackTrace();
+				}
+			}
+		}
+		else if (useMQTT)
+		{
+			System.out.println("MQTT subscription");
+			try 
+			{
+				sensorClient = new SensorMQTTClient(XMPPServer, componentName+"-receiver");
 				System.out.println("Guess sensor connected OK then!");
-			} catch (XMPPException e1) {
+			} catch (Exception e1) 
+			{
 				System.out.println("Exception in establishing client.");
 				e1.printStackTrace();
+				
 			}
 		}
 
@@ -137,8 +173,8 @@ public class Tivo extends Sensor {
 			}
 		});
 		try {
-			sensorClient.subscribeAndCreate(tivoNodeName);
-		} catch (XMPPException e1) {
+			sensorClient.subscribe(tivoNodeName);
+		} catch (	Exception e1) {
 			System.out.println("Exception while subscribing to " + tivoNodeName);
 			e1.printStackTrace();
 		}
@@ -154,8 +190,8 @@ public class Tivo extends Sensor {
 
 			try {
 				if(sensorClient.checkReconnect())
-				sensorClient.subscribeAndCreate(homeSensors);
-			} catch (XMPPException e1) {
+				sensorClient.subscribe(homeSensors);
+			} catch (Exception e1) {
 				System.out.println("Couldn't reconnect to " + homeSensors);
 				e1.printStackTrace();
 				try {

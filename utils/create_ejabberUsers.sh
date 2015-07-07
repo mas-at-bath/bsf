@@ -141,6 +141,9 @@ echo creating users for $1
 ./ejabberdctl register motionTracker $1 jasonpassword
 ./ejabberdctl register motionTracker-sender $1 jasonpassword
 ./ejabberdctl register motionTracker-receiver $1 jasonpassword
+./ejabberdctl register openhabBSF $1 jasonpassword
+./ejabberdctl register openhabBSF-sender $1 jasonpassword
+./ejabberdctl register openhabBSF-receiver $1 jasonpassword
 
 fi
 

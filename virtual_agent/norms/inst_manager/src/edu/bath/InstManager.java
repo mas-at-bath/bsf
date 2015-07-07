@@ -25,8 +25,7 @@ import edu.bath.institution.*;
 import edu.bath.sensorframework.JsonReading;
 import edu.bath.sensorframework.JsonReading.Value;
 import edu.bath.sensorframework.DataReading;
-import edu.bath.sensorframework.client.ReadingHandler;
-import edu.bath.sensorframework.client.SensorClient;
+import edu.bath.sensorframework.client.*;
 import edu.bath.sensors.NormSensor;
 
 /*
@@ -50,6 +49,8 @@ public class InstManager {
 
 	private long startupTime=0L;
 	private long startupDelay=10000L;
+	private static boolean useXMPP=false;
+	private static boolean useMQTT=true;
 	
 	/*
 	 * Percept node reading handler 
@@ -112,22 +113,42 @@ public class InstManager {
 	
 	public void initialiseBSF() {
 		try {
-			pubNorm = new NormSensor(server, username, password, NORM); 
-			sleep(5000);	// ensure the enough creation time
-			subPercept = new SensorClient(pubNorm.getConnection(), username, password);
+			
+			//sleep(5000);	// ensure the enough creation time
 			
 			startupTime = System.currentTimeMillis();
-
-			subPercept.addHandler(PERCEPT, new PerceptReadingHandler()); 
-			subPercept.subscribeAndCreate(PERCEPT);
-
 			//VB maybe put this on demand depending on inst type started..?
-			aoiPercept = new SensorClient(pubNorm.getConnection(), username, password);
+			if (useXMPP)
+			{
+				System.out.println("Using XMPP");
+				pubNorm = new NormSensor(server, username, password, NORM); 
+				sleep(500);		
+				subPercept = new SensorXMPPClient(server, username+"-instPer", password);
+				subPercept.addHandler(PERCEPT, new PerceptReadingHandler()); 
+				subPercept.subscribe(PERCEPT);
+				sleep(500);
+				aoiPercept = new SensorXMPPClient(server, username+"-instAOI", password);
+			}
+			else if (useMQTT)
+			{
+				System.out.println("Using MQTT");
+				pubNorm = new NormSensor(server, username, password, NORM, true, 0); 
+				sleep(500);
+				subPercept = new SensorMQTTClient(server, username+"-instPer");
+				subPercept.addHandler(PERCEPT, new PerceptReadingHandler()); 
+				subPercept.subscribe(PERCEPT);
+				//System.out.println("Using MQTT Here..");
+				sleep(500);
+				aoiPercept = new SensorMQTTClient(server, username+"-instAOI");
+			}
+
+
+
 			AOIReadingHandler newAOIhandler = new AOIReadingHandler();
 			newAOIhandler.init(this);
 			aoiPercept.addHandler(AOINODE, newAOIhandler); 
-			aoiPercept.subscribeAndCreate(AOINODE);
-		} catch (XMPPException e) {
+			aoiPercept.subscribe(AOINODE);
+		} catch (Exception e) {
 			System.out.println("NormSensor creation failed");
 			e.printStackTrace();
 		}

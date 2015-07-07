@@ -40,11 +40,12 @@ public class TestRDF {
 	private int perSecCounter=0;
 	private static boolean noSleep = false;
 	private static SensorClient sensorClient;
-	private static SensorMQTTClient sensorMQTTClient;
+	//private static SensorMQTTClient sensorMQTTClient;
 	private double lastReadingUpdateTime = 0;
 	private static boolean testJSON=false;
 	private static boolean testRDF=false;
 	private static boolean testMQTTRDF=false;
+	private static boolean testMQTTJSON=false;
 	private static final long nanoToMili=1000000;
 	private static boolean writeToFile=false;
 	private static boolean testRates=false;
@@ -83,16 +84,28 @@ public class TestRDF {
 				fw2 = new FileWriter("msgPerSec.txt",false);
 			}
 		}
-		else if (argMode.equals("testMode"))
+		else if (argMode.equals("testMode-RDF"))
 		{
 			testRates=true;
 			testRDF=true;
 			testMode="subscribeRDF";
 		}
-		else if (argMode.equals("testMode-MQTT"))
+		else if (argMode.equals("testMode-JSON"))
+		{
+			testRates=true;
+			testJSON=true;
+			testMode="subscribeRDF";
+		}
+		else if (argMode.equals("testMode-MQTT-RDF"))
 		{
 			testMQTTRates=true;
 			testMQTTRDF=true;
+			testMode="subscribeMQTTRDF";
+		}
+		else if (argMode.equals("testMode-MQTT-JSON"))
+		{
+			testMQTTRates=true;
+			testMQTTJSON=true;
 			testMode="subscribeMQTTRDF";
 		}
 
@@ -265,7 +278,7 @@ public class TestRDF {
 			{
 				System.out.println("Testing MQTT subscription");
 				try {
-					sensorMQTTClient = new SensorMQTTClient(XMPPServer, "rdfTest-subscriber");
+					sensorClient = new SensorMQTTClient(XMPPServer, "rdfTest-subscriber");
 					System.out.println("connected subscriber");
 				} catch (Exception e1) {
 					System.out.println("Exception in establishing MQTT client.");
@@ -274,7 +287,7 @@ public class TestRDF {
 			}
 		
 		
-			if (testRDF) 
+			if (testRDF || testMQTTRDF) 
 			{
 				sensorClient.addHandler(jasonSensorVehicles, new ReadingHandler() 
 				{
@@ -320,50 +333,7 @@ public class TestRDF {
 				});
 			}
 
-			if (testMQTTRDF) 
-			{
-				System.out.println("subscribing to MQTT RDF");
-				sensorMQTTClient.addHandler(jasonSensorVehicles, new ReadingHandler() 
-				{
-					@Override
-					public void handleIncomingReading(String node, String rdf) 
-					{
-						try 
-						{
-							DataReading dr = DataReading.fromRDF(rdf);
-							if (dr.getLocatedAt().equals("http://127.0.0.1/vehicleSensors"))
-							{
-								List<DataReading.Value> drValues = dr.findValues(null, null, null);
-								int drSize = drValues.size();
-								if (drSize == 1)
-								{
-									DataReading.Value spatialVal = dr.findFirstValue(null, "http://127.0.0.1/sensors/types#spatial", null);
-									if(spatialVal != null) 
-									{
-										//System.out.println("got " + dr.getTakenBy() + " " + dr.getLocatedAt() + " " + dr.getType());
-										//System.out.println("pred: " + spatialVal.predicate.toString() + " subj: " + spatialVal.subject.toString() + " obj; " + spatialVal.object.toString());
-										lastReadingUpdateTime = dr.getTimestamp();
-										processXMPPData("spatial,"+spatialVal.object, dr.getTakenBy(), dr.getTimestamp());        
-									}
-									else
-									{
-										//System.out.println("got " + dr.getTakenBy() + " " + dr.getLocatedAt() + " " + dr.getType());
-										//System.out.println("pred: " + spatialVal.predicate.toString() + " subj: " + spatialVal.subject.toString() + " obj; " + spatialVal.object.toString());
-										DataReading.Value spatialValFailback = dr.findFirstValue(null, null, null);
-										if(spatialValFailback != null) 
-										{
-											lastReadingUpdateTime = dr.getTimestamp();
-											counter++;     
-										}
-									}
-								}
-							}
-						}catch(Exception e) {System.out.println("Exception here!");}
-					}
-				});
-			}
-
-			else if (testJSON) 
+			else if (testJSON || testMQTTJSON) 
 			{
 				sensorClient.addHandler(jasonSensorVehicles, new ReadingHandler() 
 				{
@@ -387,38 +357,13 @@ public class TestRDF {
 				});
 			}
 			System.out.println("testMode:" + testMode);
-			if (!testMode.equals("subscribeMQTTRDF"))	
-			{
-				try {
-					sensorClient.subscribe(jasonSensorVehicles);
-					System.out.println("subscribed to " + jasonSensorVehicles);
-				} 
-				catch (Exception e1) {
-					System.out.println("Exception while subscribing to XMPP sensor.");
-					e1.printStackTrace();
-				}
-			}
-			else if (testMode.equals("subscribeMQTTRDF"))	
-			{
-				try {
-					sensorMQTTClient.subscribe(jasonSensorVehicles);
-					System.out.println("MQTT subscribed to " + jasonSensorVehicles);
-				} 
-				catch(MqttException me) 
-				{
-					System.out.println("Exception while subscribing to MQTT sensor");
-					System.out.println("reason "+me.getReasonCode());
-					System.out.println("msg "+me.getMessage());
-					System.out.println("loc "+me.getLocalizedMessage());
-					System.out.println("cause "+me.getCause());
-					System.out.println("excep "+me);
-					me.printStackTrace();
-				}	
-				catch (Exception e1) {
-					System.out.println("Exception while subscribing to MQTT sensor.");
-					e1.printStackTrace();
-				}
-
+			try {
+				sensorClient.subscribe(jasonSensorVehicles);
+				System.out.println("subscribed to " + jasonSensorVehicles);
+			} 
+			catch (Exception e1) {
+				System.out.println("Exception while subscribing to sensor.");
+				e1.printStackTrace();
 			}
 		}
 	
@@ -434,11 +379,25 @@ public class TestRDF {
 			{
 				if (testRates) 
 				{
-					testNonThreadSender.generateAndSendTestMsg();
+					if (testRDF)
+					{
+						testNonThreadSender.generateAndSendTestMsg();
+					}
+					else if (testJSON)
+					{
+						testNonThreadSender.generateAndSendTestJSONMsg();
+					}
 				}
 				else if (testMQTTRates)
 				{
-					testMQTTSender.generateAndSendTestMsg();
+					if (testMQTTRDF)
+					{					
+						testMQTTSender.generateAndSendTestMsg();
+					}
+					else if (testMQTTJSON)
+					{
+						testMQTTSender.generateAndSendTestJSONMsg();
+					}
 				}
 				sentCount++;
 				if ((checkEachSecondTime + 1000*nanoToMili) < System.nanoTime())
@@ -481,8 +440,15 @@ public class TestRDF {
 				if (testRDF) {
 					testNonThreadSender.generateAndSendTestMsg();
 				}
-				else if (testMQTTRDF) {	
+				if (testJSON) {
+					testNonThreadSender.generateAndSendTestJSONMsg();
+				}
+				else if (testMQTTRDF) {						
 					testMQTTSender.generateAndSendTestMsg();
+				}
+				else if (testMQTTJSON)
+				{
+					testMQTTSender.generateAndSendTestJSONMsg();
 				}
 				sentCount++;
 			}
@@ -511,7 +477,7 @@ public class TestRDF {
 		{
 			while(alive) 
 			{
-				if (testMode.equals("publishRDF") || testMode.equals("publishJSON") || testMode.equals("publishMQTTRDF") )
+				if (testMode.equals("publishRDF") || testMode.equals("publishJSON") || testMode.equals("publishMQTTRDF") || testMode.equals("publishMQTTJSON") )
 				{
 					try 
 					{
@@ -523,8 +489,13 @@ public class TestRDF {
 								if (testRDF) {	
 									testNonThreadSender.generateAndSendTestMsg();
 								}
-								else if (testMQTTRDF) {	
+								else if (testMQTTRDF)
+								{					
 									testMQTTSender.generateAndSendTestMsg();
+								}
+								else if (testMQTTJSON)
+								{
+									testMQTTSender.generateAndSendTestJSONMsg();
 								}
 								else if (testJSON) {	
 									testNonThreadSender.generateAndSendTestJSONMsg();
@@ -541,6 +512,10 @@ public class TestRDF {
 							}
 							else if (testMQTTRDF) {	
 								testMQTTSender.generateAndSendTestMsg();
+							}
+							else if (testMQTTJSON)
+							{
+								testMQTTSender.generateAndSendTestJSONMsg();
 							}
 							else if (testJSON) {
 								testNonThreadSender.generateAndSendTestJSONMsg();

@@ -8,8 +8,7 @@ import java.util.Iterator;
 import edu.bath.sensorframework.DataReading;
 import edu.bath.sensorframework.Visualisation;
 import edu.bath.sensorframework.DataReading;
-import edu.bath.sensorframework.client.ReadingHandler;
-import edu.bath.sensorframework.client.SensorClient;
+import edu.bath.sensorframework.client.*;
 import edu.bath.sensorframework.sensor.Sensor;
 
 import org.jivesoftware.smack.XMPPException;
@@ -28,6 +27,12 @@ public class WorkerNonThreadSender extends Sensor {
 	
 	public WorkerNonThreadSender(String serverAddress, String id, String password, String nodeName, String currentLocation, String primaryHandle) throws XMPPException {
 		super(serverAddress, id, password, nodeName);
+		this.currentLocation = currentLocation;
+		this.primaryHandle = primaryHandle;
+	}
+
+	public WorkerNonThreadSender(String serverAddress, String id, String password, String nodeName, String currentLocation, String primaryHandle, boolean useMQTT, int qos) throws XMPPException {
+		super(serverAddress, id, password, nodeName, useMQTT, qos);
 		this.currentLocation = currentLocation;
 		this.primaryHandle = primaryHandle;
 	}

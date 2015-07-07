@@ -94,6 +94,17 @@
 		<attribute name="Class-Path" value=". ${lib.list}"/>
         </manifest>
     </jar>
+
+        <jar destfile="BSFBundle.jar">
+                <zipgroupfileset dir="dist" includes="*.jar" />
+                <manifest>
+
+                <attribute name="Main-Class" value="edu.bath.rdfUtils.rdfTest.TestRDF"/>
+                <attribute name="Class-Path" value=". ${lib.list}"/>
+
+                </manifest>
+        </jar>
+
   </target>
 
      <target name="run-rdfTest" depends="dist, input-rdfrunargs" description="Run RDF Test as Publisher or Subscriber" >
@@ -105,19 +116,33 @@
 	</java>
     </target>
 
-     <target name="run-rdfTest-nointeract" depends="dist" description="Run RDF Test with no interaction" >
+     <target name="run-rdfTest-nointeract-RDF" depends="dist" description="Run RDF Test with no interaction" >
        <!--echo message="Dist Classpath: ${dist_cp}" /-->
         <!-- There might be a tidier way to do this, but using java -jar ignores classpath it seems -->
 	<java fork="true" classpath="${dist_cp}" classname="edu.bath.rdfUtils.rdfTest.TestRDF"> 
-		<arg line="testMode"/>
+		<arg line="testMode-RDF"/>
+	</java>
+    </target>
+     <target name="run-rdfTest-nointeract-JSON" depends="dist" description="Run RDF Test with no interaction" >
+       <!--echo message="Dist Classpath: ${dist_cp}" /-->
+        <!-- There might be a tidier way to do this, but using java -jar ignores classpath it seems -->
+	<java fork="true" classpath="${dist_cp}" classname="edu.bath.rdfUtils.rdfTest.TestRDF"> 
+		<arg line="testMode-JSON"/>
 	</java>
     </target>
 
-     <target name="run-rdfTest-nointeract-MQTT" depends="dist" description="Run RDF Test with no interaction" >
+     <target name="run-rdfTest-nointeract-MQTT-RDF" depends="dist" description="Run RDF Test with no interaction" >
        <!--echo message="Dist Classpath: ${dist_cp}" /-->
         <!-- There might be a tidier way to do this, but using java -jar ignores classpath it seems -->
 	<java fork="true" classpath="${dist_cp}" classname="edu.bath.rdfUtils.rdfTest.TestRDF"> 
-		<arg line="testMode-MQTT"/>
+		<arg line="testMode-MQTT-RDF"/>
+	</java>
+    </target>
+     <target name="run-rdfTest-nointeract-MQTT-JSON" depends="dist" description="Run JSON Test with no interaction" >
+       <!--echo message="Dist Classpath: ${dist_cp}" /-->
+        <!-- There might be a tidier way to do this, but using java -jar ignores classpath it seems -->
+	<java fork="true" classpath="${dist_cp}" classname="edu.bath.rdfUtils.rdfTest.TestRDF"> 
+		<arg line="testMode-MQTT-JSON"/>
 	</java>
     </target>
     

@@ -2,8 +2,7 @@ package edu.bath.HueBSF;
 
 import edu.bath.sensorframework.DataReading;
 import edu.bath.sensorframework.DataReading.Value;
-import edu.bath.sensorframework.client.ReadingHandler;
-import edu.bath.sensorframework.client.SensorClient;
+import edu.bath.sensorframework.client.*;
 import edu.bath.sensorframework.sensor.Sensor;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -15,6 +14,7 @@ import java.util.List;
 import java.awt.Color;
 import java.util.Map;
 import java.util.ArrayList;
+import java.util.HashMap;
 
 import com.philips.lighting.data.*;
 import com.philips.lighting.gui.*;
@@ -57,6 +57,10 @@ public class HueBSF extends Sensor {
 
 	private List<PHLight> storedLights;
 	ArrayList<LightPairs> previousLightPairs = new ArrayList<LightPairs>();
+	private static boolean useXMPP=false;
+	private static boolean useMQTT=false;
+	private static HueBSF ps;
+	private static HashMap<String, String> lightNameMap = new HashMap<String, String>();
 
 
 	public HueBSF(String serverAddress, String id, String password, String nodeName, String currentLocation, String primaryHandle) throws XMPPException {
@@ -64,8 +68,15 @@ public class HueBSF extends Sensor {
 		this.currentLocation = currentLocation;
 		this.primaryHandle = primaryHandle;
 	}
+
+	public HueBSF(String serverAddress, String id, String password, String nodeName, String currentLocation, String primaryHandle, boolean useMQTT, int qos) throws XMPPException {
+		super(serverAddress, id, password, nodeName, useMQTT, qos);
+		this.currentLocation = currentLocation;
+		this.primaryHandle = primaryHandle;
+	}
 	
 	public static void main(String[] args) throws Exception {
+		lightNameMap.put("Light_GF_Bedroom1_Ceiling", "Bedroom 1 main light");
 			
 		try
 		{
@@ -79,6 +90,24 @@ public class HueBSF extends Sensor {
 					XMPPServer = configArray[1];
 					//System.out.println("Using config declared IP address of openfire server as: " + XMPPServer);
 				}
+				if (line.contains("COMMUNICATION"))
+				{
+					String[] configArray = line.split("=");
+					if(configArray[1].equals("MQTT"))
+					{
+						useMQTT=true;
+					}
+					else if(configArray[1].equals("XMPP"))
+					{
+						useXMPP=true;
+					}
+					//System.out.println("Using config declared IP address of openfire server as: " + XMPPServer);
+				}
+			}
+			if (!useMQTT && !useXMPP)
+			{
+				System.out.println("no COMMUNICATION value found in config.txt, should be = MQTT or XMPP");
+				System.exit(1);
 			}
 		}
 		catch (Exception e) 
@@ -87,9 +116,16 @@ public class HueBSF extends Sensor {
 			e.printStackTrace();
 		}
 
-		
-		System.out.println("Using defaults: " + XMPPServer + ", " + componentName + ", jasonpassword, jasonSensor, http://127.0.0.1/AOISensors, http://127.0.0.1/HueBSF/Hue");
-		HueBSF ps = new HueBSF(XMPPServer, componentName, "jasonpassword", homeSensors , "http://127.0.0.1/AOISensors", "http://127.0.0.1/HueBSF/Hue");
+		if (useXMPP)
+		{
+			System.out.println("Using XMPP defaults: " + XMPPServer + ", " + componentName + ", jasonpassword, jasonSensor, http://127.0.0.1/AOISensors, http://127.0.0.1/HueBSF/Hue");
+			ps = new HueBSF(XMPPServer, componentName, "jasonpassword", homeSensors , "http://127.0.0.1/AOISensors", "http://127.0.0.1/HueBSF/Hue");
+		}			
+		else if (useMQTT)
+		{
+			System.out.println("Using MQTT defaults: " + XMPPServer + ", " + componentName);
+			ps = new HueBSF(XMPPServer, componentName, "jasonpassword", homeSensors , "http://127.0.0.1/AOISensors", "http://127.0.0.1/HueBSF/Hue", true, 0);
+		}
 
 		Thread.currentThread().sleep(1000);
 		System.out.println("Created hueSensor, now entering its logic!");
@@ -109,12 +145,27 @@ public class HueBSF extends Sensor {
 
 	public void run() throws XMPPException {	
 		
-		while(sensorClient == null) {
+		if (useXMPP)
+		{
+			System.out.println("XMPP subscription");
+			while(sensorClient == null) {
+				try {
+					sensorClient = new SensorXMPPClient(XMPPServer, componentName+"-receiver", "jasonpassword");
+					System.out.println("Guess sensor connected OK then!");
+				} catch (XMPPException e1) {
+					System.out.println("Exception in establishing client.");
+					e1.printStackTrace();
+				}
+			}
+		}
+		else if (useMQTT)
+		{
+			System.out.println("MQTT subscription");
 			try {
-				sensorClient = new SensorClient(XMPPServer, componentName+"-receiver", "jasonpassword");
-				System.out.println("Guess sensor connected OK then!");
-			} catch (XMPPException e1) {
-				System.out.println("Exception in establishing client.");
+				sensorClient = new SensorMQTTClient(XMPPServer, componentName+"-receiver");
+				System.out.println("connected subscriber");
+			} catch (Exception e1) {
+				System.out.println("Exception in establishing MQTT client.");
 				e1.printStackTrace();
 			}
 		}
@@ -176,8 +227,8 @@ public class HueBSF extends Sensor {
 			}
 		});
 		try {
-			sensorClient.subscribeAndCreate(homeSensors);
-		} catch (XMPPException e1) {
+			sensorClient.subscribe(homeSensors);
+		} catch (Exception e1) {
 			System.out.println("Exception while subscribing to " + homeSensors);
 			e1.printStackTrace();
 		}
@@ -190,8 +241,8 @@ public class HueBSF extends Sensor {
 
 			try {
 				if(sensorClient.checkReconnect())
-				sensorClient.subscribeAndCreate(homeSensors);
-			} catch (XMPPException e1) {
+				sensorClient.subscribe(homeSensors);
+			} catch (Exception e1) {
 				System.out.println("Couldn't reconnect to " + homeSensors);
 				e1.printStackTrace();
 				try {
@@ -213,7 +264,9 @@ public class HueBSF extends Sensor {
 						DataReading dr = DataReading.fromRDF(rdfHue);
 						String takenBy = dr.getTakenBy();
 						boolean processedMsg = false;
-						//System.out.println("got Hue RDF message!");
+						//System.out.println("got Hue RDF message! takenby " + takenBy);
+
+						//todo extract out the final bit of the string, look it up in the hashmap with  then set the light value
 
 						Value reqVal = dr.findFirstValue(null, "http://127.0.0.1/requests/lights", null);
 						if(reqVal != null) 
@@ -239,11 +292,44 @@ public class HueBSF extends Sensor {
 									phHueSDK.getSelectedBridge().updateLightState(light, lState);
 								}
 							}
-							//otherwise just target specific light
-							else
-							{
-							}
 							processedMsg=true;
+						}
+
+						//target specific lights from openhab
+						if (takenBy.equals("http://127.0.0.1/components/openhab"))
+						{
+							Value openhabV = dr.findFirstValue(null, null , null);
+							if (openhabV != null)
+							{
+								String reqAction = (String)openhabV.object;
+								String predS = openhabV.predicate.toString();
+								String[] predArray = predS.split("/");
+								String lastItem = predArray[predArray.length -1];
+								String hueLightName = lightNameMap.get(lastItem);
+								if (hueLightName != null)
+								{
+									List<PHLight> myLights = cache.getAllLights();
+									for (PHLight light : myLights) 
+									{
+										if (light.getName().equals(hueLightName))
+										{
+											PHLightState lState = light.getLastKnownLightState();
+											if (reqAction.equals("off") || reqAction.equals("OFF"))
+											{
+												lState.setOn(false);
+												System.out.println("SET OFF");
+												phHueSDK.getSelectedBridge().updateLightState(light, lState);
+											}
+											else if (reqAction.equals("on") || reqAction.equals("ON"))
+											{
+												lState.setOn(true);
+												System.out.println("SET ON");
+												phHueSDK.getSelectedBridge().updateLightState(light, lState);
+											}
+										}
+									}
+								}
+							}
 						}
 
 						Value personVal = dr.findFirstValue(null, "http://127.0.0.1/detections/people" , null);
@@ -286,7 +372,7 @@ public class HueBSF extends Sensor {
 							Value foundV = dr.findFirstValue(null, null , null);
 							if (foundV != null)
 							{
-								System.out.println("pred: " + foundV.predicate.toString() + " subj: " + foundV.subject.toString() + " obj; " + foundV.object.toString());
+								//System.out.println("pred: " + foundV.predicate.toString() + " subj: " + foundV.subject.toString() + " obj; " + foundV.object.toString());
 							}
 						}
 
@@ -368,7 +454,38 @@ public class HueBSF extends Sensor {
              // Here you receive notifications that the BridgeResource Cache was updated. Use the PHMessageType to   
              // check which cache was updated, e.g.
             if (cacheNotificationsList.contains(PHMessageType.LIGHTS_CACHE_UPDATED)) {
-               //System.out.println("Lights Cache Updated ");
+               System.out.println("Lights Cache Updated ");
+		cache = bridge.getResourceCache();
+
+		List<PHLight> myLights = cache.getAllLights();
+ 		for (PHLight light : myLights) 
+		{
+			String lampModel = light.getModelNumber();
+			PHLightState lState = light.getLastKnownLightState();
+			Integer bri = lState.getBrightness();
+			Integer hue = lState.getHue();
+			int lightRed = -1;
+			int lightGreen = -1;
+			int lightBlue = -1;
+			
+			if (!lampModel.equals("LWB004"))
+			{
+				float xCol = lState.getX();
+				float yCol = lState.getY();
+				float colVal[] = new float[2];
+				colVal[0] = xCol;
+				colVal[1] = yCol;
+				int hueColVal = PHUtilities.colorFromXY(colVal, lampModel);
+				Color hueColor = new Color (hueColVal);
+				lightRed = hueColor.getRed();
+				lightGreen = hueColor.getGreen();
+				lightBlue = hueColor.getBlue();
+			}
+
+			boolean on = lState.isOn();
+			//System.out.println(light.getName() + ", hue: " + hue + ", bri: " + bri + ", on: " + on + ", model: " + lampModel);
+			generateAndSendLightMsg(light.getName(), lampModel, bri, lightRed, lightGreen, lightBlue, on);
+		}
             }
         }
 
@@ -381,6 +498,8 @@ public class HueBSF extends Sensor {
 
             	phHueSDK.setSelectedBridge(b);
             	phHueSDK.enableHeartbeat(b, PHHueSDK.HB_INTERVAL);
+		//PHHeartbeatManager heartbeatManager = PHHeartbeatManager.getInstance();
+		//heartbeatManager.enableLightsHeartbeat(b, PHHueSDK.HB_INTERVAL);
 
 		String username = HueProperties.getUsername();
 		String lastIpAddress = b.getResourceCache().getBridgeConfiguration().getIpAddress();
@@ -432,7 +551,7 @@ public class HueBSF extends Sensor {
 
 			boolean on = lState.isOn();
 			System.out.println(light.getName() + ", hue: " + hue + ", bri: " + bri + ", on: " + on + ", model: " + lampModel);
-			generateAndSendLightMsg(light.getName(), lampModel, bri, lightRed, lightGreen, lightBlue);
+			generateAndSendLightMsg(light.getName(), lampModel, bri, lightRed, lightGreen, lightBlue, on);
 		}
 		connectedHue = true;
         }
@@ -579,18 +698,46 @@ public class HueBSF extends Sensor {
 		}
 	}
 
-	public void generateAndSendLightMsg(String lName, String lModel, Integer bri, int lightRed, int lightGreen, int lightBlue) {
+	public void generateAndSendLightMsg(String lName, String lModel, Integer bri, int lightRed, int lightGreen, int lightBlue, boolean on) {
 
 		try 
-		{				
-			DataReading testReading = new DataReading(getPrimaryHandle(), getCurrentLocation(), System.currentTimeMillis());
-			testReading.setTakenBy("http://127.0.0.1/components/"+componentName+"/"+lName);
-			testReading.addDataValue(null, "http://127.0.0.1/components/lights/model" , lModel, false);
-			testReading.addDataValue(null, "http://127.0.0.1/components/lights/brightness" , bri, false);
-			testReading.addDataValue(null, "http://127.0.0.1/components/lights/redval" , lightRed, false);
-			testReading.addDataValue(null, "http://127.0.0.1/components/lights/greenval" , lightGreen, false);
-			testReading.addDataValue(null, "http://127.0.0.1/components/lights/blueval" , lightBlue, false);
-			publish(testReading);
+		{	
+			String bsfLightName=null;
+			for (Map.Entry<String, String> entry : lightNameMap.entrySet()) 
+			{
+    				Object value = entry.getValue();
+				if (value.equals(lName))
+				{
+					bsfLightName=entry.getKey();
+				}
+			
+			}
+
+			if (bsfLightName == null)
+			{
+				//if we dont have a mapping yet
+				//System.out.println("WARNING: no mapping setup for " + lName + " yet, no info sent");
+			}	
+			else
+			{		
+				DataReading testReading = new DataReading(getPrimaryHandle(), getCurrentLocation(), System.currentTimeMillis());
+				testReading.setTakenBy("http://127.0.0.1/components/hueInterface");
+				testReading.addDataValue(null, "http://127.0.0.1/components/lights/name" , bsfLightName, false);
+				testReading.addDataValue(null, "http://127.0.0.1/components/lights/model" , lModel, false);
+				testReading.addDataValue(null, "http://127.0.0.1/components/lights/brightness" , bri, false);
+				if (on)
+				{
+					testReading.addDataValue(null, "http://127.0.0.1/components/lights/state" , "ON", false);
+				}
+				else
+				{
+					testReading.addDataValue(null, "http://127.0.0.1/components/lights/state" , "OFF", false);
+				}
+				testReading.addDataValue(null, "http://127.0.0.1/components/lights/redval" , lightRed, false);
+				testReading.addDataValue(null, "http://127.0.0.1/components/lights/greenval" , lightGreen, false);
+				testReading.addDataValue(null, "http://127.0.0.1/components/lights/blueval" , lightBlue, false);
+				publish(testReading);
+			}
 		} 							
 		catch (Exception e) {
 			e.printStackTrace();

@@ -26,7 +26,6 @@ import edu.bath.sensorframework.JsonReading;
 import edu.bath.sensorframework.JsonReading.Value;
 import edu.bath.sensorframework.DataReading;
 import edu.bath.sensorframework.client.ReadingHandler;
-import edu.bath.sensorframework.client.SensorClient;
 
 
 public class AOIReadingHandler implements ReadingHandler 

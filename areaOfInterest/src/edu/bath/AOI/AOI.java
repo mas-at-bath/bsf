@@ -2,8 +2,7 @@ package edu.bath.AOI;
 
 import edu.bath.sensorframework.DataReading;
 import edu.bath.sensorframework.DataReading.Value;
-import edu.bath.sensorframework.client.ReadingHandler;
-import edu.bath.sensorframework.client.SensorClient;
+import edu.bath.sensorframework.client.*;
 import edu.bath.sensorframework.sensor.Sensor;
 import javax.vecmath.*;
 
@@ -47,14 +46,23 @@ public class AOI extends Sensor {
 	private static int receivedMessageCount =0;
 	private LinkedBlockingQueue<String> pendingVehicleCmdMessages = new LinkedBlockingQueue<String>();
 	private LinkedBlockingQueue<String> pendingAOIMessages = new LinkedBlockingQueue<String>();	
+	private static boolean useXMPP=false;
+	private static boolean useMQTT=false;
 
 	private static String scenarioUsed = "m25";
 
 	private static long startupTime=0L;
 	private static long startupDelay=1000L;
+	private static AOI ps;
 	
 	public AOI(String serverAddress, String id, String password, String nodeName, String currentLocation, String primaryHandle) throws XMPPException {
 		super(serverAddress, id, password, nodeName);
+		this.currentLocation = currentLocation;
+		this.primaryHandle = primaryHandle;
+	}
+
+	public AOI(String serverAddress, String id, String password, String nodeName, String currentLocation, String primaryHandle, boolean useMQTT, int qos) throws XMPPException {
+		super(serverAddress, id, password, nodeName, useMQTT, qos);
 		this.currentLocation = currentLocation;
 		this.primaryHandle = primaryHandle;
 	}
@@ -73,6 +81,24 @@ public class AOI extends Sensor {
 					XMPPServer = configArray[1];
 					//System.out.println("Using config declared IP address of openfire server as: " + XMPPServer);
 				}
+				if (line.contains("COMMUNICATION"))
+				{
+					String[] configArray = line.split("=");
+					if(configArray[1].equals("MQTT"))
+					{
+						useMQTT=true;
+					}
+					else if(configArray[1].equals("XMPP"))
+					{
+						useXMPP=true;
+					}
+					//System.out.println("Using config declared IP address of openfire server as: " + XMPPServer);
+				}
+			}
+			if (!useMQTT && !useXMPP)
+			{
+				System.out.println("no COMMUNICATION value found in config.txt, should be = MQTT or XMPP");
+				System.exit(1);
 			}
 		}
 		catch (Exception e) {System.out.println("Error loading config.txt file");}
@@ -103,15 +129,18 @@ public class AOI extends Sensor {
 
 		
 		System.out.println("Using defaults: " + XMPPServer + ", " + componentName + ", jasonpassword, jasonSensor, http://127.0.0.1/AOISensors, http://127.0.0.1/AOISensors/AOI");
-		AOI ps = new AOI(XMPPServer, componentName, "jasonpassword", jasonSensorVehicles , "http://127.0.0.1/AOISensors", "http://127.0.0.1/AOISensors/AOI");
-
-		Thread.currentThread().sleep(1000);
-		System.out.println("Created jasonSensor, now entering its logic!");
-		
-
-		aoiMsgSender = new WorkerNonThreadSender(XMPPServer, componentName+"-sender", "jasonpassword", aoiNodeName, "http://127.0.0.1/AOISensors", "http://127.0.0.1/AOISensors/AOI");
-		System.out.println("Created aoiSender, now entering its logic!");
-		Thread.currentThread().sleep(1000);
+		if (useXMPP)
+		{
+			ps = new AOI(XMPPServer, componentName, "jasonpassword", jasonSensorVehicles , "http://127.0.0.1/AOISensors", "http://127.0.0.1/AOISensors/AOI");
+			Thread.currentThread().sleep(1000);
+			aoiMsgSender = new WorkerNonThreadSender(XMPPServer, componentName+"-sender", "jasonpassword", aoiNodeName, "http://127.0.0.1/AOISensors", "http://127.0.0.1/AOISensors/AOI");
+		}		
+		else if (useMQTT)
+		{
+			ps = new AOI(XMPPServer, componentName, "jasonpassword", jasonSensorVehicles , "http://127.0.0.1/AOISensors", "http://127.0.0.1/AOISensors/AOI", true, 0);
+			Thread.currentThread().sleep(1000);
+			aoiMsgSender = new WorkerNonThreadSender(XMPPServer, componentName+"-sender", "jasonpassword", aoiNodeName, "http://127.0.0.1/AOISensors", "http://127.0.0.1/AOISensors/AOI", true, 0);
+		}
 		
 		ps.run();
 	}
@@ -127,13 +156,27 @@ public class AOI extends Sensor {
 
 
 	public void run() throws XMPPException {	
-		
-		while(sensorClient == null) {
+		if (useXMPP)
+		{
+			System.out.println("XMPP subscription");
+			while(sensorClient == null) {
+				try {
+					sensorClient = new SensorXMPPClient(XMPPServer, componentName+"-receiver", "jasonpassword");
+					System.out.println("Guess sensor connected OK then!");
+				} catch (XMPPException e1) {
+					System.out.println("Exception in establishing client.");
+					e1.printStackTrace();
+				}
+			}
+		}
+		else if (useMQTT)
+		{
+			System.out.println("MQTT subscription");
 			try {
-				sensorClient = new SensorClient(XMPPServer, componentName+"-receiver", "jasonpassword");
-				System.out.println("Guess sensor connected OK then!");
-			} catch (XMPPException e1) {
-				System.out.println("Exception in establishing client.");
+				sensorClient = new SensorMQTTClient(XMPPServer, componentName+"-receiver");
+				System.out.println("connected subscriber");
+			} catch (Exception e1) {
+				System.out.println("Exception in establishing MQTT client.");
 				e1.printStackTrace();
 			}
 		}
@@ -159,8 +202,8 @@ public class AOI extends Sensor {
 			}
 		});
 		try {
-			sensorClient.subscribeAndCreate(aoiNodeName);
-		} catch (XMPPException e1) {
+			sensorClient.subscribe(aoiNodeName);
+		} catch (Exception e1) {
 			System.out.println("Exception while subscribing to " + aoiNodeName);
 			e1.printStackTrace();
 		}
@@ -202,8 +245,8 @@ public class AOI extends Sensor {
 			}
 		});
 		try {
-			sensorClient.subscribeAndCreate(jasonSensorVehiclesCmds);
-		} catch (XMPPException e1) {
+			sensorClient.subscribe(jasonSensorVehiclesCmds);
+		} catch (Exception e1) {
 			System.out.println("Exception while subscribing to " + jasonSensorVehiclesCmds);
 			e1.printStackTrace();
 		}
@@ -227,8 +270,8 @@ public class AOI extends Sensor {
 			}
 		});
 		try {
-			sensorClient.subscribeAndCreate(jasonSensorVehicles);
-		} catch (XMPPException e1) {
+			sensorClient.subscribe(jasonSensorVehicles);
+		} catch (Exception e1) {
 			System.out.println("Exception while subscribing to " + jasonSensorVehicles);
 			e1.printStackTrace();
 		}		
@@ -239,8 +282,8 @@ public class AOI extends Sensor {
 
 			try {
 				if(sensorClient.checkReconnect())
-				sensorClient.subscribeAndCreate(jasonSensorVehicles);
-			} catch (XMPPException e1) {
+				sensorClient.subscribe(jasonSensorVehicles);
+			} catch (Exception e1) {
 				System.out.println("Couldn't reconnect to " + jasonSensorVehicles);
 				e1.printStackTrace();
 				try {

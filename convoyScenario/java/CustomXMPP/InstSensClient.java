@@ -6,11 +6,10 @@ import java.util.List;
 import java.util.Iterator;
 
 import org.jivesoftware.smack.XMPPException;
-import edu.bath.sensorframework.client.SensorClient;
+import edu.bath.sensorframework.client.*;
 import edu.bath.sensorframework.sensor.Sensor;
 import edu.bath.sensorframework.JsonReading;
 import edu.bath.sensorframework.JsonReading.Value;
-import edu.bath.sensorframework.client.ReadingHandler;
 
 import java.util.Random;
 
@@ -28,7 +27,22 @@ public class InstSensClient  {
 
 		try
 		{
-			sensorClient = new SensorClient(serverAddress, id, password);
+			sensorClient = new SensorXMPPClient(serverAddress, id, password);
+			parentObj = myParent;
+			System.out.println("connected institution sensor client ok");
+		}
+		catch (Exception e)
+		{
+			System.out.println("error starting sensor");
+		}
+
+	}
+
+	public InstSensClient(String serverAddress, String id, XMPPWorld myParent) throws XMPPException {
+
+		try
+		{
+			sensorClient = new SensorMQTTClient(serverAddress, id);
 			parentObj = myParent;
 			System.out.println("connected institution sensor client ok");
 		}
@@ -59,9 +73,10 @@ public class InstSensClient  {
 		});		
 		try {
 			
-			sensorClient.subscribeAndCreate("NODE_NORM");
-		} catch (XMPPException xe) {
+			sensorClient.subscribe("NODE_NORM");
+		} catch (Exception xe) {
 			System.out.println("failed to subscribe: " + "NODE_NORM");
+			xe.printStackTrace();
 		}
 
 		while (true)

@@ -25,20 +25,23 @@ public class WorkerJStateSender extends Sensor {
 	private String currentLocation;
 	private String primaryHandle, agentName;
 	SensorClient sensorClient;
-	//private *ArrayList<RDFHalf> messageStore;
 	private String URIRequestsURL = "http://127.0.0.1/JState/";
 	private PlanLibrary parentPL;
 	private ArrayList<AgArch> monitoredAgArchList;
 	private boolean debug = true;
 	
-	/*private class RDFHalf
-	{
-		String pred;
-		String val;
-	}*/
-	
 	public WorkerJStateSender(String serverAddress, String id, String password, String nodeName, String currentLocation, String primaryHandle, String agName, PlanLibrary PL) throws XMPPException {
 		super(serverAddress, id, password, nodeName);
+		this.currentLocation = currentLocation;
+		this.primaryHandle = primaryHandle;
+		//this.messageStore = new ArrayList<RDFHalf>();
+		this.parentPL = PL;
+		this.agentName = agName;
+		monitoredAgArchList = new ArrayList<AgArch>();
+	}
+
+	public WorkerJStateSender(String serverAddress, String id, String password, String nodeName, String currentLocation, String primaryHandle, String agName, PlanLibrary PL, boolean useMQTT, int qos) throws XMPPException {
+		super(serverAddress, id, password, nodeName, useMQTT, qos);
 		this.currentLocation = currentLocation;
 		this.primaryHandle = primaryHandle;
 		//this.messageStore = new ArrayList<RDFHalf>();
@@ -54,15 +57,6 @@ public class WorkerJStateSender extends Sensor {
 	public String getPrimaryHandle() {
 		return primaryHandle;
 	}
-
-	/*public synchronized void addJMessageToSend(String from, String to, String il, String msgContent) {
-		//can we use from to be predicate instead?
-		//ok lets pick the illocution as being the key here for predicate, as that will define what the object will look like, e.g. from someone, to someone, msg
-		String predicate = il;
-		//and comprise the object of csv for the minute
-		String objectVal=new String(to + "," + msgContent);
-		addAndSendMsg("message/"+predicate, objectVal);
-	}*/
 
 	public void genBBupdate() 
 	{

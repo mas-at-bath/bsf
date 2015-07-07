@@ -25,6 +25,7 @@ public class WorkerSender extends Sensor  {
 	private ArrayList<RDFHalf> messageStore;
 	private String URIRequestsURL = "http://127.0.0.1/request/";
 	private boolean debug = true;
+
 	
 	private class RDFHalf
 	{
@@ -34,6 +35,13 @@ public class WorkerSender extends Sensor  {
 	
 	public WorkerSender(String serverAddress, String id, String password, String nodeName, String currentLocation, String primaryHandle) throws XMPPException {
 		super(serverAddress, id, password, nodeName);
+		this.currentLocation = currentLocation;
+		this.primaryHandle = primaryHandle;
+		this.messageStore = new ArrayList<RDFHalf>();
+	}
+
+	public WorkerSender(String serverAddress, String id, String password, String nodeName, String currentLocation, String primaryHandle, boolean useMQTT, int qos) throws XMPPException {
+		super(serverAddress, id, password, nodeName, useMQTT, qos);
 		this.currentLocation = currentLocation;
 		this.primaryHandle = primaryHandle;
 		this.messageStore = new ArrayList<RDFHalf>();

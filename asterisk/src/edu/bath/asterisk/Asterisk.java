@@ -2,8 +2,7 @@ package edu.bath.AsteriskBSF;
 
 import edu.bath.sensorframework.DataReading;
 import edu.bath.sensorframework.DataReading.Value;
-import edu.bath.sensorframework.client.ReadingHandler;
-import edu.bath.sensorframework.client.SensorClient;
+import edu.bath.sensorframework.client.*;
 import edu.bath.sensorframework.sensor.Sensor;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -37,9 +36,18 @@ public class Asterisk extends Sensor implements ManagerEventListener {
 	private static long startupTime=0L;
 	private static long startupDelay=1000L;
 	private String incomingNumber="";
+	private static boolean useXMPP=false;
+	private static boolean useMQTT=false;
+	private static Asterisk ps;
 
 	public Asterisk(String serverAddress, String id, String password, String nodeName, String currentLocation, String primaryHandle) throws XMPPException {
 		super(serverAddress, id, password, nodeName);
+		this.currentLocation = currentLocation;
+		this.primaryHandle = primaryHandle;
+	}
+
+	public Asterisk(String serverAddress, String id, String password, String nodeName, String currentLocation, String primaryHandle, boolean useMQTT, int qos) throws XMPPException {
+		super(serverAddress, id, password, nodeName, useMQTT, qos);
 		this.currentLocation = currentLocation;
 		this.primaryHandle = primaryHandle;
 	}
@@ -58,6 +66,24 @@ public class Asterisk extends Sensor implements ManagerEventListener {
 					XMPPServer = configArray[1];
 					//System.out.println("Using config declared IP address of openfire server as: " + XMPPServer);
 				}
+				if (line.contains("COMMUNICATION"))
+				{
+					String[] configArray = line.split("=");
+					if(configArray[1].equals("MQTT"))
+					{
+						useMQTT=true;
+					}
+					else if(configArray[1].equals("XMPP"))
+					{
+						useXMPP=true;
+					}
+					//System.out.println("Using config declared IP address of openfire server as: " + XMPPServer);
+				}
+			}
+			if (!useMQTT && !useXMPP)
+			{
+				System.out.println("no COMMUNICATION value found in config.txt, should be = MQTT or XMPP");
+				System.exit(1);
 			}
 		}
 		catch (Exception e) 
@@ -68,8 +94,14 @@ public class Asterisk extends Sensor implements ManagerEventListener {
 
 		
 		System.out.println("Using defaults: " + XMPPServer + ", " + componentName + ", jasonpassword, jasonSensor, http://127.0.0.1/AOISensors, http://127.0.0.1/Phone/Asterisk");
-		Asterisk ps = new Asterisk(XMPPServer, componentName, "jasonpassword", homeSensors , "http://127.0.0.1/Phone", "http://127.0.0.1/Phone/Asterisk");
-
+		if (useXMPP)
+		{
+			ps = new Asterisk(XMPPServer, componentName, "jasonpassword", homeSensors , "http://127.0.0.1/Phone", "http://127.0.0.1/Phone/Asterisk");
+		}
+		else if (useMQTT)
+		{
+			ps = new Asterisk(XMPPServer, componentName, "jasonpassword", homeSensors , "http://127.0.0.1/Phone", "http://127.0.0.1/Phone/Asterisk", true, 0);
+		}
 		Thread.currentThread().sleep(1000);
 		System.out.println("Created asteriskSensor, now entering its logic!");
 		
@@ -86,15 +118,31 @@ public class Asterisk extends Sensor implements ManagerEventListener {
 	}
 
 
-	public void run() throws XMPPException {	
-		
-		while(sensorClient == null) {
+	public void run() throws XMPPException 
+	{	
+		if (useXMPP)
+		{
+			System.out.println("XMPP subscription");
+			while(sensorClient == null) {
+				try {
+					sensorClient = new SensorXMPPClient(XMPPServer, componentName+"-receiver", "jasonpassword");
+					System.out.println("Guess sensor connected OK then!");
+				} catch (Exception e1) {
+					System.out.println("Exception in establishing client.");
+					e1.printStackTrace();
+				}
+			}
+		}
+		else if (useMQTT)
+		{
+			System.out.println("MQTT subscription");
 			try {
-				sensorClient = new SensorClient(XMPPServer, componentName+"-receiver", "jasonpassword");
+				sensorClient = new SensorMQTTClient(XMPPServer, componentName+"-receiver");
 				System.out.println("Guess sensor connected OK then!");
-			} catch (XMPPException e1) {
-				System.out.println("Exception in establishing client.");
-				e1.printStackTrace();
+			} catch (Exception e1) 
+			{
+					System.out.println("Exception in establishing client.");
+					e1.printStackTrace();
 			}
 		}
 
@@ -120,8 +168,8 @@ public class Asterisk extends Sensor implements ManagerEventListener {
 		});
 		System.out.println("Added handler for " + asteriskNodeName);
 		try {
-			sensorClient.subscribeAndCreate(homeSensors);
-		} catch (XMPPException e1) {
+			sensorClient.subscribe(homeSensors);
+		} catch (Exception e1) {
 			System.out.println("Exception while subscribing to " + homeSensors);
 			e1.printStackTrace();
 		}
@@ -148,8 +196,8 @@ public class Asterisk extends Sensor implements ManagerEventListener {
 
 			try {
 				if(sensorClient.checkReconnect())
-				sensorClient.subscribeAndCreate(homeSensors);
-			} catch (XMPPException e1) {
+				sensorClient.subscribe(homeSensors);
+			} catch (Exception e1) {
 				System.out.println("Couldn't reconnect to " + homeSensors);
 				e1.printStackTrace();
 				try {
