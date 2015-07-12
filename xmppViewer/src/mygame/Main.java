@@ -148,6 +148,8 @@ public class Main extends SimpleApplication implements ScreenController {
     private static String currentPath = "";
     private static boolean runningAndroid=false;
     private static boolean issuedDiscardWarning=false;
+	private static boolean useXMPP=false;
+	private static boolean useMQTT=false;
 
     public static void main(String[] args)  {
 
@@ -242,8 +244,26 @@ public class Main extends SimpleApplication implements ScreenController {
                     String[] configArray = line.split("=");
                     scenarioLocation = configArray[1];
                     System.out.println("Using scenario location: " + scenarioLocation);
-                }
+                }				
+		if (line.contains("COMMUNICATION"))
+		{
+			String[] configArray = line.split("=");
+			if(configArray[1].equals("MQTT"))
+			{
+				useMQTT=true;
+			}
+			else if(configArray[1].equals("XMPP"))
+			{
+				useXMPP=true;
+			}
+			
+		}
             }
+		if (!useMQTT && !useXMPP)
+		{
+			System.out.println("no COMMUNICATION value found in config.txt, should be = MQTT or XMPP");
+			System.exit(1);
+		}
 
             if (scenarioLocation.equals("unset")) {
                 System.out.println("didn't read LOCATION value in config.txt, should be m25 or bath, defaulting to bath");
@@ -365,13 +385,33 @@ public class Main extends SimpleApplication implements ScreenController {
         }
         else
         {
-        while (instSensorClient == null) {
-            try {
-                instSensorClient = new SensorMQTTClient(XMPPServer, "xmppviewer-inst", "jasonpassword");
-            } catch (Exception e1) {
-                System.out.println("Exception in establishing inst client.");
-                e1.printStackTrace();
-            }
+		if (useXMPP)
+		{
+			System.out.println("Using XMPP");
+			while (instSensorClient == null) 
+			{
+		   		try {
+		        		instSensorClient = new SensorXMPPClient(XMPPServer, "xmppviewer-inst", "jasonpassword");
+		    		} 
+				catch (Exception e1) 
+				{
+		        	System.out.println("Exception in establishing inst client.");
+		        	e1.printStackTrace();
+		    		}
+			}
+		}
+		else if (useMQTT)
+		{
+			System.out.println("Using MQTT");
+		   	try {
+		        	instSensorClient = new SensorMQTTClient(XMPPServer, "xmppviewer-inst");
+		    	} 
+			catch (Exception e1) 
+			{
+		        System.out.println("Exception in establishing inst client.");
+		        e1.printStackTrace();
+		    	}
+		}
         }
 
         startupTime = System.currentTimeMillis();
@@ -418,13 +458,32 @@ public class Main extends SimpleApplication implements ScreenController {
             xe.printStackTrace();
         }
 
-        while (mySensorClient == null) {
-            try {
-                mySensorClient = new SensorMQTTClient(XMPPServer, "xmppviewer", "jasonpassword");
-            } catch (Exception e1) {
-                System.out.println("Exception in establishing client.");
-                e1.printStackTrace();
-            }
+	if (useXMPP)
+	{
+		System.out.println("Using XMPP");
+		while (mySensorClient == null) 
+		{
+			try 
+			{
+				mySensorClient = new SensorXMPPClient(XMPPServer, "xmppviewer", "jasonpassword");
+			} catch (Exception e1) 
+			{
+				System.out.println("Exception in establishing client.");
+				e1.printStackTrace();
+			}
+		}
+        }
+	else if (useMQTT)
+	{
+		System.out.println("Using MQTT");
+		try 
+		{
+			mySensorClient = new SensorMQTTClient(XMPPServer, "xmppviewer");
+		} catch (Exception e1) 
+		{
+			System.out.println("Exception in establishing client.");
+			e1.printStackTrace();
+		}
         }
 
         mySensorClient.addHandler(aoiNodeName, new ReadingHandler() {
@@ -673,13 +732,20 @@ public class Main extends SimpleApplication implements ScreenController {
         }
 
         try {
-            simNonThreadSender = new WorkerSimNonThreadSender(XMPPServer, "xmppviewersimstatesender", "jasonpassword", "simStateSensor", "http://127.0.0.1/localSensors", "http://127.0.0.1/localSensors/viewerSender");
-            System.out.println("Created simThreadSender, now entering its logic!");
+		if (useXMPP)
+		{
+            		simNonThreadSender = new WorkerSimNonThreadSender(XMPPServer, "xmppviewersimstatesender", "jasonpassword", "simStateSensor", "http://127.0.0.1/localSensors", "http://127.0.0.1/localSensors/viewerSender");
+		}
+		else if (useMQTT)
+		{
+			simNonThreadSender = new WorkerSimNonThreadSender(XMPPServer, "xmppviewersimstatesender", "jasonpassword", "simStateSensor", "http://127.0.0.1/localSensors", "http://127.0.0.1/localSensors/viewerSender", true, 0);
+		}
+           	System.out.println("Created simThreadSender, now entering its logic!");
         } catch (Exception e) {
             System.out.println("couldn't start sim thread sender");
             System.out.println(e.getStackTrace());
         }
-        }
+        
         //use this for overlaying debug route from waypoint .txt file..
         //rootNode.attachChild(debugNode);
 
