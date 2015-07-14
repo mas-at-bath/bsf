@@ -51,6 +51,7 @@ public class WorkerNonThreadSender extends Sensor {
 			DataReading testReading = new DataReading(getPrimaryHandle(), getCurrentLocation(), System.currentTimeMillis());
 			testReading.setTakenBy("http://127.0.0.1/components/"+componentName);
 			testReading.addDataValue(null, type, msg, false);
+			System.out.println(testReading.toRDF());
 			publish(testReading);
 		} 							
 		catch (Exception e) {

@@ -9,17 +9,30 @@ import com.hp.hpl.jena.rdf.model.Model;
 import com.hp.hpl.jena.rdf.model.ModelFactory;
 import com.hp.hpl.jena.util.FileManager;
 import com.hp.hpl.jena.query.*;
-import com.hp.hpl.jena.rdf.model.*;
+import com.hp.hpl.jena.rdf.model.RDFNode;
+import com.hp.hpl.jena.rdf.model.Resource;
+import com.hp.hpl.jena.rdf.model.Literal;
 
 import org.jivesoftware.smack.XMPPException;
 import org.openrdf.repository.RepositoryException;
 import org.openrdf.rio.RDFFormat;
+import org.openrdf.model.Statement;
 import org.openrdf.model.Value;
 import org.openrdf.query.BindingSet;
 import org.openrdf.query.TupleQuery;
 import org.openrdf.query.TupleQueryResult;
 import org.openrdf.query.QueryLanguage;
-
+import org.openrdf.repository.http.HTTPRepository;
+import org.openrdf.repository.manager.RemoteRepositoryManager;
+import org.openrdf.repository.*;
+import org.openrdf.rio.RDFFormat;
+import org.openrdf.repository.sail.SailRepository;
+import org.openrdf.sail.nativerdf.NativeStore;
+import org.openrdf.sail.config.SailImplConfig;
+import org.openrdf.sail.memory.config.MemoryStoreConfig;
+import org.openrdf.repository.config.RepositoryImplConfig;
+import org.openrdf.repository.sail.config.SailRepositoryConfig;
+import org.openrdf.repository.config.RepositoryConfig;
 
 import com.franz.agraph.repository.AGCatalog;
 import com.franz.agraph.repository.AGRepository;
@@ -45,7 +58,12 @@ public class RDFReplayAgent {
 		public Long time;
 		public String res;
 	}
+	class PredObjPair{
+		public String pred;
+		public String obj;
+	}
 	
+	private static ArrayList<PredObjPair> myPredObjPairs = new ArrayList<PredObjPair>();
 	private static ArrayList<TimeResPair> myPairs = new ArrayList<TimeResPair>();
 	
 	private boolean alive = true;
@@ -62,8 +80,10 @@ public class RDFReplayAgent {
 	
 	private static String XMPPServer = "127.0.0.1";
 	private static String agServer = "127.0.0.1";
+	private static String DBServer = "127.0.0.1";
+	private static String sesameServerURL = "http://127.0.0.1:8040";
 	
-	private static boolean useLocalFile=true;
+	private static boolean useLocalFile=false;
 	private static String fileName = "Sensor.nt";
 	
 	private static Model model; 
@@ -75,7 +95,7 @@ public class RDFReplayAgent {
 	private static long pushScenario2StartTime=1350416205000L;
 	//private long pullScenario3StartTime=1350827502000L;
 	//pull with jstate, cars 3 and 4 go AWOL
-
+	
 	private static long pullScenario3StartTime=1350827502000L;
 	private static long pullScenario3FinTime=1350827670000L;
 	
@@ -87,9 +107,12 @@ public class RDFReplayAgent {
 	
 	private static long msgRate167Start=1369248541682L;
 	private static long  msgRate167Fin=1369248578000L;
+
+	private static long trafficSimTestStart = 1436713489862L;
+	private static long trafficSimTestFin = 1436713465722L;
 									  
-	private static long simStartTime = msgRate167Start;
-	private static long simFinishTime = msgRate167Fin;
+	private static long simStartTime = trafficSimTestStart;
+	private static long simFinishTime = trafficSimTestFin;
 	
 	private int intervalTime=1000;
 	
@@ -101,6 +124,12 @@ public class RDFReplayAgent {
 	private WorkerNonThreadSender myJStateSimSender;
 	private boolean simPaused=false;
 	private boolean simForward=true;
+	private static boolean useXMPP=false;
+	private static boolean useMQTT=false;
+	private static boolean useALLEGRO=false;
+	private static boolean useSESAME=false;
+	private static Repository sesameRepo;
+	private static RepositoryConnection sesameRepoConnection;
 	
 	public static void main(String[] args) throws Exception 
 	{
@@ -125,20 +154,71 @@ public class RDFReplayAgent {
 				XMPPServer = configArray[1];
 				System.out.println("Using config declared IP address of openfire server as: " + XMPPServer);
 			}
-			if (line.contains("ALLEGROGRAPH"))
+			if (line.contains("RDFSTORE"))
 			{
 				String[] configArray = line.split("=");
-				agServer = configArray[1];
-				agServerURL = new String("http://" + agServer + ":10035");
-				System.out.println("Using config declared IP address of AllegroGraph server as: " + agServer);
+				DBServer= configArray[1];
+			}
+			if (line.contains("COMMUNICATION"))
+			{
+				String[] configArray = line.split("=");
+				if(configArray[1].equals("MQTT"))
+				{
+					useMQTT=true;
+				}
+				else if(configArray[1].equals("XMPP"))
+				{
+					useXMPP=true;
+				}
+				//System.out.println("Using config declared IP address of openfire server as: " + XMPPServer);
+			}
+			if (line.contains("DATABASE"))
+			{
+				String[] configArray = line.split("=");
+				if(configArray[1].equals("ALLEGROGRAPH"))
+				{
+					useALLEGRO=true;
+					agServer = DBServer;
+					agServerURL = new String("http://" + agServer + ":10035");
+					System.out.println("Using config declared IP address of AllegroGraph server as: " + agServer);
+				}
+				else if(configArray[1].equals("SESAME"))
+				{
+					useSESAME=true;
+					sesameServerURL = new String("http://" + DBServer + ":8040/openrdf-sesame");
+				}
+				//System.out.println("Using config declared IP address of openfire server as: " + XMPPServer);
 			}
 		}
+		if (!useMQTT && !useXMPP)
+		{
+			System.out.println("no COMMUNICATION value found in config.txt, should be = MQTT or XMPP");
+			System.exit(1);
+		}
+		if (!useALLEGRO && !useSESAME)
+		{
+			System.out.println("no DATABASE value found in config.txt, should be = ALLEGROGRAPH or SESAME");
+			System.exit(1);
+		}
 		
-		while(mySimSensorClient == null) {
+		if (useXMPP)
+		{
+			while(mySimSensorClient == null) {
+				try {
+					mySimSensorClient = new SensorXMPPClient(XMPPServer, "rdfreplay", "jasonpassword");
+					System.out.println("Sim Sensor connected up OK");
+				} catch (XMPPException e1) {
+					System.out.println("Exception in establishing client.");
+					e1.printStackTrace();
+				}
+			}
+		}
+		else if (useMQTT)
+		{
 			try {
-				mySimSensorClient = new SensorXMPPClient(XMPPServer, "rdfreplay", "jasonpassword");
+				mySimSensorClient = new SensorMQTTClient(XMPPServer, "rdfreplay");
 				System.out.println("Sim Sensor connected up OK");
-			} catch (XMPPException e1) {
+			} catch (Exception e1) {
 				System.out.println("Exception in establishing client.");
 				e1.printStackTrace();
 			}
@@ -146,7 +226,14 @@ public class RDFReplayAgent {
 		
 		try 
 		{
-			simThreadSender = new WorkerSimNonThreadSender(XMPPServer, "rdfreplaysimstatesender", "jasonpassword", "simStateSensor", "http://127.0.0.1/localSensors", "http://127.0.0.1/localSensors/viewerSender");
+			if (useXMPP)
+			{
+				simThreadSender = new WorkerSimNonThreadSender(XMPPServer, "rdfreplaysimstatesender", "jasonpassword", "simStateSensor", "http://127.0.0.1/localSensors", "http://127.0.0.1/localSensors/viewerSender");
+			}
+			else if (useMQTT)
+			{
+				simThreadSender = new WorkerSimNonThreadSender(XMPPServer, "rdfreplaysimstatesender", "jasonpassword", "simStateSensor", "http://127.0.0.1/localSensors", "http://127.0.0.1/localSensors/viewerSender", true, 0);
+			}
 		}
 		catch (Exception e) 
 		{
@@ -223,10 +310,19 @@ public class RDFReplayAgent {
 		
 		try 
 		{
-			myVehicleSimSender = new WorkerNonThreadSender(XMPPServer, "xmppsimsender", "jasonpassword", jasonSensorVehicles);
-			myJStateSimSender = new WorkerNonThreadSender(XMPPServer, "xmppsimsender-jstate", "jasonpassword", jasonSensorStates);
+			if (useXMPP)
+			{
+				myVehicleSimSender = new WorkerNonThreadSender(XMPPServer, "xmppsimsender", "jasonpassword", jasonSensorVehicles);
+				myJStateSimSender = new WorkerNonThreadSender(XMPPServer, "xmppsimsender-jstate", "jasonpassword", jasonSensorStates);
+			}
+			else if (useMQTT)
+			{
+				myVehicleSimSender = new WorkerNonThreadSender(XMPPServer, "xmppsimsender", "jasonpassword", jasonSensorVehicles, true, 0);
+				myJStateSimSender = new WorkerNonThreadSender(XMPPServer, "xmppsimsender-jstate", "jasonpassword", jasonSensorStates, true, 0);
+			}
 		}
 		catch (Exception newEr) {
+			System.out.println("error creating Sim sensors..");
 			newEr.printStackTrace();
 		}
 	
@@ -237,36 +333,77 @@ public class RDFReplayAgent {
 			agCatID = "java-catalog";
 			agRepoID = "SensorData";
 	
-			server = new AGServer(agServerURL, agUsername, agPassword);
-			try 
+			if (useALLEGRO)
 			{
-				System.out.println("available cats: " + server.listCatalogs());
-				catalogue = server.getCatalog(agCatID);
-			} catch (Exception newE) 
-			{
-				newE.printStackTrace();
+				server = new AGServer(agServerURL, agUsername, agPassword);
+				try 
+				{
+					System.out.println("available cats: " + server.listCatalogs());
+					catalogue = server.getCatalog(agCatID);
+				} catch (Exception newE) 
+				{
+					newE.printStackTrace();
+				}
+				try 
+				{
+					repository = catalogue.createRepository(agRepoID);
+					repository.initialize();
+					conn = repository.getConnection();
+					System.out.println("Repository " + (repository.getRepositoryID()) + " is up! It contains " + (conn.size()) + " statements.");
+				} catch (RepositoryException e1) 
+				{
+					e1.printStackTrace();
+				}	
 			}
-			try 
+			else if (useSESAME)
 			{
-				repository = catalogue.createRepository(agRepoID);
-				repository.initialize();
-				conn = repository.getConnection();
-				System.out.println("Repository " + (repository.getRepositoryID()) + " is up! It contains " + (conn.size()) + " statements.");
-			} catch (RepositoryException e1) 
-			{
-				e1.printStackTrace();
-			}	
+				try
+				{
+					RemoteRepositoryManager manager = new RemoteRepositoryManager(sesameServerURL);
+					manager.initialize();
+					Repository sensorRepo = manager.getRepository(agRepoID);
+					System.out.println("Sesame server contains: " + manager.getAllRepositories().size() + " repositories");
+					if (sensorRepo != null )
+					{
+						sesameRepoConnection = sensorRepo.getConnection();
+						RepositoryResult<Statement> allStatements = sesameRepoConnection.getStatements(null, null, null, true);
+						int statementCount=0;
+						while (allStatements.hasNext())
+						{
+							statementCount++;
+							allStatements.next();
+						}
+						System.out.println(agRepoID + " repo contains " + statementCount + " statements");
+					}
+					else
+					{
+						System.out.println(agRepoID + " cannot be found!!");
+						System.exit(1);
+					}
+
+				}
+				catch (Exception rE)
+				{
+					System.out.println("repo exception..");
+					System.out.println(rE.getMessage());
+					rE.printStackTrace();
+				}
+			}
 		}
 		else if (useLocalFile)
 		{
 			System.out.println("loading file to memory...");
 			Long startTime = System.currentTimeMillis();
 			model= ModelFactory.createDefaultModel();
+			File f = new File(fileName);
+			if (!f.exists())
+			{
+				System.out.println("Sensor.nt file not found, please download it or select DB server instead of file");
+				System.exit(1);
+			}
 			InputStream in= FileManager.get().open(fileName);
 			model.read(in, "", "N-TRIPLES");
-			Long readTime = System.currentTimeMillis() - startTime;
-			
-			
+			Long readTime = System.currentTimeMillis() - startTime;	
 			System.out.println("loaded file");
 			
 			//build up whole list of messages and their time values in the range we're interested in
@@ -299,13 +436,12 @@ public class RDFReplayAgent {
 		
 		while(alive) 
 		{
-			try 
-			{
 				if (!simPaused) 
 				{
 					String queryEverythingString = "SELECT ?s ?p ?o  WHERE {?s ?p ?o .}";
 					long finTime = simStartTime+intervalTime;
 					String timeBoundedString = "select ?subj where { ?subj <http://bath.edu/sensors/predicates#takenAt> ?value FILTER (?value >= " + simStartTime + " && ?value <= " + finTime + ") } ";
+					//System.out.println(timeBoundedString);
 					ArrayList<String> subjectResults = new ArrayList<String>();
 					
 					Long query1StartTime = System.currentTimeMillis();
@@ -318,31 +454,48 @@ public class RDFReplayAgent {
 								subjectResults.add(currPair.res);
 							}
 						}
-						/*QueryExecution qexec = QueryExecutionFactory.create(timeBoundedString, model);
-						try {
-							ResultSet results = qexec.execSelect() ;
-							for ( ; results.hasNext() ; )
-							{
-								QuerySolution soln = results.nextSolution();
-								Resource r = soln.getResource("subj"); 
-								subjectResults.add(r.toString());
-							}
-						} 
-						catch (Exception e) {
-							e.printStackTrace();
-						}
-						finally { qexec.close() ; }*/
 					}
 					else
 					{
-						
-						AGTupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, timeBoundedString);
-						TupleQueryResult result = tupleQuery.evaluate();
-						while (result.hasNext()) 
-						{
-							BindingSet bindingSet = result.next();				
-							Value s = bindingSet.getValue("subj");
-							subjectResults.add(s.toString());
+						if (useALLEGRO)
+						{	
+							AGTupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, timeBoundedString);
+							try
+							{
+								TupleQueryResult result = tupleQuery.evaluate();
+								while (result.hasNext()) 
+								{
+									BindingSet bindingSet = result.next();				
+									Value s = bindingSet.getValue("subj");
+									subjectResults.add(s.toString());
+								}
+							}
+							catch (Exception e) 
+							{
+								System.out.println("Error in getting allegro result");
+								e.printStackTrace();
+							}
+							
+						}
+						else if (useSESAME)
+						{	
+							//AGTupleQuery tupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, timeBoundedString);
+							try
+							{
+								TupleQuery tupleQuery = sesameRepoConnection.prepareTupleQuery(QueryLanguage.SPARQL, timeBoundedString);
+								TupleQueryResult result = tupleQuery.evaluate();
+								while (result.hasNext()) 
+								{
+									BindingSet bindingSet = result.next();				
+									Value s = bindingSet.getValue("subj");
+									subjectResults.add(s.toString());
+								}
+							}
+							catch (Exception e) 
+							{
+								System.out.println("Error getting sesame tuple result");
+								e.printStackTrace();
+							}
 						}
 					}
 					System.out.println("Found " + subjectResults.size() + " results in this time period");
@@ -355,6 +508,7 @@ public class RDFReplayAgent {
 					for (String temp : subjectResults) 
 					{
 						String drQueryString ="select * where { <" + temp + "> ?pred ?obj . }";
+						//System.out.println("temp query: " + drQueryString);
 						String locatedAtVal = "";
 						String predVal = "";
 						String dataReadingVal = "";
@@ -363,6 +517,7 @@ public class RDFReplayAgent {
 						
 						if (useLocalFile)
 						{
+							myPredObjPairs.clear();
 							QueryExecution qexec = QueryExecutionFactory.create(drQueryString, model);
 							try {
 								ResultSet results = qexec.execSelect() ;
@@ -423,59 +578,116 @@ public class RDFReplayAgent {
 										}
 										//System.out.println("Setting pred to be: " + cleanedPred);
 										predVal=cleanedPred;
+										PredObjPair tempPair = new PredObjPair();
+										tempPair.pred=predVal;
+										tempPair.obj=objectVal;
+										myPredObjPairs.add(tempPair);
 									}
 							
 								}
 							} 
 							catch (Exception e) {
+								System.out.println("error getting statements from local file");
 								e.printStackTrace();
 							}
 							finally { qexec.close() ; }
 						}
 						else
 						{
-							AGTupleQuery drTupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, drQueryString);
-							TupleQueryResult drResult = drTupleQuery.evaluate();
-
-							while (drResult.hasNext()) 
+							TupleQueryResult drResult = null;
+							if (useALLEGRO)
 							{
-								BindingSet drBindingSet = drResult.next();
-								Value pred = drBindingSet.getValue("pred");
-								Value obj = drBindingSet.getValue("obj");
-					
-								if (pred.toString().equals("http://bath.edu/sensors/predicates#locatedAt"))
+								AGTupleQuery drTupleQuery = conn.prepareTupleQuery(QueryLanguage.SPARQL, drQueryString);
+								try
 								{
-									//System.out.println("Setting locatedAt to be: " + obj.toString());
-									locatedAtVal=obj.toString();
+									drResult = drTupleQuery.evaluate();
 								}
-								else if (pred.toString().equals("http://bath.edu/sensors/predicates#isDataReading"))
+								catch (Exception e) 
 								{
-									//System.out.println("Setting dataReadingVal to be: " + obj.toString());
-									dataReadingVal=obj.toString();
-								}
-								else if (pred.toString().equals("http://bath.edu/sensors/predicates#takenAt"))
-								{
-									//System.out.println("Setting takenAtVal to be: " + obj.toString().split("\"")[1]);
-									//String tempTakenAt=obj.toString();
-									//System.out.println(obj.toString().split("\"")[1]);
-									takenAtVal = Long.valueOf(obj.toString().split("\"")[1]);
-								}
-								else if (pred.toString().equals("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"))
-								{
-								}
-								else
-								{
-									//System.out.println("Setting object to be: " + obj.toString().split("\"")[1]);
-									objectVal=obj.toString().split("\"")[1];
-									//System.out.println("Setting pred to be: " + pred.toString());
-									predVal=pred.toString();
+									System.out.println("Error evaluating allegro tuple result");
+									e.printStackTrace();
 								}
 							}
+							else if (useSESAME)
+							{
+								try
+								{
+									TupleQuery drTupleQuery = sesameRepoConnection.prepareTupleQuery(QueryLanguage.SPARQL, drQueryString);
+									drResult = drTupleQuery.evaluate();
+								}
+								catch (Exception e) 
+								{
+									System.out.println("Error evaluating sesame tuple result");
+									e.printStackTrace();
+								}
+							}
+							//TupleQueryResult drResult = drTupleQuery.evaluate();
+							//System.out.println("has " + drResult.getBindingNames().size());
+							try
+							{
+								myPredObjPairs.clear();
+								while (drResult.hasNext()) 
+								{
+									BindingSet drBindingSet = drResult.next();
+									Value pred = drBindingSet.getValue("pred");
+									Value obj = drBindingSet.getValue("obj");
+									/*for (String bName : drBindingSet.getBindingNames())
+									{
+										System.out.println("binding set contains : " + bName);
+									}*/
+									if ((pred !=null) && (obj != null))
+									{
+										if (pred.toString().equals("http://bath.edu/sensors/predicates#locatedAt"))
+										{
+											//System.out.println("Setting locatedAt to be: " + obj.toString());
+											locatedAtVal=obj.toString();
+										}
+										else if (pred.toString().equals("http://bath.edu/sensors/predicates#isDataReading"))
+										{
+											//System.out.println("Setting dataReadingVal to be: " + obj.toString());
+											dataReadingVal=obj.toString();
+										}
+										else if (pred.toString().equals("http://bath.edu/sensors/predicates#takenAt"))
+										{
+											//System.out.println("Setting takenAtVal to be: " + obj.toString().split("\"")[1]);
+											//String tempTakenAt=obj.toString();
+											//System.out.println(obj.toString().split("\"")[1]);
+											takenAtVal = Long.valueOf(obj.toString().split("\"")[1]);
+										}
+										else if (pred.toString().equals("http://www.w3.org/1999/02/22-rdf-syntax-ns#type"))
+										{
+										}
+										else
+										{
+											//System.out.println("Setting object to be: " + obj.toString().split("\"")[1]);
+											objectVal=obj.toString().split("\"")[1];
+											//System.out.println("Setting pred to be: " + pred.toString());
+											predVal=pred.toString();
+											PredObjPair tempPair = new PredObjPair();
+											tempPair.pred=predVal;
+											tempPair.obj=objectVal;
+											myPredObjPairs.add(tempPair);
+										}
+									}
+								}
+							}
+							catch (Exception e) 
+							{
+								System.out.println("Error getting drNext result");
+								e.printStackTrace();
+							}
+
 						}
 						try 
 						{
 							DataReading testReading = new DataReading(dataReadingVal, locatedAtVal, takenAtVal);
-							testReading.addDataValue(null, predVal, objectVal, false);
+							//testReading.addDataValue(null, predVal, objectVal, false);
+
+							for (PredObjPair foundPair : myPredObjPairs)
+							{
+								//System.out.println("adding " + foundPair.pred);
+								testReading.addDataValue(null, foundPair.pred, foundPair.obj, false);
+							}
 							
 							if (locatedAtVal.contains("agentJState"))
 							{
@@ -494,13 +706,23 @@ public class RDFReplayAgent {
 						}	
 						catch (Exception e) 
 						{
+							System.out.println("Error in publishing Data Reading");
 							e.printStackTrace();
 						}	
 					}
 					Long query2ReadTime = System.currentTimeMillis() - query2StartTime;
 					System.out.println("And it took " + query2ReadTime + "ms to find the RDF data and send it");
 				}
-				Thread.sleep(intervalTime);
+				
+				try
+				{
+					Thread.sleep(intervalTime);
+				}
+				catch (Exception e) 
+				{
+					System.out.println("Error in sleep");
+					e.printStackTrace();
+				}	
 
 				if (simPaused)
 				{
@@ -522,11 +744,7 @@ public class RDFReplayAgent {
 					simThreadSender.addMessageToSend("simTime", new String("" + simStartTime));
 					simThreadSender.send();
 				}
-			}
-			catch (Exception ee1) 
-			{
-				ee1.printStackTrace();
-			}
+
 		}
 	}
 	

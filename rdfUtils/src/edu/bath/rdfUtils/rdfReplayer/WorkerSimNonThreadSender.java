@@ -37,6 +37,13 @@ public class WorkerSimNonThreadSender extends Sensor  {
 		this.primaryHandle = primaryHandle;
 		this.messageStore = new ArrayList<RDFHalf>();
 	}
+
+	public WorkerSimNonThreadSender(String serverAddress, String id, String password, String nodeName, String currentLocation, String primaryHandle, boolean useMQTT, int qos) throws XMPPException {
+		super(serverAddress, id, password, nodeName, useMQTT, qos);
+		this.currentLocation = currentLocation;
+		this.primaryHandle = primaryHandle;
+		this.messageStore = new ArrayList<RDFHalf>();
+	}
 	
 
 	public String getCurrentLocation() {

@@ -611,14 +611,14 @@ public class Main extends SimpleApplication implements ScreenController {
                                 processXMPPVehicleHealthData(tempHealthReading, dr.getTakenBy());
                             }
 
-                            DataReading.Value simTimeVal = dr.findFirstValue(null, "http://127.0.0.1/sensors/types#simTime", null);
+                            /*DataReading.Value simTimeVal = dr.findFirstValue(null, "http://127.0.0.1/sensors/types#simTime", null);
                             if (simTimeVal != null) {
 
                                 Integer timeValTemp = (Integer) simTimeVal.object;
                                 currentSimTime = timeValTemp * 1L;
                                 //System.out.println("received a SUMO sim time set to: " + currentSimTime);
                                 timeFromSUMO = true;
-                            }
+                            }*/
 
 
                         } else {

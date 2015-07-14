@@ -25,6 +25,11 @@ public class WorkerNonThreadSender extends Sensor   {
 		super(serverAddress, id, password, nodeName);
 		messageStore = new ArrayList<DataReading>();
 	}
+
+	public WorkerNonThreadSender(String serverAddress, String id, String password, String nodeName, boolean useMQTT, int qos) throws XMPPException {
+		super(serverAddress, id, password, nodeName, useMQTT, qos);
+		messageStore = new ArrayList<DataReading>();
+	}
 	
 
 	public synchronized void addMessageToSend(DataReading drSend) 

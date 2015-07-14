@@ -176,10 +176,17 @@
 	</java>
     </target>
     
-      <target name="run-rdfLogger" depends="dist" description="Run RDF Logger" >
+      <target name="run-rdfLogger-Allegro" depends="dist" description="Run RDF Logger using Allegrograph backend" >
        <!--echo message="Dist Classpath: ${dist_cp}" /-->
         <!-- There might be a tidier way to do this, but using java -jar ignores classpath it seems -->
 	<java fork="true" classpath="${dist_cp}" classname="edu.bath.rdfUtils.rdfLogger.TripleStoreAgent"> 
+	</java>
+    </target>
+
+      <target name="run-rdfLogger-Sesame" depends="dist" description="Run RDF Logger using Sesame backend" >
+       <!--echo message="Dist Classpath: ${dist_cp}" /-->
+        <!-- There might be a tidier way to do this, but using java -jar ignores classpath it seems -->
+	<java fork="true" classpath="${dist_cp}" classname="edu.bath.rdfUtils.rdfLogger.TripleStoreSesameAgent"> 
 	</java>
     </target>
 	
