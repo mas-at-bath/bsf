@@ -36,23 +36,17 @@ import com.jme3.app.state.ScreenshotAppState;
 import com.jme3.font.BitmapText;
 import com.jme3.material.RenderState;
 import com.jme3.post.FilterPostProcessor;
-import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.BloomFilter;
-import com.jme3.post.filters.ColorOverlayFilter;
 
 import com.jme3.renderer.RenderManager;
-import com.jme3.scene.control.BillboardControl;
 import com.jme3.scene.shape.Quad;
-import com.jme3.scene.shape.Sphere;
 import com.jme3.system.NanoTimer;
 import com.jme3.texture.Texture2D;
 import com.jme3.texture.plugins.AWTLoader;
-import com.jme3.ui.Picture;
 import edu.bath.sensorframework.DataReading;
 import edu.bath.sensorframework.client.*;
 import edu.bath.sensorframework.JsonReading;
 import java.awt.image.BufferedImage;
-import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.text.DateFormat;
@@ -63,7 +57,6 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.jivesoftware.smack.XMPPException;
 
 public class Main extends SimpleApplication implements ScreenController {
     
@@ -270,6 +263,10 @@ public class Main extends SimpleApplication implements ScreenController {
                 scenarioLocation = "bath";
             } else if (scenarioLocation.equals("m25")) {
                 System.out.println("setting scenario location to m25");
+            }
+            else if (scenarioLocation.equals("home")) {
+                System.out.println("setting scenario location to home");
+                scenarioLocation = "home";
             } else {
                 if (!scenarioLocation.equals("bath")) {
                     System.out.println("couldn't read LOCATION value properly in config.txt, check its m25 or bath, defaulting to bath now");
@@ -762,7 +759,25 @@ public class Main extends SimpleApplication implements ScreenController {
             terrainZtrans = -1f;
             terrainModel.setLocalTranslation(terrainXtrans, terrainZtrans, terrainYtrans);
             terrainModel.setLocalScale(1f, 1f, 1.0f);
-        } else if (scenarioLocation.equals("m25")) {
+        }
+        else if (scenarioLocation.equals("home")) {
+            terrainModel = assetManager.loadModel("Models/untitled.obj");
+            terrainModel.setLocalRotation(PITCH270);
+            terrainModel.rotate(ROLL180);
+            terrainModel.rotate(ROLL090);
+            terrainXscale = 1f;
+            terrainYscale = 1f;
+            terrainXtrans = 0f;
+            terrainYtrans = 0f;
+            terrainZtrans = -1f;
+            terrainModel.setLocalTranslation(terrainXtrans, terrainZtrans, terrainYtrans);
+            terrainModel.setLocalScale(1f, 1f, 1.0f);
+                flyCam.setEnabled(false);
+                chaseCam = new ChaseCamera(cam, terrainModel, inputManager);
+                chaseCam.setSmoothMotion(true);
+            
+        } 
+        else if (scenarioLocation.equals("m25")) {
             terrainModel = assetManager.loadModel("Models/m25j10FinalConv2.j3o");
             // terrainModel = assetManager.loadModel("Models/newM25.j3o");
 
@@ -806,8 +821,14 @@ public class Main extends SimpleApplication implements ScreenController {
 
         rootNode.attachChild(trafficLightNode);
 
-        addTrafficLights();
-        addSky();
+        if (scenarioLocation.equals("bath"))
+        {
+            addTrafficLights();
+        }
+        else if (!scenarioLocation.equals("home"))
+        {
+            addSky();
+        }
 
         cam.setFrustumFar(10000);
 
