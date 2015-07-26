@@ -12,14 +12,12 @@ import edu.bath.sensorframework.client.*;
 import edu.bath.sensorframework.sensor.Sensor;
 
 import org.jivesoftware.smack.XMPPException;
-import java.util.Random;
 
 public class WorkerSimNonThreadSender extends Sensor  {
 
 	private boolean alive = true;
 	private String currentLocation;
 	private String primaryHandle;
-	SensorClient sensorClient;
 	private String temp;
 	private ArrayList<RDFHalf> messageStore;
 	private String URIRequestsURL = "http://127.0.0.1/request/";
@@ -62,26 +60,32 @@ public class WorkerSimNonThreadSender extends Sensor  {
                     messageStore.add(newMsg);
 		}
 	}
+        
+        public void disconnect()
+        {
+            messageStore.clear();
+            cleanup();
+            //disconnect();
+        }
 
-	public void send() {
-					synchronized(messageStore)
-                                        {
-							for(RDFHalf rdfMsg : messageStore) 
-							{
-								try 
-								{
-								DataReading testReading = new DataReading(getPrimaryHandle(), getCurrentLocation(), System.currentTimeMillis());
-								testReading.addDataValue(null, rdfMsg.pred, rdfMsg.val, false);
-                                                                System.out.println("Sending: " + testReading.toString());
-								publish(testReading);
-								}	
-								catch (Exception e) {
-									e.printStackTrace();
-								}
-							}
-                                        }
-					messageStore.clear();
+	public void send() 
+        {
+		synchronized(messageStore)
+                {
+			for(RDFHalf rdfMsg : messageStore) 
+			{
+				try 
+				{
+					DataReading testReading = new DataReading(getPrimaryHandle(), getCurrentLocation(), System.currentTimeMillis());
+					testReading.addDataValue(null, rdfMsg.pred, rdfMsg.val, false);
+                                        System.out.println("Sending: " + testReading.toString());
+					publish(testReading);
+				}	
+				catch (Exception e) {
+					e.printStackTrace();
 				}
-
-
+			}
+                }
+		messageStore.clear();
+	}
 }

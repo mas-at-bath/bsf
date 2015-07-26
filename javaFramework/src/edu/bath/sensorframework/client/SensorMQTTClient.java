@@ -231,6 +231,21 @@ public class SensorMQTTClient extends SensorClient {
 		
 		handlers.add(handler);
 	}
+
+	@Override
+	public void disconnect()
+	{
+		try
+		{	
+			System.out.println("Disconnecting MQTT " + sensorConnection.getClientId());
+			sensorConnection.disconnect();	
+		}
+		catch (MqttException er)
+		{
+			System.out.println("couldn't disconnect for some reason");
+			er.printStackTrace();
+		}
+	}
 	
 	/**
 	 * Fetches the underlying connection (should you wish to use it for 

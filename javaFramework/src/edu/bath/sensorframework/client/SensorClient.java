@@ -27,6 +27,6 @@ public abstract class SensorClient {
 		throws Exception;
 	public abstract boolean checkReconnect() 
 		throws Exception;
-
+	public abstract void disconnect();
 }
 

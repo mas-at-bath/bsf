@@ -352,21 +352,29 @@ public abstract class Sensor {
 	 * Cleans up upon sensor exit.
 	 * @throws XMPPException
 	 */
-	public void cleanup() {
+	public void cleanup() 
+	{
+		//System.out.println("called cleanup");
 		if (useMQTT)
 		{
-			try {
-				sensorClient.disconnect();;
-			} catch (Exception e) {
+			try 
+			{
+				System.out.println("Disconnecting " + sensorClient.getClientId());
+				sensorClient.disconnect();
+			} 
+			catch (Exception e) {
 				System.out.println("Cleanup failed");
+				e.printStackTrace();
 			}
 		}
-			else
+		else
 			{
 			try {
 				mgr.deleteNode(nodeName);
+				connection.disconnect();
 			} catch (Exception e) {
 				System.out.println("Cleanup failed - Failure in deleteNode(" + nodeName + ")");
+				e.printStackTrace();
 			}
 		}
 	}

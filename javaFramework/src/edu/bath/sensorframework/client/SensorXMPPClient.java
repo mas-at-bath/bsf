@@ -373,6 +373,13 @@ public class SensorXMPPClient extends SensorClient {
 		
 		handlers.add(handler);
 	}
+
+	@Override
+	public void disconnect()
+	{
+		System.out.println("disconnecting XMPP client..");
+		connection.disconnect();
+	}
 	
 	/**
 	 * Fetches the underlying connection (should you wish to use it for 
