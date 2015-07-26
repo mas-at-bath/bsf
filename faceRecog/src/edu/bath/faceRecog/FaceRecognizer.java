@@ -4,8 +4,7 @@ package edu.bath.faceRecog;
 
 import edu.bath.sensorframework.DataReading;
 import edu.bath.sensorframework.DataReading.Value;
-import edu.bath.sensorframework.client.ReadingHandler;
-import edu.bath.sensorframework.client.SensorClient;
+import edu.bath.sensorframework.client.*;
 import edu.bath.sensorframework.sensor.Sensor;
 import java.util.concurrent.LinkedBlockingQueue;
 
@@ -84,10 +83,19 @@ public class FaceRecognizer extends Sensor {
 	private SimpleDateFormat sdfDate; 
 	private SimpleDateFormat sdfPrintDate;
 	private static MyHandler webHandler;
+	private static boolean useXMPP=false;
+	private static boolean useMQTT=false;
+	private static FaceRecognizer ps;
 
 
 	public FaceRecognizer(String serverAddress, String id, String password, String nodeName, String currentLocation, String primaryHandle) throws XMPPException {
 		super(serverAddress, id, password, nodeName);
+		this.currentLocation = currentLocation;
+		this.primaryHandle = primaryHandle;
+	}
+
+	public FaceRecognizer(String serverAddress, String id, String password, String nodeName, String currentLocation, String primaryHandle, boolean useMQTT, int qos) throws XMPPException {
+		super(serverAddress, id, password, nodeName, useMQTT, qos);
 		this.currentLocation = currentLocation;
 		this.primaryHandle = primaryHandle;
 	}
@@ -115,6 +123,24 @@ public class FaceRecognizer extends Sensor {
 					XMPPServer = configArray[1];
 					//System.out.println("Using config declared IP address of openfire server as: " + XMPPServer);
 				}
+				if (line.contains("COMMUNICATION"))
+				{
+					String[] configArray = line.split("=");
+					if(configArray[1].equals("MQTT"))
+					{
+						useMQTT=true;
+					}
+					else if(configArray[1].equals("XMPP"))
+					{
+						useXMPP=true;
+					}
+					//System.out.println("Using config declared IP address of openfire server as: " + XMPPServer);
+				}
+			}
+			if (!useMQTT && !useXMPP)
+			{
+				System.out.println("no COMMUNICATION value found in config.txt, should be = MQTT or XMPP");
+				System.exit(1);
 			}
 		}
 		catch (Exception e) 
@@ -125,7 +151,16 @@ public class FaceRecognizer extends Sensor {
 
 		
 		System.out.println("Using defaults: " + XMPPServer + ", " + componentName + ", jasonpassword, jasonSensor, http://127.0.0.1/AOISensors, http://127.0.0.1/ID/FaceRecog");
-		FaceRecognizer ps = new FaceRecognizer(XMPPServer, componentName, "jasonpassword", homeSensors , "http://127.0.0.1/ID", "http://127.0.0.1/ID/FaceRecog");
+		if (useXMPP)
+		{
+			System.out.println("Using XMPP");
+			ps = new FaceRecognizer(XMPPServer, componentName, "jasonpassword", homeSensors , "http://127.0.0.1/ID", "http://127.0.0.1/ID/FaceRecog");
+		}
+		else if (useMQTT)
+		{
+			System.out.println("Using MQTT");
+			ps = new FaceRecognizer(XMPPServer, componentName, "jasonpassword", homeSensors , "http://127.0.0.1/ID", "http://127.0.0.1/ID/FaceRecog", true, 0);
+		}
 
 		Thread.currentThread().sleep(1000);
 		System.out.println("Created faceSensor, now entering its logic!");
@@ -145,12 +180,28 @@ public class FaceRecognizer extends Sensor {
 
 	public void run() throws XMPPException {	
 		
-		while(sensorClient == null) {
+		if (useXMPP)
+		{
+			System.out.println("XMPP subscription");
+			while(sensorClient == null) 
+			{
+				try {
+					sensorClient = new SensorXMPPClient(XMPPServer, componentName+"-receiver", "jasonpassword");
+					System.out.println("Guess sensor connected OK then!");
+				} catch (XMPPException e1) {
+					System.out.println("Exception in establishing client.");
+					e1.printStackTrace();
+				}
+			}
+		}
+		else if (useMQTT)
+		{
+			System.out.println("MQTT subscription");
 			try {
-				sensorClient = new SensorClient(XMPPServer, componentName+"-receiver", "jasonpassword");
-				System.out.println("Guess sensor connected OK then!");
-			} catch (XMPPException e1) {
-				System.out.println("Exception in establishing client.");
+				sensorClient = new SensorMQTTClient(XMPPServer, componentName+"-receiver");
+				System.out.println("connected subscriber");
+			} catch (Exception e1) {
+				System.out.println("Exception in establishing MQTT client.");
 				e1.printStackTrace();
 			}
 		}
@@ -214,8 +265,8 @@ public class FaceRecognizer extends Sensor {
 		});
 		System.out.println("Added handler for " + homeSensors);
 		try {
-			sensorClient.subscribeAndCreate(homeSensors);
-		} catch (XMPPException e1) {
+			sensorClient.subscribe(homeSensors);
+		} catch (Exception e1) {
 			System.out.println("Exception while subscribing to " + homeSensors);
 			e1.printStackTrace();
 		}
@@ -252,8 +303,8 @@ public class FaceRecognizer extends Sensor {
 
 			try {
 				if(sensorClient.checkReconnect())
-				sensorClient.subscribeAndCreate(homeSensors);
-			} catch (XMPPException e1) {
+				sensorClient.subscribe(homeSensors);
+			} catch (Exception e1) {
 				System.out.println("Couldn't reconnect to " + homeSensors);
 				e1.printStackTrace();
 				try {
@@ -351,6 +402,7 @@ public class FaceRecognizer extends Sensor {
 							//try to recognise anyone
            						CvSeq faces = faceRecognition.detectFace(frame);
 							System.out.println(strDateToPrint + ", found " + faces.total() + " faces");
+							boolean foundKnownFace = false;
 							if (faces.total() >= 1)
 							{
             							CvRect r = new CvRect(cvGetSeqElem(faces, faces.total()-1));
@@ -361,11 +413,16 @@ public class FaceRecognizer extends Sensor {
 								{
 									System.out.print(strDateToPrint + ", seen: " + newRecognition.getName() + " with " + newRecognition.getConfidence() + " confidence");
 									generateAndSendMsg("http://127.0.0.1/detections/people", newRecognition.getName());
+									foundKnownFace=true;
 								}					
 						
 								//totalImages[foundImages] = faceRecognition.preprocessImage(origImg, r);
 							}
-
+							if (!foundKnownFace)
+							{
+								//System.out.println("sending unknown movement");
+								generateAndSendMsg("http://127.0.0.1/detections/movement", "unknown");
+							}
 							saveImage(frame);
 						}
 						else
