@@ -88,6 +88,12 @@ public class WorkerNonThreadMQTTSender extends Sensor {
 			jrE.printStackTrace();
 		}
 	}
+
+       public void disconnect()
+        {
+            cleanup();
+            //disconnect();
+        }
 	
 	public void sendPublishedRate(int quantity)
 	{

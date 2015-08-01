@@ -40,7 +40,6 @@ public class TestRDF {
 	private int perSecCounter=0;
 	private static boolean noSleep = false;
 	private static SensorClient sensorClient;
-	//private static SensorMQTTClient sensorMQTTClient;
 	private double lastReadingUpdateTime = 0;
 	private static boolean testJSON=false;
 	private static boolean testRDF=false;
@@ -470,8 +469,19 @@ public class TestRDF {
 
 			//need to quit with MQTT, maybe thread/client issue..?
 			System.out.println("Quitting...");
-			System.exit(0);
-
+			if (testNonThreadSender != null)
+			{			
+				testNonThreadSender.disconnect();
+			}
+			//simSender.disconnect();
+			if (testMQTTSender != null)
+			{
+				testMQTTSender.disconnect();
+			}
+			if (sensorClient != null)
+			{
+				sensorClient.disconnect();
+			}
 		}
 		else
 		{

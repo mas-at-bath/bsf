@@ -53,6 +53,12 @@ public class WorkerNonThreadSender extends Sensor {
 		return primaryHandle;
 	}
 
+        public void disconnect()
+        {
+            cleanup();
+            //disconnect();
+        }
+
 	public void generateAndSendTestMsg() {
 
 		if (currentO > 359 ) { currentO = 0; }

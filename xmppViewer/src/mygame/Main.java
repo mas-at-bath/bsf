@@ -41,7 +41,12 @@ import com.jme3.post.FilterPostProcessor;
 import com.jme3.post.filters.BloomFilter;
 
 import com.jme3.renderer.RenderManager;
+import com.jme3.renderer.queue.RenderQueue.ShadowMode;
 import com.jme3.scene.shape.Quad;
+import com.jme3.scene.shape.Sphere;
+import com.jme3.shadow.DirectionalLightShadowRenderer;
+import com.jme3.shadow.SpotLightShadowFilter;
+import com.jme3.shadow.SpotLightShadowRenderer;
 import com.jme3.system.NanoTimer;
 import com.jme3.texture.Texture2D;
 import com.jme3.texture.plugins.AWTLoader;
@@ -106,6 +111,7 @@ public class Main extends SimpleApplication implements ScreenController {
     private static VideoRecorderAppState myVidState;
     private static String XMPPServer = "127.0.0.1";
     private static DebugShapes dbShapes;
+    private static HouseShapes houseShapes;
     private static String currentCamTarget = "none";
     private static Node debugNode = new Node();
     private static Node routeNode = new Node();
@@ -120,11 +126,11 @@ public class Main extends SimpleApplication implements ScreenController {
     private static Double lastXMPPUpdateTime = 0d;
     private static NanoTimer myNanoTimer = new NanoTimer();
     private static SimpleDateFormat formatter;
-    private static float terrainXscale = 1f;
-    private static float terrainYscale = 1f;
-    private static float terrainXtrans = 1f;
-    private static float terrainYtrans = 1f;
-    private static float terrainZtrans = 1f;
+    protected static float terrainXscale = 1f;
+    protected static float terrainYscale = 1f;
+    protected static float terrainXtrans = 1f;
+    protected static float terrainYtrans = 1f;
+    protected static float terrainZtrans = 1f;
     private static Spatial terrainModel;
     private static Spatial trafficLight;
     private static SensorClient mySensorClient, instSensorClient;
@@ -347,8 +353,9 @@ public class Main extends SimpleApplication implements ScreenController {
         }
         System.out.println("Current dir: " + currentPath);
 
-        //this.stateManager.attach(screenshotState);
-        // screenshotState.setIsNumbered(false);
+        screenshotState = new ScreenshotAppState();
+        this.stateManager.attach(screenshotState);
+       // screenshotState.setIsNumbered(false);
 
         myNanoTimer.reset();
         if (timeNode != null)
@@ -761,60 +768,10 @@ public class Main extends SimpleApplication implements ScreenController {
             terrainZtrans = -1f;
             terrainModel.setLocalTranslation(terrainXtrans, terrainZtrans, terrainYtrans);
             terrainModel.setLocalScale(1f, 1f, 1.0f);
+            rootNode.attachChild(terrainModel);
         }
         else if (scenarioLocation.equals("home")) {
-            terrainModel = assetManager.loadModel("Models/house12.obj");
-            terrainModel.setLocalRotation(PITCH180);
-           // terrainModel.rotate(PITCH090);
-           // terrainModel.rotate(ROLL090);
-            terrainXscale = 1f;
-            terrainYscale = 1f;
-            terrainXtrans = 0f;
-            terrainYtrans = 0f;
-            terrainZtrans = 9f;
-            terrainModel.setLocalTranslation(terrainXtrans, terrainZtrans, terrainYtrans);
-            terrainModel.setLocalScale(1f, 1f, 1.0f);
-            //flyCam.setEnabled(true);
-            PointLight lamp_light = new PointLight();
-            lamp_light.setColor(ColorRGBA.Yellow);
-            lamp_light.setRadius(100f);
-            lamp_light.setPosition(new Vector3f(20f,20f,20f));
-           // rootNode.addLight(lamp_light);
-            
-            SpotLight spotKitchen1 = new SpotLight();
-            spotKitchen1.setSpotRange(30f);                           // distance
-            spotKitchen1.setSpotInnerAngle(20f * FastMath.DEG_TO_RAD); // inner light cone (central beam)
-            spotKitchen1.setSpotOuterAngle(50f * FastMath.DEG_TO_RAD); // outer light cone (edge of the light)
-            spotKitchen1.setColor(ColorRGBA.White.mult(1.3f));         // light color
-            spotKitchen1.setPosition(new Vector3f(-1.9f, 11f, 2.5f));               // shine from camera loc
-            spotKitchen1.setDirection(new Vector3f(0.25208452f, -0.9664893f, 0.04849559f));             // shine forward from camera loc
-            rootNode.addLight(spotKitchen1);
-            
-            SpotLight spotKitchen2 = new SpotLight();
-            spotKitchen2.setSpotRange(30f);                           // distance
-            spotKitchen2.setSpotInnerAngle(20f * FastMath.DEG_TO_RAD); // inner light cone (central beam)
-            spotKitchen2.setSpotOuterAngle(50f * FastMath.DEG_TO_RAD); // outer light cone (edge of the light)
-            spotKitchen2.setColor(ColorRGBA.White.mult(1.3f));         // light color
-            spotKitchen2.setPosition(new Vector3f(-2.7f, 11f, 3.1f));               // shine from camera loc
-            spotKitchen2.setDirection(new Vector3f(0.0010834784f, -0.9736858f, 0.22789204f));             // shine forward from camera loc
-            rootNode.addLight(spotKitchen2);
-            
-            SpotLight spotKitchen3 = new SpotLight();
-            spotKitchen3.setSpotRange(30f);                           // distance
-            spotKitchen3.setSpotInnerAngle(20f * FastMath.DEG_TO_RAD); // inner light cone (central beam)
-            spotKitchen3.setSpotOuterAngle(50f * FastMath.DEG_TO_RAD); // outer light cone (edge of the light)
-            spotKitchen3.setColor(ColorRGBA.White.mult(1.3f));         // light color
-            spotKitchen3.setPosition(new Vector3f(-2.7f, 11.2f, 3.1f));               // shine from camera loc
-            spotKitchen3.setDirection(new Vector3f(-0.31732267f, -0.9135653f, -0.2543713f));             // shine forward from camera loc
-            rootNode.addLight(spotKitchen3);
-            
-            //(-2.1505713, 1.6154995,
-            
-            //chaseCam = new ChaseCamera(cam, terrainModel, inputManager);
-            //chaseCam.setSmoothMotion(true);
-            Vector3f v = cam.getLocation();
-            Vector3f moveL = new Vector3f(v.x, v.y+20, v.z);
-            cam.setLocation(moveL);
+            houseShapes = new HouseShapes(this);
         } 
         else if (scenarioLocation.equals("m25")) {
             terrainModel = assetManager.loadModel("Models/m25j10FinalConv2.j3o");
@@ -844,11 +801,12 @@ public class Main extends SimpleApplication implements ScreenController {
 
             terrainModel.setLocalTranslation(terrainXtrans, terrainZtrans, terrainYtrans);
             terrainModel.setLocalScale(1f, 1f, 1.0f);
+            rootNode.attachChild(terrainModel);
         } else {
             System.out.println("something went pretty wrong loading the terrain model!!");
         }
 
-        rootNode.attachChild(terrainModel);
+
 
         FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
         BloomFilter bloom = new BloomFilter(BloomFilter.GlowMode.Objects);
@@ -879,10 +837,10 @@ public class Main extends SimpleApplication implements ScreenController {
         guiViewPort.addProcessor(niftyDisplay);
         inputManager.setCursorVisible(true);
 
-        //if (!scenarioLocation.equals("home"))
-        //{
+        if (!scenarioLocation.equals("home"))
+        {
             AmbientLight al = new AmbientLight();
-            al.setColor(ColorRGBA.White.mult(1.3f));
+            al.setColor(ColorRGBA.White.mult(0.7f));
             rootNode.addLight(al);
 
             DirectionalLight sun = new DirectionalLight();
@@ -891,7 +849,7 @@ public class Main extends SimpleApplication implements ScreenController {
             DirectionalLight sun2 = new DirectionalLight();
             sun2.setDirection(new Vector3f(0.5f, 0.5f, 0.5f).normalizeLocal());
             rootNode.addLight(sun2);
-        //}
+        }
 
         inputManager.addMapping("SpatialPos", new KeyTrigger(KeyInput.KEY_X));
         inputManager.addMapping("FastLeft", new KeyTrigger(KeyInput.KEY_J));
@@ -904,6 +862,7 @@ public class Main extends SimpleApplication implements ScreenController {
         inputManager.addMapping("ChangeCam", new KeyTrigger(KeyInput.KEY_0));
         inputManager.addMapping("ChangeCentralCam", new KeyTrigger(KeyInput.KEY_D));
         inputManager.addMapping("ChangeCamType", new KeyTrigger(KeyInput.KEY_9));
+        inputManager.addMapping("TakeShot", new KeyTrigger(KeyInput.KEY_B));
 
         inputManager.addMapping("incX", new KeyTrigger(KeyInput.KEY_1));
         inputManager.addMapping("incY", new KeyTrigger(KeyInput.KEY_2));
@@ -916,7 +875,7 @@ public class Main extends SimpleApplication implements ScreenController {
 
         // Add the names to the action listener.
         inputManager.addListener(analogListener, new String[]{"incXtrans", "incYtrans", "decXtrans", "decYtrans", "incX", "incY", "decX", "decY", "FastLeft", "FastRight", "FastForward", "FastBackward", "FastUp", "FastDown"});
-        inputManager.addListener(actionListener, new String[]{"SpatialPos", "Hints", "ChangeCam", "ChangeCamType", "ChangeCentralCam"});
+        inputManager.addListener(actionListener, new String[]{"TakeShot","SpatialPos", "Hints", "ChangeCam", "ChangeCamType", "ChangeCentralCam"});
     }
     private ActionListener actionListener = new ActionListener() {
         public void onAction(String name, boolean keyPressed, float tpf) {
@@ -931,6 +890,13 @@ public class Main extends SimpleApplication implements ScreenController {
                     showDebugShapes = true;
                 }
 
+            }
+            if (name.equals("TakeShot") && !keyPressed) {
+                //screenshotState.setFilePath(currentPath+"/"+dateTimeVal+"/");
+                //double newfNum = 1000000+currentSimTime;
+                screenshotState.setFilePath("");
+                System.out.println("taking screenshot");
+                screenshotState.takeScreenshot();
             }
             if (name.equals("SpatialPos") && !keyPressed) {
                 System.out.println("Pos: " + cam.getLocation());
