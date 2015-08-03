@@ -80,6 +80,7 @@ public class Main extends SimpleApplication implements ScreenController {
     CopyOnWriteArrayList<WayPoint> wayPointList = new CopyOnWriteArrayList<WayPoint>();
     CopyOnWriteArrayList<Vector3f> myKnownPoints = new CopyOnWriteArrayList<Vector3f>();
     private static String aoiNodeName = "aoiSensor";
+    private static String homeSensors = "homeSensor";
     private static Long startTime = 0L;
     private static Long currentTime = 0L;
     private static Node timeNode;
@@ -737,6 +738,109 @@ public class Main extends SimpleApplication implements ScreenController {
             e1.printStackTrace();
         }
 
+	mySensorClient.addHandler(homeSensors, new ReadingHandler() {
+		@Override
+		public void handleIncomingReading(String node, String rdf) 
+		{
+			//System.out.println(rdf);
+			try
+			{
+				//System.out.println(rdf);
+                        	DataReading dr = DataReading.fromRDF(rdf);
+				System.out.println("received home sensor reading");
+				if (dr.getLocatedAt().equals("http://127.0.0.1/HueSensors")) 
+				{
+					String lightName = "";
+					int redLight=0;
+					int greenLight=0;
+					int blueLight=0;
+					int brightness=0;
+					String state="";
+					String model="";
+
+					DataReading.Value nameVal = dr.findFirstValue(null, "http://127.0.0.1/components/lights/name", null);
+					if (nameVal != null)
+					{
+						lightName = (String) nameVal.object;
+					}
+					DataReading.Value redVal = dr.findFirstValue(null, "http://127.0.0.1/components/lights/redval", null);
+					if (redVal != null)
+					{
+						redLight = (int) redVal.object;
+					}
+					DataReading.Value greenVal = dr.findFirstValue(null, "http://127.0.0.1/components/lights/greenval", null);
+					if (greenVal != null)
+					{
+						greenLight = (int) greenVal.object;
+					}
+					DataReading.Value blueVal = dr.findFirstValue(null, "http://127.0.0.1/components/lights/blueval", null);
+					if (blueVal != null)
+					{
+						blueLight = (int) blueVal.object;
+					}
+
+					DataReading.Value brightVal = dr.findFirstValue(null, "http://127.0.0.1/components/lights/brightness", null);
+					if (brightVal != null)
+					{
+						brightness = (int) brightVal.object;
+					}
+
+					DataReading.Value stateVal = dr.findFirstValue(null, "http://127.0.0.1/components/lights/state", null);
+					if (stateVal != null)
+					{
+						state = (String) stateVal.object;
+					}
+
+					DataReading.Value modelVal = dr.findFirstValue(null, "http://127.0.0.1/components/lights/model", null);
+					if (modelVal != null)
+					{
+						model = (String) modelVal.object;
+					}
+
+					System.out.println("got reading for " + lightName + " model "+ model + " at rgb " + redLight + "," + greenLight + "," + blueLight + ", brightness: " + brightness + " and is " + state);
+
+
+					if (houseShapes != null)
+					{
+						float r = redLight/255f;
+						float g = greenLight/255f;
+						float b = blueLight/255f;
+			
+						if (model.equals("LWB004"))
+						{
+							r = 1f;
+							g = 1f;
+							b = 1f;
+						}
+						//System.out.println("r: "+ r);
+						if (state.equals("OFF"))
+						{
+							brightness=0;
+						}
+
+						houseShapes.updateLight(lightName, new ColorRGBA(r,g,b,0f), (float)brightness/255);
+					}
+				}
+				else
+				{
+					System.out.println("unknown message type");
+				}
+			}
+			catch(Exception e) 
+			{ 
+				System.out.println("error handling data in " + homeSensors);
+				e.printStackTrace();
+			}
+		}
+	});
+        try {
+            mySensorClient.subscribe(homeSensors);
+        } catch (Exception e1) {
+            System.out.println("Exception while subscribing to sensor.");
+            e1.printStackTrace();
+        }
+
+
         try {
 		if (useXMPP)
 		{
@@ -863,6 +967,7 @@ public class Main extends SimpleApplication implements ScreenController {
         inputManager.addMapping("ChangeCentralCam", new KeyTrigger(KeyInput.KEY_D));
         inputManager.addMapping("ChangeCamType", new KeyTrigger(KeyInput.KEY_9));
         inputManager.addMapping("TakeShot", new KeyTrigger(KeyInput.KEY_B));
+	inputManager.addMapping("RandomLights", new KeyTrigger(KeyInput.KEY_R));
 
         inputManager.addMapping("incX", new KeyTrigger(KeyInput.KEY_1));
         inputManager.addMapping("incY", new KeyTrigger(KeyInput.KEY_2));
@@ -875,7 +980,7 @@ public class Main extends SimpleApplication implements ScreenController {
 
         // Add the names to the action listener.
         inputManager.addListener(analogListener, new String[]{"incXtrans", "incYtrans", "decXtrans", "decYtrans", "incX", "incY", "decX", "decY", "FastLeft", "FastRight", "FastForward", "FastBackward", "FastUp", "FastDown"});
-        inputManager.addListener(actionListener, new String[]{"TakeShot","SpatialPos", "Hints", "ChangeCam", "ChangeCamType", "ChangeCentralCam"});
+        inputManager.addListener(actionListener, new String[]{"RandomLights","TakeShot","SpatialPos", "Hints", "ChangeCam", "ChangeCamType", "ChangeCentralCam"});
     }
     private ActionListener actionListener = new ActionListener() {
         public void onAction(String name, boolean keyPressed, float tpf) {
@@ -901,6 +1006,10 @@ public class Main extends SimpleApplication implements ScreenController {
             if (name.equals("SpatialPos") && !keyPressed) {
                 System.out.println("Pos: " + cam.getLocation());
                 System.out.println("Angle: " + cam.getDirection());
+            }
+            if (name.equals("RandomLights") && !keyPressed) {
+		houseShapes.randomizeLights();
+		System.out.println("randomized lights!");
             }
             if (name.equals("ChangeCamType") && !keyPressed) {
                 System.out.println("changing cam type");
@@ -1461,6 +1570,11 @@ public class Main extends SimpleApplication implements ScreenController {
 
     @Override
     public void simpleUpdate(float tpf) {
+
+	if (houseShapes != null)
+	{
+		houseShapes.updateLightState();
+	}
 
         guiNode.detachAllChildren();
 

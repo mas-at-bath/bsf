@@ -1,0 +1,76 @@
+newmtl material_9
+       Ka 0 0 0 1
+       Kd 0 0 0 1
+       Ks 0 0 0 1
+
+newmtl material_2
+       Ka 0 0 0 1
+       Kd 1 1 1 1
+       Ks 0 0 0 1
+
+newmtl material_1
+       Ka 0.2 0.2 0.2 1
+       Kd 0.8 0.8 0.8 1
+       Ks 0 0 0 1
+       map_Kd /NAS/pvc_door.jpg
+
+newmtl material_13
+       Ka 0.2 0.2 0.2 1
+       Kd 0.8 0.8 0.8 1
+       Ks 0 0 0 1
+       map_Kd /NAS/_Wood__F.jpg
+
+newmtl material_5
+       Ka 0.2 0.2 0.2 1
+       Kd 0.8 0.8 0.8 1
+       Ks 0 0 0 1
+       map_Kd /NAS/_3.jpg
+
+newmtl material_4
+       Ka 0.2 0.2 0.2 1
+       Kd 0.8 0.8 0.8 1
+       Ks 0 0 0 1
+       map_Kd /NAS/_1.jpg
+
+newmtl material_12
+       Ka 0.2 0.2 0.2 1
+       Kd 0.8 0.8 0.8 1
+       Ks 0 0 0 1
+       map_Kd /NAS/Wood_Che.jpg
+
+newmtl material_3
+       Ka 0.2 0.2 0.2 1
+       Kd 0.8 0.8 0.8 1
+       Ks 0 0 0 1
+       map_Kd /NAS/Wood_C01.jpg
+
+newmtl material_11
+       Ka 0.2 0.2 0.2 1
+       Kd 0.8 0.8 0.8 1
+       Ks 0 0 0 1
+       map_Kd /NAS/Wood_Bam.jpg
+
+newmtl material_10
+       Ka 0.2 0.2 0.2 1
+       Kd 0.8 0.8 0.8 1
+       Ks 0 0 0 1
+       map_Kd /NAS/Wood_B01.jpg
+
+newmtl material_6
+       Ka 0.2 0.2 0.2 1
+       Kd 0.8 0.8 0.8 1
+       Ks 0 0 0 1
+       map_Kd /NAS/_2.jpg
+
+newmtl material_8
+       Ka 0.2 0.2 0.2 1
+       Kd 0.8 0.8 0.8 1
+       Ks 0 0 0 1
+       map_Kd /NAS/Metal_Ro.jpg
+
+newmtl material_7
+       Ka 0.2 0.2 0.2 1
+       Kd 0.8 0.8 0.8 1
+       Ks 0 0 0 1
+       map_Kd /NAS/Metal_Co.jpg
+

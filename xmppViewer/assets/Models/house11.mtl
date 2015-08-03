@@ -1,0 +1,11 @@
+newmtl material_1
+       Ka 0 0 0 1
+       Kd 1 1 1 1
+       Ks 0.33 0.33 0.33 1
+
+newmtl material_2
+       Ka 0 0 0 1
+       Kd 0.607843 0.411765 0.239216 1
+       Ks 0.33 0.33 0.33 1
+       map_Kd house10/_Wood__Floor_1.jpg
+
