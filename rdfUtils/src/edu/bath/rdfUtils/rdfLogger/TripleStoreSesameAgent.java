@@ -19,6 +19,7 @@ import org.openrdf.repository.sail.SailRepository;
 import org.openrdf.sail.nativerdf.NativeStore;
 import org.openrdf.sail.config.SailImplConfig;
 import org.openrdf.sail.memory.config.MemoryStoreConfig;
+import org.openrdf.sail.nativerdf.config.NativeStoreConfig;
 import org.openrdf.repository.config.RepositoryImplConfig;
 import org.openrdf.repository.sail.config.SailRepositoryConfig;
 import org.openrdf.repository.config.RepositoryConfig;
@@ -174,18 +175,21 @@ public class TripleStoreSesameAgent {
 				else
 				{
 					System.out.println(agRepoID + " not created yet, making it..");
-					SailImplConfig backendConfig = new MemoryStoreConfig();
+					//boolean persist=true;
+					String indexes = "spoc,posc,cspo";
+					SailImplConfig backendConfig = new NativeStoreConfig(indexes);
+					//SailImplConfig backendConfig = new MemoryStoreConfig(persist);
 					RepositoryImplConfig repositoryTypeSpec = new SailRepositoryConfig(backendConfig);
 					RepositoryConfig repConfig = new RepositoryConfig(agRepoID, repositoryTypeSpec);
 					manager.addRepositoryConfig(repConfig);
-
+					sensorRepo = manager.getRepository(agRepoID);
+					sesameRepoConnection = sensorRepo.getConnection();
 				}
 
 			}
 			catch (Exception rE)
 			{
 				System.out.println("repo exception..");
-				System.out.println(rE.getMessage());
 				rE.printStackTrace();
 			}
 
@@ -347,6 +351,8 @@ public class TripleStoreSesameAgent {
 				try
 				{
 					System.out.println("logging home sensor reading");
+					//System.out.println(rdf);
+					
 					if (useALLEGRO)
 					{
 						//aGconn.add(new ByteArrayInputStream(rdf.getBytes()), "", RDFFormat.RDFXML);

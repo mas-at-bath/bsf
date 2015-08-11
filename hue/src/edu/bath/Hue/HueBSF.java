@@ -77,6 +77,20 @@ public class HueBSF extends Sensor {
 	
 	public static void main(String[] args) throws Exception {
 		lightNameMap.put("Light_GF_Bedroom1_Ceiling", "Bedroom 1 main light");
+		lightNameMap.put("Light_GF_Bedroom1_Sidelight1", "Bedroom sidelight");
+		lightNameMap.put("Light_GF_Bedroom2_Ceiling", "Spare bedroom ");
+		lightNameMap.put("Light_GF_Lounge_Side2", "Lounge side light 2");
+		lightNameMap.put("Light_GF_Lounge_Side1", "Lounge side light 1");
+		lightNameMap.put("Light_GF_Lounge_Lamp1", "Lounge lamp 1");
+		lightNameMap.put("Light_GF_Lounge_Ceiling", "Lounge main light");
+		lightNameMap.put("Light_GF_Bathroom_SpotLight1", "Bathroom 1");
+		lightNameMap.put("Light_GF_Bathroom_SpotLight2", "Bathroom 2");
+		lightNameMap.put("Light_GF_Bathroom_SpotLight3", "Bathroom 3");
+		lightNameMap.put("Light_GF_Hallway_Ceiling1", "Hallway light 1");
+		lightNameMap.put("Light_GF_Hallway_Ceiling2", "Hallway light 2");
+		lightNameMap.put("Light_GF_Kitchen_SpotLight1", "Kitchen spotlight left");
+		lightNameMap.put("Light_GF_Kitchen_SpotLight2", "Kitchen spot light middle");
+		lightNameMap.put("Light_GF_Kitchen_SpotLight3", "Kitchen spotlight right");
 			
 		try
 		{
@@ -118,13 +132,13 @@ public class HueBSF extends Sensor {
 
 		if (useXMPP)
 		{
-			System.out.println("Using XMPP defaults: " + XMPPServer + ", " + componentName + ", jasonpassword, jasonSensor, http://127.0.0.1/AOISensors, http://127.0.0.1/HueBSF/Hue");
-			ps = new HueBSF(XMPPServer, componentName, "jasonpassword", homeSensors , "http://127.0.0.1/AOISensors", "http://127.0.0.1/HueBSF/Hue");
+			System.out.println("Using XMPP defaults: " + XMPPServer + ", " + componentName + ", jasonpassword, jasonSensor, http://127.0.0.1/HueSensors, http://127.0.0.1/HueBSF/Hue");
+			ps = new HueBSF(XMPPServer, componentName, "jasonpassword", homeSensors , "http://127.0.0.1/HueSensors", "http://127.0.0.1/HueBSF/Hue");
 		}			
 		else if (useMQTT)
 		{
 			System.out.println("Using MQTT defaults: " + XMPPServer + ", " + componentName);
-			ps = new HueBSF(XMPPServer, componentName, "jasonpassword", homeSensors , "http://127.0.0.1/AOISensors", "http://127.0.0.1/HueBSF/Hue", true, 0);
+			ps = new HueBSF(XMPPServer, componentName, "jasonpassword", homeSensors , "http://127.0.0.1/HueSensors", "http://127.0.0.1/HueBSF/Hue", true, 0);
 		}
 
 		Thread.currentThread().sleep(1000);
@@ -367,19 +381,20 @@ public class HueBSF extends Sensor {
 							processedMsg=true;
 						}
 
-						if (!processedMsg)
+						/*if (!processedMsg)
 						{
 							Value foundV = dr.findFirstValue(null, null , null);
 							if (foundV != null)
 							{
 								//System.out.println("pred: " + foundV.predicate.toString() + " subj: " + foundV.subject.toString() + " obj; " + foundV.object.toString());
 							}
-						}
+						}*/
 
 					}
 					catch(Exception e) 
 					{
-						System.out.println(e);
+						System.out.println("error processing received message..");
+						e.printStackTrace();
 					}
 					rdfHue = pendingHueMessages.poll();
 				}
@@ -709,6 +724,7 @@ public class HueBSF extends Sensor {
 				if (value.equals(lName))
 				{
 					bsfLightName=entry.getKey();
+					//System.out.println("returning " + bsfLightName + " for " + lName);
 				}
 			
 			}
@@ -736,6 +752,7 @@ public class HueBSF extends Sensor {
 				testReading.addDataValue(null, "http://127.0.0.1/components/lights/redval" , lightRed, false);
 				testReading.addDataValue(null, "http://127.0.0.1/components/lights/greenval" , lightGreen, false);
 				testReading.addDataValue(null, "http://127.0.0.1/components/lights/blueval" , lightBlue, false);
+				System.out.println("publishing reading for " + bsfLightName);
 				publish(testReading);
 			}
 		} 							
