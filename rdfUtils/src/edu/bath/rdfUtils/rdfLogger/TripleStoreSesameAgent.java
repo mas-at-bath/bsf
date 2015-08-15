@@ -1,3 +1,4 @@
+
 package edu.bath.rdfUtils.rdfLogger;
 
 import java.io.ByteArrayInputStream;
@@ -30,6 +31,7 @@ import java.util.*;
 
 import edu.bath.sensorframework.client.*;
 import edu.bath.sensorframework.sensor.Sensor;
+import edu.bath.sensorframework.DataReading;
 
 public class TripleStoreSesameAgent {
 	private boolean alive = true;
@@ -54,6 +56,8 @@ public class TripleStoreSesameAgent {
 	private static boolean useMQTT=false;
 	private static boolean useALLEGRO=false;
 	private static boolean useSESAME=false;
+	private static boolean ignoreHistoricalTimeStamps=true;
+	private static int timeLimit = 5000; //5 seconds to allow for non sync'd clocks.. 
 	private static TripleStoreSesameAgent tsa;
 	private static Repository sesameRepo;
 	private static RepositoryConnection sesameRepoConnection;
@@ -178,6 +182,7 @@ public class TripleStoreSesameAgent {
 					//boolean persist=true;
 					String indexes = "spoc,posc,cspo";
 					SailImplConfig backendConfig = new NativeStoreConfig(indexes);
+					//use this if you want to switch to in memory storage instead
 					//SailImplConfig backendConfig = new MemoryStoreConfig(persist);
 					RepositoryImplConfig repositoryTypeSpec = new SailRepositoryConfig(backendConfig);
 					RepositoryConfig repConfig = new RepositoryConfig(agRepoID, repositoryTypeSpec);
@@ -266,8 +271,7 @@ public class TripleStoreSesameAgent {
 					}
 					else if (useSESAME)
 					{
-						System.out.println(rdf);
-						sesameRepoConnection.add(new ByteArrayInputStream(rdf.getBytes()), "", RDFFormat.RDFXML);
+						logToSesame(rdf);
 					}
 				}
 				catch(Exception e) 
@@ -289,7 +293,7 @@ public class TripleStoreSesameAgent {
 					}
 					else if (useSESAME)
 					{
-						sesameRepoConnection.add(new ByteArrayInputStream(rdf.getBytes()), "", RDFFormat.RDFXML);
+						logToSesame(rdf);
 					}
 				}
 				catch(Exception e) 
@@ -311,8 +315,7 @@ public class TripleStoreSesameAgent {
 					}
 					else if (useSESAME)
 					{
-					
-						sesameRepoConnection.add(new ByteArrayInputStream(rdf.getBytes()), "", RDFFormat.RDFXML);
+						logToSesame(rdf);
 					}
 				}
 				catch(Exception e) 
@@ -334,7 +337,7 @@ public class TripleStoreSesameAgent {
 					}
 					else if (useSESAME)
 					{
-						sesameRepoConnection.add(new ByteArrayInputStream(rdf.getBytes()), "", RDFFormat.RDFXML);
+						logToSesame(rdf);
 					}
 				}
 				catch(Exception e) 
@@ -350,16 +353,13 @@ public class TripleStoreSesameAgent {
 			public void handleIncomingReading(String node, String rdf) {
 				try
 				{
-					System.out.println("logging home sensor reading");
-					//System.out.println(rdf);
-					
 					if (useALLEGRO)
 					{
 						//aGconn.add(new ByteArrayInputStream(rdf.getBytes()), "", RDFFormat.RDFXML);
 					}
 					else if (useSESAME)
 					{
-						sesameRepoConnection.add(new ByteArrayInputStream(rdf.getBytes()), "", RDFFormat.RDFXML);
+						logToSesame(rdf);
 					}
 				}
 				catch(Exception e) 
@@ -387,4 +387,43 @@ public class TripleStoreSesameAgent {
         	}
 	}
 
+
+	private void logToSesame(String rdf)
+	{
+		if (ignoreHistoricalTimeStamps)
+		{
+			//only worth checking if we would ignore it anyway
+			try 
+			{
+				DataReading dr = DataReading.fromRDF(rdf);
+				long timeToCheck = System.currentTimeMillis() - timeLimit;
+				long gap = System.currentTimeMillis() - dr.getTimestamp();
+				if (dr.getTimestamp() < timeToCheck)
+				{
+					//System.out.println("ignored reading older than " + timeLimit);
+				}
+				else
+				{
+					sesameRepoConnection.add(new ByteArrayInputStream(rdf.getBytes()), "", RDFFormat.RDFXML);
+				}
+			}
+			catch(Exception e3) 
+			{ 
+				System.out.println("some issue with historical check");
+				e3.printStackTrace();
+			}
+		}
+		else
+		{
+			try
+			{
+				sesameRepoConnection.add(new ByteArrayInputStream(rdf.getBytes()), "", RDFFormat.RDFXML);
+			}
+			catch(Exception e4) 
+			{ 
+				System.out.println("some issue with historical check");
+				e4.printStackTrace();
+			}
+		}
+	}
 }

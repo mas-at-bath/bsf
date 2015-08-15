@@ -262,7 +262,7 @@ public class DataReading {
 		while(iter.hasNext()) {
 			s = iter.nextStatement();
 			if(s.getObject().isURIResource()) {
-				System.out.println(s.getObject().asNode().toString());
+				//System.out.println(s.getObject().asNode().toString());
 				dr.setLocation(s.getObject().asNode().getURI());
 			} else {
 				//VB: could cause issues as not strictly enforcing URI type now, but that could be the cost of 

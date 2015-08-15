@@ -20,9 +20,14 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 # SOFTWARE.
 import sys
-
+import os
 import Adafruit_DHT
-
+from xml.sax.saxutils import escape
+import paho.mqtt.publish as publish
+scriptpath = "./BSF.py"
+sys.path.append(os.path.abspath(scriptpath))
+import BSF
+from BSF import DataReading
 
 # Parse command line parameters.
 sensor_args = { '11': Adafruit_DHT.DHT11,
@@ -39,6 +44,16 @@ else:
 # Try to grab a sensor reading.  Use the read_retry method which will retry up
 # to 15 times to get a sensor reading (waiting 2 seconds between each retry).
 humidity, temperature = Adafruit_DHT.read_retry(sensor, pin)
+
+newReading = DataReading("http://127.0.0.1/PISensors", "http://127.0.0.1/PiSensors/Pi", BSF.current_milli_time())
+newReading.setTakenBy("http://127.0.0.1/components/houseSensors/piSensor1")
+#print humidity
+#print temperature
+newReading.addDataValue(None, "http://127.0.0.1/sensors/types#DHT22temperature", temperature, False)
+newReading.addDataValue(None, "http://127.0.0.1/sensors/types#DHT22humidity", humidity, False)
+#print newReading.toRDF()
+msgString = "<RDF>"+escape(newReading.toRDF())+"</RDF>"
+publish.single("homeSensor", msgString, hostname="192.168.0.8")
 
 # Note that sometimes you won't get a reading and
 # the results will be null (because Linux can't
