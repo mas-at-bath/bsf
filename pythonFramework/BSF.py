@@ -18,6 +18,7 @@ import time
 import rdflib
 from rdflib import Graph, Literal, BNode, Namespace, RDF, URIRef
 from xml.sax.saxutils import escape
+from rdflib.namespace import XSD
 
 def current_milli_time():
    ##problem here newTime = lambda: 
@@ -142,7 +143,10 @@ class DataReading:
 	for val in self.dataValues:
             # maybe extend back with other types sometime
 		#print "adding a value"
-		g.add((aref, URIRef(val.predicate), Literal(val.object_)))
+		if isinstance(val.object_, str):
+			g.add((aref, URIRef(val.predicate), Literal(val.object_, datatype=XSD.string)))
+		else:
+			g.add((aref, URIRef(val.predicate), Literal(val.object_)))
 
 	#name = BNode()
 	#model.add(objectIdentifier, model.createProperty(Constant.sISDATAREADING), model.createResource(self.takenBy))
@@ -153,7 +157,6 @@ class DataReading:
 	#graph.add((name, VCARD['Given'], Literal(givenName)))
 	#return objectIdentifier    
 	return g.serialize()   
-
 
 #newReading = DataReading("http://127.0.0.1/PISensors", "http://127.0.0.1/PiSensors/Pi", current_milli_time())
 #newReading.setTakenBy("http://127.0.0.1/components/houseSensors/piSensor1")
