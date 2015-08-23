@@ -752,7 +752,8 @@ public class HueBSF extends Sensor {
 				testReading.addDataValue(null, "http://127.0.0.1/components/lights/redval" , lightRed, false);
 				testReading.addDataValue(null, "http://127.0.0.1/components/lights/greenval" , lightGreen, false);
 				testReading.addDataValue(null, "http://127.0.0.1/components/lights/blueval" , lightBlue, false);
-				System.out.println("publishing reading for " + bsfLightName);
+				//System.out.println("publishing reading for " + bsfLightName);
+				//System.out.println(testReading.toRDF());
 				publish(testReading);
 			}
 		} 							
