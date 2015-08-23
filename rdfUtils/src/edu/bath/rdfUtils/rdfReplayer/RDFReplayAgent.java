@@ -60,7 +60,7 @@ public class RDFReplayAgent {
 	}
 	class PredObjPair{
 		public String pred;
-		public String obj;
+		public Serializable obj;
 	}
 	
 	private static ArrayList<PredObjPair> myPredObjPairs = new ArrayList<PredObjPair>();
@@ -75,6 +75,7 @@ public class RDFReplayAgent {
 	private static String jasonSensorVehicles = "jasonSensorVehicles";
 	private static String jasonSensorStates = "jasonSensorStates";
 	private static String jasonSensorVehiclesCmds = "jasonSensorVehiclesCmds";
+	private static String homeSensors = "homeSensor";
 	private static String simSensorName = "simStateSensor";
 	private static WorkerSimNonThreadSender simThreadSender;
 	
@@ -85,6 +86,9 @@ public class RDFReplayAgent {
 	
 	private static boolean useLocalFile=false;
 	private static String fileName = "Sensor.nt";
+
+	private static final long nanoToMili=1000000;
+
 	
 	private static Model model; 
 	
@@ -100,28 +104,34 @@ public class RDFReplayAgent {
 	private static long pullScenario3FinTime=1350827670000L;
 	
 	private static long pushFullRoute1Start=1365939090000L;
-	private static long   pullFullRoute1Fin=1365939846000L;
+	private static long pullFullRoute1Fin=1365939846000L;
 	
 	private static long msgRate333Start=1369248278214L;
-	private static long  msgRate3331Fin=1369248312000L;
+	private static long msgRate3331Fin=1369248312000L;
 	
 	private static long msgRate167Start=1369248541682L;
-	private static long  msgRate167Fin=1369248578000L;
+	private static long msgRate167Fin=1369248578000L;
 
 	private static long trafficSimTestStart = 1436713489862L;
 	private static long trafficSimTestFin = 1436713465722L;
+
+	//private static long houseStart = 1439845200000L;
+	private static long houseStart = 1440362470000L;
+	private static long houseFin = 1440363470000L;
 									  
-	private static long simStartTime = trafficSimTestStart;
-	private static long simFinishTime = trafficSimTestFin;
+	private static long simStartTime = houseStart;
+	private static long simFinishTime = houseFin;
 	
-	private int intervalTime=1000;
-	
+	private int publishDelayTime=1000;
+	private int intervalTime= 60000; //60000 is then 1 minute of data to be replayed in publishDelayTime window as realtime
+	private double lastMsgTimeStamp = 0L;
 	private AGServer server;
 	private AGCatalog catalogue;
 	private AGRepository repository;
 	private AGRepositoryConnection conn;
 	private WorkerNonThreadSender myVehicleSimSender;
 	private WorkerNonThreadSender myJStateSimSender;
+	private WorkerNonThreadSender myHouseSimSender;
 	private boolean simPaused=false;
 	private boolean simForward=true;
 	private static boolean useXMPP=false;
@@ -298,7 +308,12 @@ public class RDFReplayAgent {
 							simRewind();
 						}
 					}
-				}catch(Exception e) {}
+				}
+				catch(Exception e) 
+				{
+					System.out.println("error handlings incoming sim state");
+					e.printStackTrace();
+				}
 			}
 		});
 		try {
@@ -314,11 +329,13 @@ public class RDFReplayAgent {
 			{
 				myVehicleSimSender = new WorkerNonThreadSender(XMPPServer, "xmppsimsender", "jasonpassword", jasonSensorVehicles);
 				myJStateSimSender = new WorkerNonThreadSender(XMPPServer, "xmppsimsender-jstate", "jasonpassword", jasonSensorStates);
+				myHouseSimSender = new WorkerNonThreadSender(XMPPServer, "xmppsimsender-house", "jasonpassword", homeSensors);
 			}
 			else if (useMQTT)
 			{
 				myVehicleSimSender = new WorkerNonThreadSender(XMPPServer, "xmppsimsender", "jasonpassword", jasonSensorVehicles, true, 0);
 				myJStateSimSender = new WorkerNonThreadSender(XMPPServer, "xmppsimsender-jstate", "jasonpassword", jasonSensorStates, true, 0);
+				myHouseSimSender = new WorkerNonThreadSender(XMPPServer, "xmppsimsender-house", "jasonpassword", homeSensors, true, 0);
 			}
 		}
 		catch (Exception newEr) {
@@ -436,11 +453,13 @@ public class RDFReplayAgent {
 		
 		while(alive) 
 		{
+			long intervalStartTime = 0L;
 				if (!simPaused) 
 				{
+					intervalStartTime = System.nanoTime();
 					String queryEverythingString = "SELECT ?s ?p ?o  WHERE {?s ?p ?o .}";
 					long finTime = simStartTime+intervalTime;
-					String timeBoundedString = "select ?subj where { ?subj <http://bath.edu/sensors/predicates#takenAt> ?value FILTER (?value >= " + simStartTime + " && ?value <= " + finTime + ") } ";
+					String timeBoundedString = "select ?subj where { ?subj <http://bath.edu/sensors/predicates#takenAt> ?value FILTER (?value >= " + simStartTime + " && ?value <= " + finTime + ") } order by ?value";
 					//System.out.println(timeBoundedString);
 					ArrayList<String> subjectResults = new ArrayList<String>();
 					
@@ -483,6 +502,7 @@ public class RDFReplayAgent {
 							try
 							{
 								TupleQuery tupleQuery = sesameRepoConnection.prepareTupleQuery(QueryLanguage.SPARQL, timeBoundedString);
+								//System.out.println(timeBoundedString);
 								TupleQueryResult result = tupleQuery.evaluate();
 								while (result.hasNext()) 
 								{
@@ -505,9 +525,9 @@ public class RDFReplayAgent {
 					simThreadSender.addMessageToSend("simMsgCount", resultCount);
 			
 					Long query2StartTime = System.currentTimeMillis();
-					for (String temp : subjectResults) 
+					for (String tempURI : subjectResults) 
 					{
-						String drQueryString ="select * where { <" + temp + "> ?pred ?obj . }";
+						String drQueryString ="select * where { <" + tempURI + "> ?pred ?obj . }";
 						//System.out.println("temp query: " + drQueryString);
 						String locatedAtVal = "";
 						String predVal = "";
@@ -592,7 +612,7 @@ public class RDFReplayAgent {
 							}
 							finally { qexec.close() ; }
 						}
-						else
+						else //use an RDF database
 						{
 							TupleQueryResult drResult = null;
 							if (useALLEGRO)
@@ -631,16 +651,22 @@ public class RDFReplayAgent {
 									BindingSet drBindingSet = drResult.next();
 									Value pred = drBindingSet.getValue("pred");
 									Value obj = drBindingSet.getValue("obj");
-									/*for (String bName : drBindingSet.getBindingNames())
-									{
-										System.out.println("binding set contains : " + bName);
-									}*/
+									//TODO: this could perhaps be tidied up with Literals and then
+									//getting their URI, rather than breaking up the strings.
+									//achieves similar result just a bit safer..
+
 									if ((pred !=null) && (obj != null))
 									{
 										if (pred.toString().equals("http://bath.edu/sensors/predicates#locatedAt"))
 										{
-											//System.out.println("Setting locatedAt to be: " + obj.toString());
-											locatedAtVal=obj.toString();
+											String cleanedObj = obj.toString();
+											if(cleanedObj.contains("^^"))
+											{
+												cleanedObj = obj.toString().split("\\^\\^")[0];
+											}
+										
+											locatedAtVal=cleanedObj;
+											//System.out.println("Setting locatedAt to be: " + locatedAtVal);
 										}
 										else if (pred.toString().equals("http://bath.edu/sensors/predicates#isDataReading"))
 										{
@@ -659,13 +685,37 @@ public class RDFReplayAgent {
 										}
 										else
 										{
-											//System.out.println("Setting object to be: " + obj.toString().split("\"")[1]);
+											//System.out.println(obj.getDatatype());
+											String typeURI = obj.toString().split("\\^")[2];
 											objectVal=obj.toString().split("\"")[1];
-											//System.out.println("Setting pred to be: " + pred.toString());
+											//System.out.println(typeURI);
 											predVal=pred.toString();
 											PredObjPair tempPair = new PredObjPair();
+
+											if(typeURI.equals("<http://www.w3.org/2001/XMLSchema#int>"))
+												tempPair.obj = Integer.parseInt(objectVal);
+											else if(typeURI.equals("<http://www.w3.org/2001/XMLSchema#long>"))
+												tempPair.obj = Long.parseLong(objectVal);
+											else if(typeURI.equals("<http://www.w3.org/2001/XMLSchema#byte>"))
+												tempPair.obj = Byte.parseByte(objectVal);
+											else if(typeURI.equals("<http://www.w3.org/2001/XMLSchema#boolean>"))
+												tempPair.obj = Boolean.parseBoolean(objectVal);
+											else if(typeURI.equals("<http://www.w3.org/2001/XMLSchema#double>"))
+												tempPair.obj = Double.parseDouble(objectVal);
+											else if(typeURI.equals("<http://www.w3.org/2001/XMLSchema#float>"))
+												tempPair.obj = Float.parseFloat(objectVal);
+											else if(typeURI.equals("<http://www.w3.org/2001/XMLSchema#short>"))
+												tempPair.obj = Short.parseShort(objectVal);
+											else if(typeURI.equals("<http://www.w3.org/2001/XMLSchema#string>"))
+												tempPair.obj = objectVal;
+											else
+											{
+												System.out.println("didnt handle type: " + typeURI);
+												tempPair.obj = objectVal;
+											}
+
+
 											tempPair.pred=predVal;
-											tempPair.obj=objectVal;
 											myPredObjPairs.add(tempPair);
 										}
 									}
@@ -681,6 +731,7 @@ public class RDFReplayAgent {
 						try 
 						{
 							DataReading testReading = new DataReading(dataReadingVal, locatedAtVal, takenAtVal);
+							testReading.setURI(tempURI);							
 							//testReading.addDataValue(null, predVal, objectVal, false);
 
 							for (PredObjPair foundPair : myPredObjPairs)
@@ -689,6 +740,30 @@ public class RDFReplayAgent {
 								testReading.addDataValue(null, foundPair.pred, foundPair.obj, false);
 							}
 							
+							lastMsgTimeStamp = takenAtVal;
+							double intervalElapsedMsgRatio = (lastMsgTimeStamp - simStartTime)/intervalTime;
+							float elapsedTime = (System.nanoTime() - intervalStartTime)/(nanoToMili);
+							double targetTime = publishDelayTime*intervalElapsedMsgRatio;
+
+
+							//System.out.println("ratio of interval time elapsed in step for this msg: " + intervalElapsedMsgRatio);
+							//System.out.println("time elapsed in realtime for this msg: " + elapsedTime);
+							//System.out.println("target msg send time would have been: " + targetTime);
+							
+							if (targetTime > elapsedTime)
+							{
+								try
+								{
+									Double sleepVal = targetTime - elapsedTime;
+									Thread.sleep(sleepVal.intValue());
+								}
+								catch (Exception e) 
+								{
+									System.out.println("Error in message delay sleep");
+									e.printStackTrace();
+								}
+							}
+
 							if (locatedAtVal.contains("agentJState"))
 							{
 								myJStateSimSender.addMessageToSend(testReading);
@@ -698,6 +773,16 @@ public class RDFReplayAgent {
 							{
 								myVehicleSimSender.addMessageToSend(testReading);
 								myVehicleSimSender.send();
+							}
+							else if (locatedAtVal.contains("PiSensors") || locatedAtVal.contains("HueSensors"))
+							{
+								myHouseSimSender.addMessageToSend(testReading);
+								myHouseSimSender.send();
+								/*if (locatedAtVal.contains("HueSensors") )
+								{
+									System.out.println("temp query: " + drQueryString);
+									System.out.println(testReading.toRDF());
+								}*/
 							}
 							else
 							{
@@ -716,11 +801,21 @@ public class RDFReplayAgent {
 				
 				try
 				{
-					Thread.sleep(intervalTime);
+					double elapsedLoopTime = (System.nanoTime() - intervalStartTime)/nanoToMili;
+					Double remainingSleep = publishDelayTime - elapsedLoopTime;
+					//System.out.println("need to sleep for: " + remainingSleep);
+					if (remainingSleep > 0)
+					{
+						Thread.sleep(remainingSleep.intValue());
+					}
+					else
+					{
+						System.out.println("WARNING: overshot this time window by " + remainingSleep + "ms");
+					}
 				}
 				catch (Exception e) 
 				{
-					System.out.println("Error in sleep");
+					System.out.println("Error in main sleep");
 					e.printStackTrace();
 				}	
 

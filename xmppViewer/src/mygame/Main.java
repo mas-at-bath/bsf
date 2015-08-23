@@ -102,7 +102,7 @@ public class Main extends SimpleApplication implements ScreenController {
     private WorkerSimNonThreadSender simNonThreadSender;
     private static Long currentSimTime = 0L;
     private static Long previousSimTime = 0L;
-    private static boolean timeFromSUMO = true;
+    private static boolean timeFromSUMO = false;
     private Material greenMat, blueMat;
     private Nifty nifty;
     private static boolean addedAlready = false;
@@ -742,12 +742,10 @@ public class Main extends SimpleApplication implements ScreenController {
 		@Override
 		public void handleIncomingReading(String node, String rdf) 
 		{
-			//System.out.println(rdf);
 			try
 			{
-				//System.out.println(rdf);
                         	DataReading dr = DataReading.fromRDF(rdf);
-				System.out.println("received home sensor reading");
+				//System.out.println("received home sensor reading");
 				if (dr.getLocatedAt().equals("http://127.0.0.1/HueSensors")) 
 				{
 					String lightName = "";
@@ -797,7 +795,7 @@ public class Main extends SimpleApplication implements ScreenController {
 						model = (String) modelVal.object;
 					}
 
-					System.out.println("got reading for " + lightName + " model "+ model + " at rgb " + redLight + "," + greenLight + "," + blueLight + ", brightness: " + brightness + " and is " + state);
+					//System.out.println("got reading for " + lightName + " model "+ model + " at rgb " + redLight + "," + greenLight + "," + blueLight + ", brightness: " + brightness + " and is " + state);
 
 
 					if (houseShapes != null)
@@ -821,15 +819,76 @@ public class Main extends SimpleApplication implements ScreenController {
 						houseShapes.updateLight(lightName, new ColorRGBA(r,g,b,0f), (float)brightness/255);
 					}
 				}
+				else if (dr.getTakenBy().equals("http://127.0.0.1/components/houseSensors/piSensor1") || dr.getTakenBy().equals("http://127.0.0.1/components/houseSensors/enlitenSensor1"))
+				{
+					//piSensor1 should be unique name in unique location
+					for (DataReading.Value foundVal : dr.findValues(null,null,null))
+					{
+						String predName = (String)foundVal.predicate;
+						boolean msgHandled = false;
+						String oClass = foundVal.object.getClass()+"";
+						//System.out.println("got a reading, didn't handle it, but it had at least: " + predName);
+						if (predName.equals("http://127.0.0.1/sensors/types#DHT22humidity"))
+						{
+							Double humidVal=0d;
+							//TODO: generic passing of this test
+							if(oClass.equals("class java.lang.Double"))
+							{
+								humidVal = (Double)foundVal.object;
+							}
+							else if (oClass.equals("class java.lang.String"))
+							{
+								String strMsg = (String)foundVal.object;
+								humidVal = Double.parseDouble(strMsg);
+							}
+							else
+							{
+								System.out.println("didn't handle type: " + oClass);
+							}
+							//System.out.println("Humidity " + humidVal);
+							msgHandled=true;
+							
+						}
+						else if (predName.equals("http://127.0.0.1/sensors/types#DHT22temperature"))
+						{
+							Double tempVal=0d;
+							
+							if(oClass.equals("class java.lang.Double"))
+							{
+								tempVal = (Double)foundVal.object;
+							}
+							else if (oClass.equals("class java.lang.String"))
+							{
+								String strMsg = (String)foundVal.object;
+								tempVal = Double.parseDouble(strMsg);
+							}
+							//System.out.println("Temperature " + tempVal);
+							msgHandled=true;		
+						}
+						else if (predName.equals("http://127.0.0.1/sensors/types#PIR"))
+						{
+							//System.out.println("Movement detected");
+							msgHandled=true;		 	
+						}
+						
+						if (!msgHandled)
+						{
+							System.out.println("didnt handle " + predName + " from " + dr.getTakenBy());
+							
+						}					
+					}
+				}
 				else
 				{
-					System.out.println("unknown message type");
+					System.out.println("unknown message type by " + dr.getTakenBy() + " from " + dr.getLocatedAt());
 				}
 			}
 			catch(Exception e) 
 			{ 
 				System.out.println("error handling data in " + homeSensors);
 				e.printStackTrace();
+				System.out.println("due to:");
+				System.out.println(rdf);
 			}
 		}
 	});
@@ -1591,7 +1650,7 @@ public class Main extends SimpleApplication implements ScreenController {
                 hudTime.setText("Sim Time: " + newTime);
             } else {
                 hudTime.setText(formatter.format(currentSimTime));
-                System.out.println("Sim Time: " + formatter.format(currentSimTime));
+                //System.out.println("Sim Time: " + formatter.format(currentSimTime));
             }
             hudTime.setLocalTranslation(0, hudTime.getLineHeight() + 450, 300);
             timeNode.attachChild(hudTime);

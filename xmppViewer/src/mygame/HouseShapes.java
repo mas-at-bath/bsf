@@ -282,12 +282,12 @@ public class HouseShapes {
 
     public void updateLight(String name, ColorRGBA colour, float intensity)
     {
-	System.out.println("trying to update state of " + name + " to " + colour.getRed() + " intensity " + intensity);
+	//System.out.println("trying to update state of " + name + " to " + colour.getRed() + " intensity " + intensity);
 	for (LightInfo tempLight : myLights)
 	{
 		if (tempLight.getName().equals(name))
 		{
-			System.out.println("found it!");
+			//System.out.println("found it!");
 			tempLight.updateInfo(colour, intensity);
 		}
 	}
