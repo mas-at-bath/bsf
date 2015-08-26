@@ -117,13 +117,13 @@ public class RDFReplayAgent {
 
 	//private static long houseStart = 1439845200000L;
 	private static long houseStart = 1440362470000L;
-	private static long houseFin = 1440363470000L;
+	private static long houseFin = 1440523612000L;
 									  
 	private static long simStartTime = houseStart;
 	private static long simFinishTime = houseFin;
 	
 	private int publishDelayTime=1000;
-	private int intervalTime= 60000; //60000 is then 1 minute of data to be replayed in publishDelayTime window as realtime
+	private int intervalTime= 600000; //60000 is then 1 minute of data to be replayed in publishDelayTime window as realtime
 	private double lastMsgTimeStamp = 0L;
 	private AGServer server;
 	private AGCatalog catalogue;

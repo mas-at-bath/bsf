@@ -48,6 +48,11 @@ import com.jme3.shadow.DirectionalLightShadowRenderer;
 import com.jme3.shadow.SpotLightShadowFilter;
 import com.jme3.shadow.SpotLightShadowRenderer;
 import com.jme3.system.NanoTimer;
+import com.jme3.terrain.geomipmap.TerrainLodControl;
+import com.jme3.terrain.geomipmap.TerrainQuad;
+import com.jme3.terrain.heightmap.AbstractHeightMap;
+import com.jme3.terrain.heightmap.ImageBasedHeightMap;
+import com.jme3.texture.Texture.WrapMode;
 import com.jme3.texture.Texture2D;
 import com.jme3.texture.plugins.AWTLoader;
 import edu.bath.sensorframework.DataReading;
@@ -59,11 +64,14 @@ import java.io.IOException;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import jme3utilities.sky.SkyControl;
 
 public class Main extends SimpleApplication implements ScreenController {
     
@@ -127,6 +135,8 @@ public class Main extends SimpleApplication implements ScreenController {
     private static Double lastXMPPUpdateTime = 0d;
     private static NanoTimer myNanoTimer = new NanoTimer();
     private static SimpleDateFormat formatter;
+    private static SimpleDateFormat formatterHour;
+    private static SimpleDateFormat formatterMin;
     protected static float terrainXscale = 1f;
     protected static float terrainYscale = 1f;
     protected static float terrainXtrans = 1f;
@@ -150,9 +160,14 @@ public class Main extends SimpleApplication implements ScreenController {
     private static String currentPath = "";
     private static boolean runningAndroid=false;
     private static boolean issuedDiscardWarning=false;
-	private static boolean useXMPP=false;
-	private static boolean useMQTT=false;
+    private static boolean useXMPP=false;
+    private static boolean useMQTT=false;
+    private static SkyControl sc;
 
+        
+          private TerrainQuad terrain;
+  Material mat_terrain;
+        
     public static void main(String[] args)  {
 
         app = new Main();
@@ -297,8 +312,18 @@ public class Main extends SimpleApplication implements ScreenController {
         java.util.logging.Logger.getLogger("").setLevel(Level.WARNING);
 
         timeNode = new Node("timeNode");
-        formatter = new SimpleDateFormat("yyyy-MM-dd hh:mm:ss");
+        formatter = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
+        formatterHour = new SimpleDateFormat("HH");
+        formatterMin = new SimpleDateFormat("mm");
   
+        
+        //addTerrain();
+        sc = new SkyControl(assetManager, cam, 0.9f,true,true);
+        sc.getSunAndStars().setHour(19f);
+        sc.getSunAndStars().setObserverLatitude(51.5f * FastMath.DEG_TO_RAD);
+        sc.getSunAndStars().setSolarLongitude(Calendar.AUGUST, 20);
+        rootNode.addControl(sc);
+        sc.setEnabled(true);
 
         try {
             //create instances of all traffic lights defined in here, created in off state by default
@@ -1237,7 +1262,7 @@ public class Main extends SimpleApplication implements ScreenController {
         knownVehicles.add(vehicleName);
 
         newNodes.add(nodeToAdd);
-        //System.out.println("added node to list to add in, size is now " + newNodes.size());     
+        //System.out.println("added node to list to add in, size is now " + newNodes.size());
     }
 
     public void processJStateXMPPGenericSpatialData(String newItem, String vehicleName) {
@@ -1650,6 +1675,17 @@ public class Main extends SimpleApplication implements ScreenController {
                 hudTime.setText("Sim Time: " + newTime);
             } else {
                 hudTime.setText(formatter.format(currentSimTime));
+                if (sc.isEnabled())
+                {
+                    String hourTime = formatterHour.format(currentSimTime);
+                    String minTime = formatterMin.format(currentSimTime);
+                    float minComponent = Float.parseFloat(minTime)/60;
+                    float hourComponent = Float.parseFloat(hourTime);
+                    
+                    //TODO:add the minutes to the float to make smoother
+                    sc.getSunAndStars().setHour(hourComponent+minComponent);
+                }
+                //System.out.println("hours is " + formatterHour.format(currentSimTime));
                 //System.out.println("Sim Time: " + formatter.format(currentSimTime));
             }
             hudTime.setLocalTranslation(0, hudTime.getLineHeight() + 450, 300);
@@ -1829,6 +1865,67 @@ public class Main extends SimpleApplication implements ScreenController {
         // System.out.println("converted " + oldLoc.getX() +","+ oldLoc.getY() + " to " + newX + "," + newY);
         return new MyPoint2D(newX, newY);
     }
+    
+    public void addTerrain()
+    {
+                /** 1. Create terrain material and load four textures into it. */
+    mat_terrain = new Material(assetManager, 
+            "Common/MatDefs/Terrain/Terrain.j3md");
+ 
+    /** 1.1) Add ALPHA map (for red-blue-green c
+     * oded splat textures) */
+    mat_terrain.setTexture("Alpha", assetManager.loadTexture(
+            "Textures/alphamap.png"));
+ 
+    /** 1.2) Add GRASS texture into the red layer (Tex1). */
+    Texture grass = assetManager.loadTexture(
+            "Textures/grass.jpg");
+    grass.setWrap(WrapMode.Repeat);
+    mat_terrain.setTexture("Tex1", grass);
+    mat_terrain.setFloat("Tex1Scale", 64f);
+ 
+    /** 1.3) Add DIRT texture into the green layer (Tex2) */
+    Texture dirt = assetManager.loadTexture(
+            "Textures/dirt.jpg");
+    dirt.setWrap(WrapMode.Repeat);
+    mat_terrain.setTexture("Tex2", dirt);
+    mat_terrain.setFloat("Tex2Scale", 32f);
+ 
+    /** 1.4) Add ROAD texture into the blue layer (Tex3) */
+    Texture rock = assetManager.loadTexture(
+            "Textures/road.jpg");
+    rock.setWrap(WrapMode.Repeat);
+    mat_terrain.setTexture("Tex3", rock);
+    mat_terrain.setFloat("Tex3Scale", 128f);
+ 
+    /** 2. Create the height map */
+    AbstractHeightMap heightmap = null;
+    Texture heightMapImage = assetManager.loadTexture(
+            "Textures/mountains512.png");
+    heightmap = new ImageBasedHeightMap(heightMapImage.getImage());
+    heightmap.load();
+ 
+    /** 3. We have prepared material and heightmap. 
+     * Now we create the actual terrain:
+     * 3.1) Create a TerrainQuad and name it "my terrain".
+     * 3.2) A good value for terrain tiles is 64x64 -- so we supply 64+1=65.
+     * 3.3) We prepared a heightmap of size 512x512 -- so we supply 512+1=513.
+     * 3.4) As LOD step scale we supply Vector3f(1,1,1).
+     * 3.5) We supply the prepared heightmap itself.
+     */
+    int patchSize = 65;
+    terrain = new TerrainQuad("my terrain", patchSize, 513, heightmap.getHeightMap());
+ 
+    /** 4. We give the terrain its material, position & scale it, and attach it. */
+    terrain.setMaterial(mat_terrain);
+    terrain.setLocalTranslation(0, -100, 0);
+    terrain.setLocalScale(2f, 1f, 2f);
+    rootNode.attachChild(terrain);
+ 
+    /** 5. The LOD (level of detail) depends on were the camera is: */
+    TerrainLodControl control = new TerrainLodControl(terrain, getCamera());
+    terrain.addControl(control);
+}
 
     public Main getSelf() {
         return this;
