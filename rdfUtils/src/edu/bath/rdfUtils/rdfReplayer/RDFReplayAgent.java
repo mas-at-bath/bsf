@@ -84,8 +84,8 @@ public class RDFReplayAgent {
 	private static String DBServer = "127.0.0.1";
 	private static String sesameServerURL = "http://127.0.0.1:8040";
 	
-	private static boolean useLocalFile=false;
-	private static String fileName = "Sensor.nt";
+	private static boolean useLocalFile=true;
+	private static String fileName = "HomeSensors.nt";
 
 	private static final long nanoToMili=1000000;
 
