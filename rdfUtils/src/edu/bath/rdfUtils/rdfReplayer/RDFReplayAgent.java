@@ -41,10 +41,7 @@ import com.franz.agraph.repository.AGServer;
 import com.franz.agraph.repository.AGTupleQuery;
 import com.franz.agraph.repository.AGValueFactory;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Iterator;
+import java.util.*;
 import java.io.*;
 
 import edu.bath.sensorframework.client.*;
@@ -57,7 +54,19 @@ public class RDFReplayAgent {
 	class TimeResPair{
 		public Long time;
 		public String res;
+
+		public int getTimeAsInt()
+		{
+			return time.intValue();
+		}
+
 	}
+	class TimeComparator implements Comparator<TimeResPair> {
+	    public int compare(TimeResPair pair1, TimeResPair pair2) {
+		return pair1.getTimeAsInt() - pair2.getTimeAsInt();
+	    }
+	}
+
 	class PredObjPair{
 		public String pred;
 		public Serializable obj;
@@ -85,7 +94,7 @@ public class RDFReplayAgent {
 	private static String sesameServerURL = "http://127.0.0.1:8040";
 	
 	private static boolean useLocalFile=true;
-	private static String fileName = "HomeSensors.nt";
+	private static String fileName = "shortHomeSensors.nt";
 
 	private static final long nanoToMili=1000000;
 
@@ -123,7 +132,7 @@ public class RDFReplayAgent {
 	private static long simFinishTime = houseFin;
 	
 	private int publishDelayTime=1000;
-	private int intervalTime= 600000; //60000 is then 1 minute of data to be replayed in publishDelayTime window as realtime
+	private TimeControl timeStepper = new TimeControl();
 	private double lastMsgTimeStamp = 0L;
 	private AGServer server;
 	private AGCatalog catalogue;
@@ -132,7 +141,6 @@ public class RDFReplayAgent {
 	private WorkerNonThreadSender myVehicleSimSender;
 	private WorkerNonThreadSender myJStateSimSender;
 	private WorkerNonThreadSender myHouseSimSender;
-	private boolean simPaused=false;
 	private boolean simForward=true;
 	private static boolean useXMPP=false;
 	private static boolean useMQTT=false;
@@ -262,17 +270,18 @@ public class RDFReplayAgent {
 	
 	public void simPause() {
 		System.out.println("RDF replay agent has been set to paused");
-		simPaused=true;
+		timeStepper.pause();
 	}
 	
 	public void simPlay() {
 		System.out.println("RDF replay agent has been set to play");
-		simPaused=false;
+		timeStepper.normalTime();
+		timeStepper.unPause();
 		simForward=true;
 	}
 	public void simRewind() {
 		System.out.println("RDF replay agent has been set to rewind");
-		simPaused=false;
+		timeStepper.unPause();
 		simForward=false;
 	}
 
@@ -449,16 +458,30 @@ public class RDFReplayAgent {
 			finally { fullqexec.close() ; }
 			System.out.println("read file and it contains: " + model.size() + " entries and took " + readTime + "ms to load");
 			System.out.println("got " + myPairs.size() + " results");
+						String before = "";
+						for (TimeResPair currPair : myPairs)
+						{
+							before=before+currPair.res;
+						}
+			//System.out.println(before);
+			Collections.sort(myPairs, new TimeComparator());
+						String after = "";
+						for (TimeResPair currPair : myPairs)
+						{
+							after=after+currPair.res;
+						}
+			if(before.equals(after)) { System.out.println("same before and after"); }
+			else { System.out.println("made a difference"); }
 		}
 		
 		while(alive) 
 		{
 			long intervalStartTime = 0L;
-				if (!simPaused) 
+				if (!timeStepper.getIsPaused()) 
 				{
 					intervalStartTime = System.nanoTime();
 					String queryEverythingString = "SELECT ?s ?p ?o  WHERE {?s ?p ?o .}";
-					long finTime = simStartTime+intervalTime;
+					long finTime = simStartTime+timeStepper.getInterval();
 					String timeBoundedString = "select ?subj where { ?subj <http://bath.edu/sensors/predicates#takenAt> ?value FILTER (?value >= " + simStartTime + " && ?value <= " + finTime + ") } order by ?value";
 					//System.out.println(timeBoundedString);
 					ArrayList<String> subjectResults = new ArrayList<String>();
@@ -583,25 +606,57 @@ public class RDFReplayAgent {
 									}
 									else
 									{
-										String cleanedObj = objFound.toString();
+										/*String cleanedObj = objFound.toString();
+										System.out.println(cleanedObj);
 										if(cleanedObj.contains("^^"))
 										{
 											cleanedObj = objFound.toString().split("\\^\\^")[0];
 										}
-										//System.out.println("Setting object to be: " + cleanedObj);
+										System.out.println("Setting object to be: " + cleanedObj);
 										objectVal=cleanedObj;
 										
 										String cleanedPred = predFound.toString();
+										System.out.println(cleanedPred);
 										if(cleanedPred.contains("^^"))
 										{
 											cleanedPred = predFound.toString().split("\\^\\^")[0];
 										}
-										//System.out.println("Setting pred to be: " + cleanedPred);
+										System.out.println("Setting pred to be: " + cleanedPred);
 										predVal=cleanedPred;
 										PredObjPair tempPair = new PredObjPair();
 										tempPair.pred=predVal;
 										tempPair.obj=objectVal;
-										myPredObjPairs.add(tempPair);
+										myPredObjPairs.add(tempPair);*/
+										
+										String foundObj = objFound.toString();
+										//System.out.println("raw " + foundObj);
+										if (!foundObj.contains("^^"))
+										{
+											//System.out.println("no URI! string?");
+											String typeURI = "<http://www.w3.org/2001/XMLSchema#string>";
+											objectVal = foundObj;
+											predVal=predFound.toString();
+											PredObjPair tempPair = new PredObjPair();
+											tempPair.obj = returnTypedObject(typeURI, objectVal);
+
+											tempPair.pred=predVal;
+											myPredObjPairs.add(tempPair);
+										}
+										else
+										{
+											String typeURI = foundObj.split("\\^")[2];
+											//System.out.println("URI " + typeURI);
+											objectVal=foundObj.split("\\^")[0];	
+											//System.out.println("obj " + objectVal);
+											predVal=predFound.toString();
+											PredObjPair tempPair = new PredObjPair();
+											tempPair.obj = returnTypedObject(typeURI, objectVal);
+
+											tempPair.pred=predVal;
+											myPredObjPairs.add(tempPair);
+										}
+
+										
 									}
 							
 								}
@@ -685,35 +740,11 @@ public class RDFReplayAgent {
 										}
 										else
 										{
-											//System.out.println(obj.getDatatype());
 											String typeURI = obj.toString().split("\\^")[2];
 											objectVal=obj.toString().split("\"")[1];
-											//System.out.println(typeURI);
 											predVal=pred.toString();
 											PredObjPair tempPair = new PredObjPair();
-
-											if(typeURI.equals("<http://www.w3.org/2001/XMLSchema#int>"))
-												tempPair.obj = Integer.parseInt(objectVal);
-											else if(typeURI.equals("<http://www.w3.org/2001/XMLSchema#long>"))
-												tempPair.obj = Long.parseLong(objectVal);
-											else if(typeURI.equals("<http://www.w3.org/2001/XMLSchema#byte>"))
-												tempPair.obj = Byte.parseByte(objectVal);
-											else if(typeURI.equals("<http://www.w3.org/2001/XMLSchema#boolean>"))
-												tempPair.obj = Boolean.parseBoolean(objectVal);
-											else if(typeURI.equals("<http://www.w3.org/2001/XMLSchema#double>"))
-												tempPair.obj = Double.parseDouble(objectVal);
-											else if(typeURI.equals("<http://www.w3.org/2001/XMLSchema#float>"))
-												tempPair.obj = Float.parseFloat(objectVal);
-											else if(typeURI.equals("<http://www.w3.org/2001/XMLSchema#short>"))
-												tempPair.obj = Short.parseShort(objectVal);
-											else if(typeURI.equals("<http://www.w3.org/2001/XMLSchema#string>"))
-												tempPair.obj = objectVal;
-											else
-											{
-												System.out.println("didnt handle type: " + typeURI);
-												tempPair.obj = objectVal;
-											}
-
+											tempPair.obj = returnTypedObject(typeURI, objectVal);
 
 											tempPair.pred=predVal;
 											myPredObjPairs.add(tempPair);
@@ -741,7 +772,7 @@ public class RDFReplayAgent {
 							}
 							
 							lastMsgTimeStamp = takenAtVal;
-							double intervalElapsedMsgRatio = (lastMsgTimeStamp - simStartTime)/intervalTime;
+							double intervalElapsedMsgRatio = (lastMsgTimeStamp - simStartTime)/timeStepper.getInterval();
 							float elapsedTime = (System.nanoTime() - intervalStartTime)/(nanoToMili);
 							double targetTime = publishDelayTime*intervalElapsedMsgRatio;
 
@@ -778,11 +809,6 @@ public class RDFReplayAgent {
 							{
 								myHouseSimSender.addMessageToSend(testReading);
 								myHouseSimSender.send();
-								/*if (locatedAtVal.contains("HueSensors") )
-								{
-									System.out.println("temp query: " + drQueryString);
-									System.out.println(testReading.toRDF());
-								}*/
 							}
 							else
 							{
@@ -819,23 +845,23 @@ public class RDFReplayAgent {
 					e.printStackTrace();
 				}	
 
-				if (simPaused)
+				if (timeStepper.getIsPaused())
 				{
 					System.out.println("next time step, simulation is paused..." + simStartTime);	
 					simThreadSender.addMessageToSend("simTime", new String("" + simStartTime));
 					simThreadSender.send();
 				}
-				else if (!simPaused & simForward)
+				else if (!timeStepper.getIsPaused() & simForward)
 				{
 					System.out.println("next time step in sim..." + simStartTime);
-					simStartTime=simStartTime+intervalTime;
+					simStartTime=simStartTime+timeStepper.getInterval();
 					simThreadSender.addMessageToSend("simTime", new String("" + simStartTime));
 					simThreadSender.send();
 				}
-				else if (!simPaused & !simForward)
+				else if (!timeStepper.getIsPaused() & !simForward)
 				{
 					System.out.println("previous time step in sim..." + simStartTime);
-					simStartTime=simStartTime-intervalTime;
+					simStartTime=simStartTime-timeStepper.getInterval();
 					simThreadSender.addMessageToSend("simTime", new String("" + simStartTime));
 					simThreadSender.send();
 				}
@@ -894,4 +920,33 @@ public class RDFReplayAgent {
 	public static void addDataSource(String handle) throws RuntimeException {
 		throw new RuntimeException("This is a test exception!");
 	}
+
+	public static Serializable returnTypedObject(String typeURIval, String objectValue)
+	{
+		Serializable completeURIObj = objectValue;
+	
+		if(typeURIval.equals("<http://www.w3.org/2001/XMLSchema#int>") || typeURIval.equals("http://www.w3.org/2001/XMLSchema#int"))
+			completeURIObj = Integer.parseInt(objectValue);
+		else if(typeURIval.equals("<http://www.w3.org/2001/XMLSchema#long>") || typeURIval.equals("http://www.w3.org/2001/XMLSchema#long"))
+			completeURIObj = Long.parseLong(objectValue);
+		else if(typeURIval.equals("<http://www.w3.org/2001/XMLSchema#byte>") || typeURIval.equals("http://www.w3.org/2001/XMLSchema#byte"))
+			completeURIObj = Byte.parseByte(objectValue);
+		else if(typeURIval.equals("<http://www.w3.org/2001/XMLSchema#boolean>") || typeURIval.equals("http://www.w3.org/2001/XMLSchema#boolean"))
+			completeURIObj = Boolean.parseBoolean(objectValue);
+		else if(typeURIval.equals("<http://www.w3.org/2001/XMLSchema#double>") || typeURIval.equals("http://www.w3.org/2001/XMLSchema#double"))
+			completeURIObj = Double.parseDouble(objectValue);
+		else if(typeURIval.equals("<http://www.w3.org/2001/XMLSchema#float>") || typeURIval.equals("http://www.w3.org/2001/XMLSchema#float"))
+			completeURIObj = Float.parseFloat(objectValue);
+		else if(typeURIval.equals("<http://www.w3.org/2001/XMLSchema#short>") || typeURIval.equals("http://www.w3.org/2001/XMLSchema#short"))
+			completeURIObj = Short.parseShort(objectValue);
+		else if(typeURIval.equals("<http://www.w3.org/2001/XMLSchema#string>") || typeURIval.equals("http://www.w3.org/2001/XMLSchema#string"))
+			completeURIObj = objectValue;
+		else
+		{
+			System.out.println("didnt handle type: " + typeURIval);
+		}
+		
+		return completeURIObj;
+	}
+
 }
