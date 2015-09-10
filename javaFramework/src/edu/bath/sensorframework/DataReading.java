@@ -192,11 +192,20 @@ public class DataReading {
 		try {
 			md = MessageDigest.getInstance("MD5");
 		} catch (NoSuchAlgorithmException e) { e.printStackTrace(); }
-		String toHash = agentID +System.currentTimeMillis();
+		
+		//VB: millis runs the risk of non unique hashes if high frequency generation
+		//String toHash = agentID +System.currentTimeMillis();
+		String toHash = agentID +System.nanoTime();		
 		
 		BigInteger i = new BigInteger(1,md.digest(toHash.getBytes()));
 		String uri = "http://bath.edu/sensors/readings/"+String.format("%1$032X", i);
 		return uri;
+	}
+	
+	//VB: made a setURI method for replaying events (then its up to user if they want exact URI or generate new ones)
+	public void setURI(String newURI)
+	{
+		this.readingURI = newURI;
 	}
 	
 	/**

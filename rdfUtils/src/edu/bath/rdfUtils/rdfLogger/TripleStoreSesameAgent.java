@@ -404,12 +404,18 @@ public class TripleStoreSesameAgent {
 				}
 				else
 				{
+					/*if (dr.toRDF().contains("HueSensors"))
+					{
+						System.out.println(dr.toRDF());
+					}*/
 					sesameRepoConnection.add(new ByteArrayInputStream(rdf.getBytes()), "", RDFFormat.RDFXML);
 				}
 			}
 			catch(Exception e3) 
 			{ 
-				System.out.println("some issue with historical check");
+				System.out.println("some issue with historical check, problematic RDF was: ");
+				System.out.println(rdf);
+				System.out.println("Stack: ");
 				e3.printStackTrace();
 			}
 		}
@@ -421,7 +427,9 @@ public class TripleStoreSesameAgent {
 			}
 			catch(Exception e4) 
 			{ 
-				System.out.println("some issue with historical check");
+				System.out.println("some issue with historical check, problematic RDF was: ");
+				System.out.println(rdf);
+				System.out.println("Stack: ");
 				e4.printStackTrace();
 			}
 		}
