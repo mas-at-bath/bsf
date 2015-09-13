@@ -30,27 +30,28 @@ import java.io.ByteArrayOutputStream;
 import java.net.HttpURLConnection;
 
 //for newer versions
-/*import org.bytedeco.javacpp.FloatPointer;
+import org.bytedeco.javacpp.FloatPointer;
 import org.bytedeco.javacpp.Pointer;
 import static org.bytedeco.javacpp.opencv_core.*;
+import static org.bytedeco.javacpp.opencv_face.*;
+import static org.bytedeco.javacpp.opencv_imgcodecs.*;
 import static org.bytedeco.javacpp.opencv_highgui.*;
-import static org.bytedeco.javacpp.opencv_legacy.*;
 import static org.bytedeco.javacpp.opencv_imgproc.*;
 import org.bytedeco.javacv.*;
-import org.bytedeco.javacpp.Loader;*/
+import org.bytedeco.javacpp.Loader;
 
 //for 0.3 or so
-import com.googlecode.javacv.cpp.opencv_core;
+/*import com.googlecode.javacv.cpp.opencv_core;
 import static com.googlecode.javacv.cpp.opencv_highgui.*;
 import static com.googlecode.javacv.cpp.opencv_core.*;
 import static com.googlecode.javacv.cpp.opencv_imgproc.*;
 import static com.googlecode.javacv.cpp.opencv_contrib.*;
-
 import com.googlecode.javacpp.*;
 import com.googlecode.javacv.*;
+import com.googlecode.javacv.FFmpegFrameGrabber;
 import static com.googlecode.javacpp.Loader.*;
 import static com.googlecode.javacv.cpp.opencv_core.*;
-import static com.googlecode.javacv.cpp.opencv_imgproc.*;
+import static com.googlecode.javacv.cpp.opencv_imgproc.*;*/
 
 import java.io.File;
 import java.awt.image.BufferedImage;
@@ -273,6 +274,8 @@ public class FaceRecognizer extends Sensor {
 
 		System.out.println("starting webcam");
 		OpenCVFrameGrabber grabber = new OpenCVFrameGrabber(0);
+		OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
+		//FFmpegFrameGrabber grabber = new FFmpegFrameGrabber(0);
 		
 		try
 		{
@@ -342,15 +345,15 @@ public class FaceRecognizer extends Sensor {
 			try
 			{
 				//System.out.println("trying to grab image");
-				IplImage frame = grabber.grab();
-				webHandler.updateImage(frame.getBufferedImage());
-				//System.out.println("got image");
+				IplImage frame = converter.convert(grabber.grab());
+				///webHandler.updateImage(frame.getBufferedImage());
+
 				//use these if you want to see local view
 				//CanvasFrame canvasFrame = new CanvasFrame("Preview");
 				//canvasFrame.setCanvasSize(frame.width(), frame.height());
 
 				//while (/*canvasFrame.isVisible() &&*/ (frame = grabber.grab()) != null) 
-				if ((frame = grabber.grab()) != null) 
+				if ((frame = converter.convert(grabber.grab())) != null) 
 				{
 		    			cvClearMemStorage(storage);
 					if (grayImage == null)
@@ -407,7 +410,8 @@ public class FaceRecognizer extends Sensor {
 							{
             							CvRect r = new CvRect(cvGetSeqElem(faces, faces.total()-1));
  								int x = r.x(), y = r.y(), w = r.width(), h = r.height();
-								RecognitionInfo newRecognition = faceRecognition.recognizeFromImage(faceRecognition.preprocessImage(frame, r), trainPersonNumMat);
+								//RecognitionInfo newRecognition = faceRecognition.recognizeFromImage(faceRecognition.preprocessImage(frame, r), trainPersonNumMat);
+								RecognitionInfo newRecognition = faceRecognition.recognizeFromImage(faceRecognition.preprocessImage(frame, r));
 								
 								if (newRecognition.getConfidence() > 0.83)
 								{
@@ -510,10 +514,7 @@ public class FaceRecognizer extends Sensor {
 						File imgFile = new File(fileName);
 						if (imgFile.exists()) 
 						{
-							//System.out.println("processing " + fileName);
-
-							BufferedImage bImg =  ImageIO.read(imgFile);
-							IplImage origImg = IplImage.createFrom(bImg);
+							IplImage origImg = cvLoadImage(fileName);
 							IplImage snapshot = cvCreateImage(cvGetSize(origImg), origImg.depth(), origImg.nChannels());
 							cvFlip(origImg, snapshot, 1);
            						CvSeq faces = faceRecognition.detectFace(origImg);
@@ -572,10 +573,9 @@ public class FaceRecognizer extends Sensor {
 			try
 			{
 				String fileName = "./vin_11.jpg";
-				File fileLoc = new File(fileName);
-				BufferedImage bImg =  ImageIO.read(fileLoc);
-				IplImage testImg = IplImage.createFrom(bImg);
-				faceRecognition.recognizeFromImage(testImg, trainPersonNumMat);
+				IplImage testImg = cvLoadImage(fileName);
+				//faceRecognition.recognizeFromImage(testImg, trainPersonNumMat);
+				faceRecognition.recognizeFromImage(testImg);
 
 					//old approach from earlier library, just saving for reference if needed...
 					/*File testFile = new File(fileName);

@@ -47,7 +47,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.logging.Logger;
 
-import com.googlecode.javacv.cpp.opencv_core;
+/*import com.googlecode.javacv.cpp.opencv_core;
 import static com.googlecode.javacv.cpp.opencv_highgui.*;
 import static com.googlecode.javacv.cpp.opencv_core.*;
 import static com.googlecode.javacv.cpp.opencv_imgproc.*;
@@ -59,19 +59,19 @@ import static com.googlecode.javacv.cpp.opencv_core.*;
 import static com.googlecode.javacv.cpp.opencv_imgproc.*;
 import static com.googlecode.javacv.cpp.opencv_objdetect.*;
 import com.googlecode.javacv.cpp.opencv_objdetect;
-import static com.googlecode.javacv.cpp.opencv_legacy.*;
+import static com.googlecode.javacv.cpp.opencv_legacy.*;*/
 
-/*import org.bytedeco.javacpp.FloatPointer;
+import org.bytedeco.javacpp.FloatPointer;
 import org.bytedeco.javacpp.Pointer;
 import static org.bytedeco.javacpp.opencv_core.*;
 import static org.bytedeco.javacpp.opencv_highgui.*;
-import static org.bytedeco.javacpp.opencv_legacy.*;
-//import static org.bytedeco.javacpp.opencv_objdetect;
+import static org.bytedeco.javacpp.opencv_face.*;
+import static org.bytedeco.javacpp.opencv_imgcodecs.*;
 import static org.bytedeco.javacpp.opencv_objdetect.*;
 import static org.bytedeco.javacpp.opencv_objdetect.CvHaarClassifierCascade;
 import static org.bytedeco.javacpp.opencv_imgproc.*;
 import org.bytedeco.javacpp.Loader;
-import org.bytedeco.javacpp.opencv_objdetect;*/
+import org.bytedeco.javacpp.opencv_objdetect;
 
 /** Recognizes faces.
  *
@@ -116,7 +116,7 @@ final CvHaarClassifierCascade cascade = new CvHaarClassifierCascade(cvLoad(CASCA
    * @param trainingFileName the given training text index file
    */
   public void learn(final String trainingFileName) {
-    int i;
+   /* int i;
 
     // load training data
     LOGGER.info("===========================================");
@@ -178,14 +178,14 @@ final CvHaarClassifierCascade cascade = new CvHaarClassifierCascade(cvLoad(CASCA
     storeTrainingData();
 
     // Save all the eigenvectors as images, so that they can be checked.
-    storeEigenfaceImages();
+    storeEigenfaceImages();*/
   }
 
   /** Recognizes the face in each of the test images given, and compares the results with the truth.
    *
    * @param szFileTest the index file of test images
    */
-  public void recognizeFileList(final String szFileTest) {
+ /* public void recognizeFileList(final String szFileTest) {
     LOGGER.info("===========================================");
     LOGGER.info("recognizing faces indexed from " + szFileTest);
     int i = 0;
@@ -252,7 +252,7 @@ final CvHaarClassifierCascade cascade = new CvHaarClassifierCascade(cvLoad(CASCA
       LOGGER.info("TOTAL ACCURACY: " + (nCorrect * 100 / (nCorrect + nWrong)) + "% out of " + (nCorrect + nWrong) + " tests.");
       LOGGER.info("TOTAL TIME: " + (tallyFaceRecognizeTime / (cvGetTickFrequency() * 1000.0 * (nCorrect + nWrong))) + " ms average.");
     }
-  }
+  }*/
 
   /** Reads the names & image filenames of people from a text file, and loads all those images listed.
    *
@@ -360,7 +360,7 @@ final CvHaarClassifierCascade cascade = new CvHaarClassifierCascade(cvLoad(CASCA
 
   /** Does the Principal Component Analysis, finding the average image and the eigenfaces that represent any image in the given dataset. */
   private void doPCA() {
-    int i;
+    /*int i;
     CvTermCriteria calcLimit;
     CvSize faceImgSize = new CvSize();
 
@@ -418,7 +418,7 @@ final CvHaarClassifierCascade cascade = new CvHaarClassifierCascade(cvLoad(CASCA
             1, // a
             0, // b
             CV_L1, // norm_type
-            null); // mask
+            null); // mask*/
   }
 
   /** Stores the training data to the file 'facedata.xml'. */
@@ -850,7 +850,7 @@ final CvHaarClassifierCascade cascade = new CvHaarClassifierCascade(cvLoad(CASCA
                 return roi;
         }
 
-  	public RecognitionInfo recognizeFromImage(IplImage testImg, CvMat trainPersonNumMat) 
+  	/*public RecognitionInfo recognizeFromImage(IplImage testImg, CvMat trainPersonNumMat) 
 	{
 	    int i = 0;
 	    int nTestFaces = 0;         // the number of test images
@@ -893,6 +893,52 @@ final CvHaarClassifierCascade cascade = new CvHaarClassifierCascade(cvLoad(CASCA
 			String suspectedName = personNames.get(nearest-1);
 			System.out.println("I think its: " + suspectedName + " with " + confidence + " confidence.");
 		}*/
+	  //}
+
+	public RecognitionInfo recognizeFromImage(IplImage testImg) 
+	{
+		RecognitionInfo newSuspec = new RecognitionInfo("test", 0.1f);
+		return newSuspec;		
 	  }
+
+	
+	   /* int i = 0;
+	    int nTestFaces = 0;         // the number of test images
+
+	    float[] projectedTestFace;
+	    String answer;
+	    float confidence = 0.0f;
+	    String foundName = "";
+
+	    // project the test images onto the PCA subspace
+	    projectedTestFace = new float[nEigens];
+
+	      int iNearest;
+	      int nearest;
+	      int truth;
+
+	      // project the test image onto the PCA subspace
+	      cvEigenDecomposite(
+		      //testFaceImgArr[i], // obj
+		      testImg,
+		      nEigens, // nEigObjs
+		      eigenVectArr, // eigInput (Pointer)
+		      0, // ioFlags
+		      null, // userData
+		      pAvgTrainImg, // avg
+		      projectedTestFace);  // coeffs
+
+	      final FloatPointer pConfidence = new FloatPointer(confidence);
+	      iNearest = findNearestNeighbor(projectedTestFace, new FloatPointer(pConfidence));
+	      confidence = pConfidence.get();
+		//System.out.println("confidence: " + confidence);
+
+	      nearest = trainPersonNumMat.data_i().get(iNearest);
+		//System.out.println("nearest: " + nearest);
+
+		RecognitionInfo newSuspec = new RecognitionInfo(personNames.get(nearest-1), confidence);
+		return newSuspec;	
+	  }*/
+
 
 }
