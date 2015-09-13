@@ -33,7 +33,8 @@ public class SensorMQTTClient extends SensorClient {
 
 		try
 		{
-			sensorConnection = new MqttClient("tcp://"+broker+":1883", clientID);
+			MemoryPersistence persistence = new MemoryPersistence();		
+			sensorConnection = new MqttClient("tcp://"+broker+":1883", clientID, persistence);
 			connOpts = new MqttConnectOptions();
 			connOpts.setCleanSession(true);
 			System.out.println("Connecting sensor: " + clientID + " to broker: "+broker);
@@ -59,7 +60,8 @@ public class SensorMQTTClient extends SensorClient {
 
 		try
 		{
-			sensorConnection = new MqttClient("tcp://"+broker+":1883", clientID);
+			MemoryPersistence persistence = new MemoryPersistence();
+			sensorConnection = new MqttClient("tcp://"+broker+":1883", clientID, persistence);
 			connOpts = new MqttConnectOptions();
 			connOpts.setCleanSession(true);
 			System.out.println("Connecting sensor: " + clientID + " to broker: "+broker);

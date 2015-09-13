@@ -54,15 +54,19 @@
         <delete file="mobile/libs/jME3-bullet.jar"/>
 	<delete file="mobile/libs/jME3-networking.jar"/>
 	<delete file="mobile/libs/jME3-terrain.jar"/>
-	<delete file="mobile/libs/jME3-plugins.jar"/>
+	<!--delete file="mobile/libs/jME3-plugins.jar"/-->
         <delete file="mobile/libs/jbullet.jar"/>
         <delete file="mobile/libs/stack-alloc.jar"/>
         <delete file="mobile/libs/vecmath.jar"/>
         <delete file="mobile/libs/lwjgl.jar"/>
         <delete file="mobile/libs/jinput.jar"/>
-	<delete file="mobile/libs/nifty-style-black.jar"/>
+	<!--delete file="mobile/libs/nifty-style-black.jar"/-->
 	<delete file="mobile/libs/log4j-1.2.16.jar"/>
-	<delete file="mobile/libs/jfreechart-1.0.14.jar"/>
+
+<!--delete file="mobile/libs/xpp3-1.1.4c.jar"/-->
+<delete file="mobile/libs/jfreechart-1.0.14.jar"/>
+<delete file="mobile/libs/xercesImpl-2.11.0.jar"/>
+<delete file="mobile/libs/xml-apis-1.4.01.jar"/>
     </target>
 
     <target name="-add-android-lib">

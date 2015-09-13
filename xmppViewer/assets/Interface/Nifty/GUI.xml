@@ -4,9 +4,9 @@
     <useControls filename="nifty-default-controls.xml" />
   <screen id="start" controller="mygame.Main">
     <layer id="layer" backgroundColor="#0000" childLayout="center">
-      <panel id="panel" height="4%" width="35%" align="center" valign="bottom" backgroundColor="000000" childLayout="horizontal" visibleToMouse="true">
+      <panel id="panel" height="4%" width="37%" align="center" valign="bottom" backgroundColor="000000" childLayout="horizontal" visibleToMouse="true">
 		
-		<panel id="panel_bottom_rewind" height="50%" width="45%" valign="center" childLayout="center"
+		<panel id="panel_bottom_rewind" height="50%" width="40%" valign="center" childLayout="center"
              backgroundColor="#000">  
 			 
 			<control name="button" label="Rewind" id="RewindButton" align="center" valign="center" visibleToMouse="true" > 
@@ -14,7 +14,7 @@
 			</control>
         </panel>
 		
-        <panel id="panel_bottom_pause" height="50%" width="45%" valign="center" childLayout="center" 
+        <panel id="panel_bottom_pause" height="50%" width="40%" valign="center" childLayout="center" 
              backgroundColor="#000">  
 			
 			<control name="button" label="Pause" id="PauseButton" align="center" valign="center" visibleToMouse="true" > 
@@ -22,11 +22,19 @@
 			</control>
         </panel>
        
-	   <panel id="panel_bottom_play" height="50%" width="45%" valign="center" childLayout="center"
+	   <panel id="panel_bottom_play" height="50%" width="40%" valign="center" childLayout="center"
              backgroundColor="#0000">  
 			 
 			<control name="button" label="Play" id="PlayButton" align="center" valign="center" visibleToMouse="true" > 
 			<interact onClick="playSim()"/>
+			</control>
+        </panel>
+
+	   <panel id="panel_bottom_fastforward" height="50%" width="40%" valign="center" childLayout="center"
+             backgroundColor="#0000">  
+			 
+			<control name="button" label="FastForward" id="ForwardButton" align="center" valign="center" visibleToMouse="true" > 
+			<interact onClick="fastforwardSim()"/>
 			</control>
         </panel>
 
