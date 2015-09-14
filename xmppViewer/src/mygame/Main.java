@@ -77,7 +77,7 @@ import java.util.logging.Logger;
 import jme3utilities.sky.SkyControl;
 
 public class Main extends SimpleApplication implements ScreenController {
-    
+
     private static Main app;
     CopyOnWriteArrayList<VehicleState> myVehicleStates = new CopyOnWriteArrayList();
     CopyOnWriteArrayList<Node> newNodes = new CopyOnWriteArrayList();
@@ -162,17 +162,17 @@ public class Main extends SimpleApplication implements ScreenController {
     private static String dateTimeVal = "unknown";
     private static File storeDir;
     private static String currentPath = "";
-    private static boolean runningAndroid=false;
-    private static boolean issuedDiscardWarning=false;
-    private static boolean useXMPP=false;
-    private static boolean useMQTT=false;
-    private static boolean useNoNet=false;
+    private static boolean runningAndroid = false;
+    private static boolean issuedDiscardWarning = false;
+    private static boolean useXMPP = false;
+    private static boolean useMQTT = false;
+    private static boolean useNoNet = false;
     private static SkyControl sc;
-    private static boolean useSky = true;    
+    private static boolean useSky = true;
     private TerrainQuad terrain;
     Material mat_terrain;
-        
-    public static void main(String[] args)  {
+
+    public static void main(String[] args) {
 
         app = new Main();
         AppSettings appSet = new AppSettings(true);
@@ -181,7 +181,7 @@ public class Main extends SimpleApplication implements ScreenController {
 
         //setup video capture
         /*File video = File.createTempFile("video-output", ".mp4");
-        app.setTimer(new IsoTimer(30));*/
+         app.setTimer(new IsoTimer(30));*/
         app.setSettings(appSet);
         app.setShowSettings(false);
         app.setPauseOnLostFocus(false);
@@ -220,7 +220,7 @@ public class Main extends SimpleApplication implements ScreenController {
             simNonThreadSender.send();
         }
     }
-    
+
     public void fastforwardSim() {
         if (simNonThreadSender != null) {
             System.out.println("fastforward");
@@ -245,29 +245,27 @@ public class Main extends SimpleApplication implements ScreenController {
 
     @Override
     public void simpleInitApp() {
-        
+
         assetManager.registerLoader(TextLoader.class, "txt");
         assetManager.registerLoader(TextLoader.class, "cfg");
         ArrayList<String> configContents = (ArrayList<String>) assetManager.loadAsset("config.txt");
-        System.out.println("config file contains " +configContents.size());
-        
+        System.out.println("config file contains " + configContents.size());
+
         //this duplicates the main check, but im not 100% sure thats working, and no harm doing it here too
         if (System.getProperty("java.vm.name").equalsIgnoreCase("Dalvik")) {
             System.out.println("running on android");
-            runningAndroid=true;
+            runningAndroid = true;
         } else {
             System.out.println("not android");
         }
-        
+
         Collection<Caps> caps = renderer.getCaps();
         System.out.println("graphics capability: " + caps.toString());
-        
+
         //moved from Main() to try to get working with Android..
         //little bit hacky, if you run from IDE then it be in a different relative path..
-        try 
-        {
-           for (String line : configContents)
-           {
+        try {
+            for (String line : configContents) {
                 if (line.contains("OPENFIRE")) {
                     String[] configArray = line.split("=");
                     XMPPServer = configArray[1];
@@ -277,41 +275,32 @@ public class Main extends SimpleApplication implements ScreenController {
                     String[] configArray = line.split("=");
                     scenarioLocation = configArray[1];
                     System.out.println("Using scenario location: " + scenarioLocation);
-                }				
-		if (line.contains("COMMUNICATION"))
-		{
-			String[] configArray = line.split("=");
-			if(configArray[1].equals("MQTT"))
-			{
-				useMQTT=true;
-			}
-			else if(configArray[1].equals("XMPP"))
-			{
-				useXMPP=true;
-			}
-                        else if(configArray[1].equals("NONE"))
-			{
-				useNoNet=true;
-			}
-		}
+                }
+                if (line.contains("COMMUNICATION")) {
+                    String[] configArray = line.split("=");
+                    if (configArray[1].equals("MQTT")) {
+                        useMQTT = true;
+                    } else if (configArray[1].equals("XMPP")) {
+                        useXMPP = true;
+                    } else if (configArray[1].equals("NONE")) {
+                        useNoNet = true;
+                    }
+                }
             }
-            if (useNoNet)
-            {
+            if (useNoNet) {
                 System.out.println("WARNING: No network comms enabled");
             }
-	    if (!useMQTT && !useXMPP && !useNoNet)
-	    {
-			System.out.println("no COMMUNICATION value found in config.txt, should be = MQTT or XMPP or NONE");
-			System.exit(1);
-	    }
+            if (!useMQTT && !useXMPP && !useNoNet) {
+                System.out.println("no COMMUNICATION value found in config.txt, should be = MQTT or XMPP or NONE");
+                System.exit(1);
+            }
 
             if (scenarioLocation.equals("unset")) {
                 System.out.println("didn't read LOCATION value in config.txt, should be m25 or bath, defaulting to bath");
                 scenarioLocation = "bath";
             } else if (scenarioLocation.equals("m25")) {
                 System.out.println("setting scenario location to m25");
-            }
-            else if (scenarioLocation.equals("home")) {
+            } else if (scenarioLocation.equals("home")) {
                 System.out.println("setting scenario location to home");
                 scenarioLocation = "home";
             } else {
@@ -325,9 +314,7 @@ public class Main extends SimpleApplication implements ScreenController {
                 sumoOffSetY = 1691.39;
                 //add method/vars here to sort out a conversion function to flip a received x,y to an offset y,x based on bath or m25
             }
-        }
-        catch (Exception e)
-        {
+        } catch (Exception e) {
             System.out.println("failed in config section");
             e.printStackTrace();
         }
@@ -340,34 +327,32 @@ public class Main extends SimpleApplication implements ScreenController {
         formatterMin = new SimpleDateFormat("mm");
         formatterDay = new SimpleDateFormat("dd");
         formatterMonth = new SimpleDateFormat("MM");
-  
-        if (useSky && !runningAndroid)
-        {
-                sc = new SkyControl(assetManager, cam, 0.9f,true,true);
-                sc.getSunAndStars().setHour(12f);
-                sc.getSunAndStars().setObserverLatitude(51.5f * FastMath.DEG_TO_RAD);
-                sc.getSunAndStars().setSolarLongitude(Calendar.AUGUST, 20);
-                if (runningAndroid)
-                {
-                    sc.clearStarMaps();
-                    sc.getUpdater().setBloomEnabled(false);
-                }
-                      
-                rootNode.addControl(sc);
-                sc.setEnabled(true);
+
+        //addTerrain();
+
+        if (useSky) {
+            sc = new SkyControl(assetManager, cam, 0.9f, true, true);
+            sc.getSunAndStars().setHour(12f);
+            sc.getSunAndStars().setObserverLatitude(51.5f * FastMath.DEG_TO_RAD);
+            sc.getSunAndStars().setSolarLongitude(Calendar.AUGUST, 20);
+            if (runningAndroid) {
+                sc.clearStarMaps();
+                sc.getUpdater().setBloomEnabled(false);
+            }
+
+            rootNode.addControl(sc);
+            sc.setEnabled(true);
         }
-        
-        if (scenarioLocation.equals("bath"))
-        {
+
+        if (scenarioLocation.equals("bath")) {
             try {
                 //create instances of all traffic lights defined in here, created in off state by default
                 //then if we get a sim update on them, they light up!
 
                 ArrayList<String> lightContents = (ArrayList<String>) assetManager.loadAsset("lights.cfg");
-                System.out.println("lights file contains " +lightContents.size());
+                System.out.println("lights file contains " + lightContents.size());
 
-                for (String lightline : lightContents)
-                {
+                for (String lightline : lightContents) {
                     String[] lightArray = lightline.split(",");
                     if (lightArray.length == 4) {
                         String lightID = lightArray[0];
@@ -416,15 +401,12 @@ public class Main extends SimpleApplication implements ScreenController {
 
         screenshotState = new ScreenshotAppState();
         this.stateManager.attach(screenshotState);
-       // screenshotState.setIsNumbered(false);
+        // screenshotState.setIsNumbered(false);
 
         myNanoTimer.reset();
-        if (timeNode != null)
-        {
+        if (timeNode != null) {
             guiNode.attachChild(timeNode);
-        }
-        else
-        {
+        } else {
             System.out.println("guiNode is null for some reason..");
         }
         setDisplayStatView(false);
@@ -439,45 +421,35 @@ public class Main extends SimpleApplication implements ScreenController {
 
         //      myGraphHud = new GraphHUD(this,guiFont,settings.getHeight(),settings.getWidth());  
         //not working on android..
-        if (!runningAndroid)
-        {
+        if (!runningAndroid) {
             newGraphHud = new JFreeGraphHUD();
         }
-        
+
         myVehicleStates = new CopyOnWriteArrayList<VehicleState>();
 
-	if (useXMPP && !useNoNet)
-	{
-		System.out.println("Using XMPP");
-		while (instSensorClient == null) 
-		{
-	   		try {
-	        		instSensorClient = new SensorXMPPClient(XMPPServer, "xmppviewer-inst", "jasonpassword");
-	    		} 
-			catch (Exception e1) 
-			{
-                            System.out.println("Exception in establishing inst client.");
-                            e1.printStackTrace();
-	    		}
-		}
-	}
-	else if (useMQTT && !useNoNet)
-	{
-		System.out.println("Using MQTT");
-	   	try {
-	        	instSensorClient = new SensorMQTTClient(XMPPServer, "xmppviewer-inst");
-	    	} 
-		catch (Exception e1) 
-		{
+        if (useXMPP && !useNoNet) {
+            System.out.println("Using XMPP");
+            while (instSensorClient == null) {
+                try {
+                    instSensorClient = new SensorXMPPClient(XMPPServer, "xmppviewer-inst", "jasonpassword");
+                } catch (Exception e1) {
                     System.out.println("Exception in establishing inst client.");
                     e1.printStackTrace();
-	    	}
-	}
+                }
+            }
+        } else if (useMQTT && !useNoNet) {
+            System.out.println("Using MQTT");
+            try {
+                instSensorClient = new SensorMQTTClient(XMPPServer, "xmppviewer-inst");
+            } catch (Exception e1) {
+                System.out.println("Exception in establishing inst client.");
+                e1.printStackTrace();
+            }
+        }
 
         startupTime = System.currentTimeMillis();
         // for norms
-        if (!useNoNet)
-        {
+        if (!useNoNet) {
             instSensorClient.addHandler("NODE_NORM", new ReadingHandler() {
                 @Override
                 public void handleIncomingReading(String node, String rdf) {
@@ -522,36 +494,27 @@ public class Main extends SimpleApplication implements ScreenController {
             }
         }
 
-	if (useXMPP && !useNoNet)
-	{
-		System.out.println("Using XMPP");
-		while (mySensorClient == null) 
-		{
-			try 
-			{
-				mySensorClient = new SensorXMPPClient(XMPPServer, "xmppviewer", "jasonpassword");
-			} catch (Exception e1) 
-			{
-				System.out.println("Exception in establishing client.");
-				e1.printStackTrace();
-			}
-		}
-        }
-	else if (useMQTT &&!useNoNet)
-	{
-		System.out.println("Using MQTT");
-		try 
-		{
-			mySensorClient = new SensorMQTTClient(XMPPServer, "xmppviewer");
-		} catch (Exception e1) 
-		{
-			System.out.println("Exception in establishing client.");
-			e1.printStackTrace();
-		}
+        if (useXMPP && !useNoNet) {
+            System.out.println("Using XMPP");
+            while (mySensorClient == null) {
+                try {
+                    mySensorClient = new SensorXMPPClient(XMPPServer, "xmppviewer", "jasonpassword");
+                } catch (Exception e1) {
+                    System.out.println("Exception in establishing client.");
+                    e1.printStackTrace();
+                }
+            }
+        } else if (useMQTT && !useNoNet) {
+            System.out.println("Using MQTT");
+            try {
+                mySensorClient = new SensorMQTTClient(XMPPServer, "xmppviewer");
+            } catch (Exception e1) {
+                System.out.println("Exception in establishing client.");
+                e1.printStackTrace();
+            }
         }
 
-        if (!useNoNet)
-        {
+        if (!useNoNet) {
             mySensorClient.addHandler(aoiNodeName, new ReadingHandler() {
                 @Override
                 public void handleIncomingReading(String node, String rdf) {
@@ -619,11 +582,9 @@ public class Main extends SimpleApplication implements ScreenController {
                             System.out.println("Error adding new message to queue..");
                             e.printStackTrace();
                         }
-                    }
-                    else if (!issuedDiscardWarning)
-                    {
+                    } else if (!issuedDiscardWarning) {
                         System.out.println("WARNING! Got reading but ignoring it during init phase..");
-                        issuedDiscardWarning=true;
+                        issuedDiscardWarning = true;
                     }
                 }
             });
@@ -633,8 +594,8 @@ public class Main extends SimpleApplication implements ScreenController {
                 System.out.println("Exception while subscribing to " + aoiNodeName);
                 e1.printStackTrace();
             }
-        
-            
+
+
             mySensorClient.addHandler(jasonSensorVehicles, new ReadingHandler() {
                 @Override
                 public void handleIncomingReading(String node, String rdf) {
@@ -679,13 +640,13 @@ public class Main extends SimpleApplication implements ScreenController {
                                 }
 
                                 /*DataReading.Value simTimeVal = dr.findFirstValue(null, "http://127.0.0.1/sensors/types#simTime", null);
-                                if (simTimeVal != null) {
+                                 if (simTimeVal != null) {
 
-                                    Integer timeValTemp = (Integer) simTimeVal.object;
-                                    currentSimTime = timeValTemp * 1L;
-                                    //System.out.println("received a SUMO sim time set to: " + currentSimTime);
-                                    timeFromSUMO = true;
-                                }*/
+                                 Integer timeValTemp = (Integer) simTimeVal.object;
+                                 currentSimTime = timeValTemp * 1L;
+                                 //System.out.println("received a SUMO sim time set to: " + currentSimTime);
+                                 timeFromSUMO = true;
+                                 }*/
 
 
                             } else {
@@ -799,159 +760,125 @@ public class Main extends SimpleApplication implements ScreenController {
             }
 
             mySensorClient.addHandler(homeSensors, new ReadingHandler() {
-                    @Override
-                    public void handleIncomingReading(String node, String rdf) 
-                    {
-                            try
-                            {
-                                    DataReading dr = DataReading.fromRDF(rdf);
-                                    //System.out.println("received home sensor reading");
-                                    if (dr.getLocatedAt().equals("http://127.0.0.1/HueSensors")) 
-                                    {
-                                            String lightName = "";
-                                            int redLight=0;
-                                            int greenLight=0;
-                                            int blueLight=0;
-                                            int brightness=0;
-                                            String state="";
-                                            String model="";
+                @Override
+                public void handleIncomingReading(String node, String rdf) {
+                    try {
+                        DataReading dr = DataReading.fromRDF(rdf);
+                        //System.out.println("received home sensor reading");
+                        if (dr.getLocatedAt().equals("http://127.0.0.1/HueSensors")) {
+                            String lightName = "";
+                            int redLight = 0;
+                            int greenLight = 0;
+                            int blueLight = 0;
+                            int brightness = 0;
+                            String state = "";
+                            String model = "";
 
-                                            DataReading.Value nameVal = dr.findFirstValue(null, "http://127.0.0.1/components/lights/name", null);
-                                            if (nameVal != null)
-                                            {
-                                                    lightName = (String) nameVal.object;
-                                            }
-                                            DataReading.Value redVal = dr.findFirstValue(null, "http://127.0.0.1/components/lights/redval", null);
-                                            if (redVal != null)
-                                            {
-                                                    redLight = (int) redVal.object;
-                                            }
-                                            DataReading.Value greenVal = dr.findFirstValue(null, "http://127.0.0.1/components/lights/greenval", null);
-                                            if (greenVal != null)
-                                            {
-                                                    greenLight = (int) greenVal.object;
-                                            }
-                                            DataReading.Value blueVal = dr.findFirstValue(null, "http://127.0.0.1/components/lights/blueval", null);
-                                            if (blueVal != null)
-                                            {
-                                                    blueLight = (int) blueVal.object;
-                                            }
-
-                                            DataReading.Value brightVal = dr.findFirstValue(null, "http://127.0.0.1/components/lights/brightness", null);
-                                            if (brightVal != null)
-                                            {
-                                                    brightness = (int) brightVal.object;
-                                            }
-
-                                            DataReading.Value stateVal = dr.findFirstValue(null, "http://127.0.0.1/components/lights/state", null);
-                                            if (stateVal != null)
-                                            {
-                                                    state = (String) stateVal.object;
-                                            }
-
-                                            DataReading.Value modelVal = dr.findFirstValue(null, "http://127.0.0.1/components/lights/model", null);
-                                            if (modelVal != null)
-                                            {
-                                                    model = (String) modelVal.object;
-                                            }
-
-                                            //System.out.println("got reading for " + lightName + " model "+ model + " at rgb " + redLight + "," + greenLight + "," + blueLight + ", brightness: " + brightness + " and is " + state);
-
-
-                                            if (houseShapes != null)
-                                            {
-                                                    float r = redLight/255f;
-                                                    float g = greenLight/255f;
-                                                    float b = blueLight/255f;
-
-                                                    if (model.equals("LWB004"))
-                                                    {
-                                                            r = 1f;
-                                                            g = 1f;
-                                                            b = 1f;
-                                                    }
-                                                    //System.out.println("r: "+ r);
-                                                    if (state.equals("OFF"))
-                                                    {
-                                                            brightness=0;
-                                                    }
-
-                                                    houseShapes.updateLight(lightName, new ColorRGBA(r,g,b,0f), (float)brightness/255);
-                                            }
-                                    }
-                                    else if (dr.getTakenBy().equals("http://127.0.0.1/components/houseSensors/piSensor1") || dr.getTakenBy().equals("http://127.0.0.1/components/houseSensors/enlitenSensor1"))
-                                    {
-                                            //piSensor1 should be unique name in unique location
-                                            for (DataReading.Value foundVal : dr.findValues(null,null,null))
-                                            {
-                                                    String predName = (String)foundVal.predicate;
-                                                    boolean msgHandled = false;
-                                                    String oClass = foundVal.object.getClass()+"";
-                                                    //System.out.println("got a reading, didn't handle it, but it had at least: " + predName);
-                                                    if (predName.equals("http://127.0.0.1/sensors/types#DHT22humidity"))
-                                                    {
-                                                            Double humidVal=0d;
-                                                            //TODO: generic passing of this test
-                                                            if(oClass.equals("class java.lang.Double"))
-                                                            {
-                                                                    humidVal = (Double)foundVal.object;
-                                                            }
-                                                            else if (oClass.equals("class java.lang.String"))
-                                                            {
-                                                                    String strMsg = (String)foundVal.object;
-                                                                    humidVal = Double.parseDouble(strMsg);
-                                                            }
-                                                            else
-                                                            {
-                                                                    System.out.println("didn't handle type: " + oClass);
-                                                            }
-                                                            //System.out.println("Humidity " + humidVal);
-                                                            msgHandled=true;
-
-                                                    }
-                                                    else if (predName.equals("http://127.0.0.1/sensors/types#DHT22temperature"))
-                                                    {
-                                                            Double tempVal=0d;
-
-                                                            if(oClass.equals("class java.lang.Double"))
-                                                            {
-                                                                    tempVal = (Double)foundVal.object;
-                                                            }
-                                                            else if (oClass.equals("class java.lang.String"))
-                                                            {
-                                                                    String strMsg = (String)foundVal.object;
-                                                                    tempVal = Double.parseDouble(strMsg);
-                                                            }
-                                                            houseShapes.updateTemp(dr.getTakenBy(), tempVal);
-                                                            msgHandled=true;		
-                                                    }
-                                                    else if (predName.equals("http://127.0.0.1/sensors/types#PIR"))
-                                                    {
-                                                            //System.out.println("Movement detected by " + dr.getTakenBy());
-                                                            houseShapes.newMovementDetection(dr.getTakenBy());
-                                                            msgHandled=true;		 	
-                                                    }
-
-                                                    if (!msgHandled)
-                                                    {
-                                                            System.out.println("didnt handle " + predName + " from " + dr.getTakenBy());
-
-                                                    }					
-                                            }
-                                    }
-                                    else
-                                    {
-                                            System.out.println("unknown message type by " + dr.getTakenBy() + " from " + dr.getLocatedAt());
-                                    }
+                            DataReading.Value nameVal = dr.findFirstValue(null, "http://127.0.0.1/components/lights/name", null);
+                            if (nameVal != null) {
+                                lightName = (String) nameVal.object;
                             }
-                            catch(Exception e) 
-                            { 
-                                    System.out.println("error handling data in " + homeSensors);
-                                    e.printStackTrace();
-                                    System.out.println("due to:");
-                                    System.out.println(rdf);
+                            DataReading.Value redVal = dr.findFirstValue(null, "http://127.0.0.1/components/lights/redval", null);
+                            if (redVal != null) {
+                                redLight = (int) redVal.object;
                             }
+                            DataReading.Value greenVal = dr.findFirstValue(null, "http://127.0.0.1/components/lights/greenval", null);
+                            if (greenVal != null) {
+                                greenLight = (int) greenVal.object;
+                            }
+                            DataReading.Value blueVal = dr.findFirstValue(null, "http://127.0.0.1/components/lights/blueval", null);
+                            if (blueVal != null) {
+                                blueLight = (int) blueVal.object;
+                            }
+
+                            DataReading.Value brightVal = dr.findFirstValue(null, "http://127.0.0.1/components/lights/brightness", null);
+                            if (brightVal != null) {
+                                brightness = (int) brightVal.object;
+                            }
+
+                            DataReading.Value stateVal = dr.findFirstValue(null, "http://127.0.0.1/components/lights/state", null);
+                            if (stateVal != null) {
+                                state = (String) stateVal.object;
+                            }
+
+                            DataReading.Value modelVal = dr.findFirstValue(null, "http://127.0.0.1/components/lights/model", null);
+                            if (modelVal != null) {
+                                model = (String) modelVal.object;
+                            }
+
+                            //System.out.println("got reading for " + lightName + " model "+ model + " at rgb " + redLight + "," + greenLight + "," + blueLight + ", brightness: " + brightness + " and is " + state);
+
+
+                            if (houseShapes != null) {
+                                float r = redLight / 255f;
+                                float g = greenLight / 255f;
+                                float b = blueLight / 255f;
+
+                                if (model.equals("LWB004")) {
+                                    r = 1f;
+                                    g = 1f;
+                                    b = 1f;
+                                }
+                                //System.out.println("r: "+ r);
+                                if (state.equals("OFF")) {
+                                    brightness = 0;
+                                }
+
+                                houseShapes.updateLight(lightName, new ColorRGBA(r, g, b, 0f), (float) brightness / 255);
+                            }
+                        } else if (dr.getTakenBy().equals("http://127.0.0.1/components/houseSensors/piSensor1") || dr.getTakenBy().equals("http://127.0.0.1/components/houseSensors/enlitenSensor1")) {
+                            //piSensor1 should be unique name in unique location
+                            for (DataReading.Value foundVal : dr.findValues(null, null, null)) {
+                                String predName = (String) foundVal.predicate;
+                                boolean msgHandled = false;
+                                String oClass = foundVal.object.getClass() + "";
+                                //System.out.println("got a reading, didn't handle it, but it had at least: " + predName);
+                                if (predName.equals("http://127.0.0.1/sensors/types#DHT22humidity")) {
+                                    Double humidVal = 0d;
+                                    //TODO: generic passing of this test
+                                    if (oClass.equals("class java.lang.Double")) {
+                                        humidVal = (Double) foundVal.object;
+                                    } else if (oClass.equals("class java.lang.String")) {
+                                        String strMsg = (String) foundVal.object;
+                                        humidVal = Double.parseDouble(strMsg);
+                                    } else {
+                                        System.out.println("didn't handle type: " + oClass);
+                                    }
+                                    //System.out.println("Humidity " + humidVal);
+                                    msgHandled = true;
+
+                                } else if (predName.equals("http://127.0.0.1/sensors/types#DHT22temperature")) {
+                                    Double tempVal = 0d;
+
+                                    if (oClass.equals("class java.lang.Double")) {
+                                        tempVal = (Double) foundVal.object;
+                                    } else if (oClass.equals("class java.lang.String")) {
+                                        String strMsg = (String) foundVal.object;
+                                        tempVal = Double.parseDouble(strMsg);
+                                    }
+                                    houseShapes.updateTemp(dr.getTakenBy(), tempVal);
+                                    msgHandled = true;
+                                } else if (predName.equals("http://127.0.0.1/sensors/types#PIR")) {
+                                    //System.out.println("Movement detected by " + dr.getTakenBy());
+                                    houseShapes.newMovementDetection(dr.getTakenBy());
+                                    msgHandled = true;
+                                }
+
+                                if (!msgHandled) {
+                                    System.out.println("didnt handle " + predName + " from " + dr.getTakenBy());
+
+                                }
+                            }
+                        } else {
+                            System.out.println("unknown message type by " + dr.getTakenBy() + " from " + dr.getLocatedAt());
+                        }
+                    } catch (Exception e) {
+                        System.out.println("error handling data in " + homeSensors);
+                        e.printStackTrace();
+                        System.out.println("due to:");
+                        System.out.println(rdf);
                     }
+                }
             });
             try {
                 mySensorClient.subscribe(homeSensors);
@@ -962,21 +889,18 @@ public class Main extends SimpleApplication implements ScreenController {
         }
 
         try {
-		if (useXMPP && !useNoNet)
-		{
-            		simNonThreadSender = new WorkerSimNonThreadSender(XMPPServer, "xmppviewersimstatesender", "jasonpassword", "simStateSensor", "http://127.0.0.1/localSensors", "http://127.0.0.1/localSensors/viewerSender");
-		}
-		else if (useMQTT && !useNoNet)
-		{
-			simNonThreadSender = new WorkerSimNonThreadSender(XMPPServer, "xmppviewersimstatesender", "jasonpassword", "simStateSensor", "http://127.0.0.1/localSensors", "http://127.0.0.1/localSensors/viewerSender", true, 0);
-		}
-           	System.out.println("Created simThreadSender, now entering its logic!");
+            if (useXMPP && !useNoNet) {
+                simNonThreadSender = new WorkerSimNonThreadSender(XMPPServer, "xmppviewersimstatesender", "jasonpassword", "simStateSensor", "http://127.0.0.1/localSensors", "http://127.0.0.1/localSensors/viewerSender");
+            } else if (useMQTT && !useNoNet) {
+                simNonThreadSender = new WorkerSimNonThreadSender(XMPPServer, "xmppviewersimstatesender", "jasonpassword", "simStateSensor", "http://127.0.0.1/localSensors", "http://127.0.0.1/localSensors/viewerSender", true, 0);
+            }
+            System.out.println("Created simThreadSender, now entering its logic!");
         } catch (Exception e) {
             System.out.println("couldn't start sim thread sender");
             System.out.println(e.getStackTrace());
         }
-        
-        
+
+
         //use this for overlaying debug route from waypoint .txt file..
         //rootNode.attachChild(debugNode);
 
@@ -994,11 +918,9 @@ public class Main extends SimpleApplication implements ScreenController {
             terrainModel.setLocalTranslation(terrainXtrans, terrainZtrans, terrainYtrans);
             terrainModel.setLocalScale(1f, 1f, 1.0f);
             rootNode.attachChild(terrainModel);
-        }
-        else if (scenarioLocation.equals("home")) {
+        } else if (scenarioLocation.equals("home")) {
             houseShapes = new HouseShapes(this, runningAndroid);
-        } 
-        else if (scenarioLocation.equals("m25")) {
+        } else if (scenarioLocation.equals("m25")) {
             terrainModel = assetManager.loadModel("Models/m25j10FinalConv2.j3o");
             // terrainModel = assetManager.loadModel("Models/newM25.j3o");
 
@@ -1032,25 +954,22 @@ public class Main extends SimpleApplication implements ScreenController {
         }
 
 
-        if (!runningAndroid)
-        {
-            FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
-            BloomFilter bloom = new BloomFilter(BloomFilter.GlowMode.Objects);
-            fpp.addFilter(bloom);
-            viewPort.addProcessor(fpp);
-        }
+        // if (!runningAndroid)
+        // {
+        FilterPostProcessor fpp = new FilterPostProcessor(assetManager);
+        BloomFilter bloom = new BloomFilter(BloomFilter.GlowMode.Objects);
+        fpp.addFilter(bloom);
+        viewPort.addProcessor(fpp);
+        // }
 
         //VB turn on for the original route
         dbShapes = new DebugShapes(this, scenarioLocation);
 
         rootNode.attachChild(trafficLightNode);
 
-        if (scenarioLocation.equals("bath"))
-        {
+        if (scenarioLocation.equals("bath")) {
             addTrafficLights();
-        }
-        else if (!scenarioLocation.equals("home"))
-        {
+        } else if (!scenarioLocation.equals("home")) {
             addSky();
         }
 
@@ -1064,8 +983,7 @@ public class Main extends SimpleApplication implements ScreenController {
         guiViewPort.addProcessor(niftyDisplay);
         inputManager.setCursorVisible(true);
 
-        if (!scenarioLocation.equals("home"))
-        {
+        if (!scenarioLocation.equals("home")) {
             AmbientLight al = new AmbientLight();
             al.setColor(ColorRGBA.White.mult(0.7f));
             rootNode.addLight(al);
@@ -1090,7 +1008,7 @@ public class Main extends SimpleApplication implements ScreenController {
         inputManager.addMapping("ChangeCentralCam", new KeyTrigger(KeyInput.KEY_D));
         inputManager.addMapping("ChangeCamType", new KeyTrigger(KeyInput.KEY_9));
         inputManager.addMapping("TakeShot", new KeyTrigger(KeyInput.KEY_B));
-	inputManager.addMapping("RandomLights", new KeyTrigger(KeyInput.KEY_R));
+        inputManager.addMapping("RandomLights", new KeyTrigger(KeyInput.KEY_R));
 
         inputManager.addMapping("incX", new KeyTrigger(KeyInput.KEY_1));
         inputManager.addMapping("incY", new KeyTrigger(KeyInput.KEY_2));
@@ -1103,7 +1021,7 @@ public class Main extends SimpleApplication implements ScreenController {
 
         // Add the names to the action listener.
         inputManager.addListener(analogListener, new String[]{"incXtrans", "incYtrans", "decXtrans", "decYtrans", "incX", "incY", "decX", "decY", "FastLeft", "FastRight", "FastForward", "FastBackward", "FastUp", "FastDown"});
-        inputManager.addListener(actionListener, new String[]{"RandomLights","TakeShot","SpatialPos", "Hints", "ChangeCam", "ChangeCamType", "ChangeCentralCam"});
+        inputManager.addListener(actionListener, new String[]{"RandomLights", "TakeShot", "SpatialPos", "Hints", "ChangeCam", "ChangeCamType", "ChangeCentralCam"});
     }
     private ActionListener actionListener = new ActionListener() {
         public void onAction(String name, boolean keyPressed, float tpf) {
@@ -1129,10 +1047,11 @@ public class Main extends SimpleApplication implements ScreenController {
             if (name.equals("SpatialPos") && !keyPressed) {
                 System.out.println("Pos: " + cam.getLocation());
                 System.out.println("Angle: " + cam.getDirection());
+                System.out.println("Rotation: " + cam.getRotation().toString());
             }
             if (name.equals("RandomLights") && !keyPressed) {
-		houseShapes.randomizeLights();
-		System.out.println("randomized lights!");
+                houseShapes.randomizeLights();
+                System.out.println("randomized lights!");
             }
             if (name.equals("ChangeCamType") && !keyPressed) {
                 System.out.println("changing cam type");
@@ -1683,8 +1602,7 @@ public class Main extends SimpleApplication implements ScreenController {
         stateManager.detach(myVidState);
         System.out.println("detached vid state");
         System.out.println("stopping messaging");
-        if (!useNoNet)
-        {
+        if (!useNoNet) {
             instSensorClient.disconnect();
             mySensorClient.disconnect();
             simNonThreadSender.disconnect();
@@ -1697,10 +1615,9 @@ public class Main extends SimpleApplication implements ScreenController {
     @Override
     public void simpleUpdate(float tpf) {
 
-	if (houseShapes != null)
-	{
-		houseShapes.update();
-	}
+        if (houseShapes != null) {
+            houseShapes.update();
+        }
 
         guiNode.detachAllChildren();
 
@@ -1717,27 +1634,22 @@ public class Main extends SimpleApplication implements ScreenController {
                 hudTime.setText("Sim Time: " + newTime);
             } else {
                 hudTime.setText(formatter.format(currentSimTime));
-                if (useSky && sc.isEnabled())
-                {
+                if (useSky && sc.isEnabled()) {
                     String hourTime = formatterHour.format(currentSimTime);
                     String minTime = formatterMin.format(currentSimTime);
                     String dayString = formatterDay.format(currentSimTime);
                     String monthString = formatterMonth.format(currentSimTime);
-                    float minComponent = Float.parseFloat(minTime)/60;
+                    float minComponent = Float.parseFloat(minTime) / 60;
                     float hourComponent = Float.parseFloat(hourTime);
                     int monthVal = Integer.parseInt(monthString);
                     int dayVal = Integer.parseInt(dayString);
-                    
+
                     //TODO:figure out the day of the year from the time stamp and set calendar value from that
-                    if (!runningAndroid)
-                    {
-                        sc.getSunAndStars().setHour(hourComponent+minComponent);
-                        //System.out.println("date " + monthVal + " " +  dayVal);
-                        //sc.getSunAndStars().setSolarLongitude(Integer.parseInt(monthString), Integer.parseInt(dayString));
-                        if (sc.getUpdater() != null && houseShapes != null && houseShapes.started())
-                        {
-                            houseShapes.setLightState(sc.getUpdater().getMainColor(), sc.getUpdater().getBloomIntensity());
-                        }
+                    sc.getSunAndStars().setHour(hourComponent + minComponent);
+                    //System.out.println("date " + monthVal + " " +  dayVal);
+                    //sc.getSunAndStars().setSolarLongitude(Integer.parseInt(monthString), Integer.parseInt(dayString));
+                    if (sc.getUpdater() != null && houseShapes != null && houseShapes.started()) {
+                        houseShapes.setLightState(sc.getUpdater().getMainColor(), sc.getUpdater().getBloomIntensity());
                     }
                 }
             }
@@ -1766,8 +1678,7 @@ public class Main extends SimpleApplication implements ScreenController {
 
         }
 
-        if (!runningAndroid)
-        {
+        if (!runningAndroid) {
             BufferedImage img = newGraphHud.getBI();
             Quad qd_background = new Quad(160f, 120f);
             Geometry geo_background = new Geometry("Background", qd_background);
@@ -1783,7 +1694,7 @@ public class Main extends SimpleApplication implements ScreenController {
             geo_background.setMaterial(mat_background);
             guiNode.attachChild(geo_background);
         }
-        
+
         // guiNode.detachChildNamed("graphNode");
         //Node graphNodeToAdd = new Node();
         //  graphNodeToAdd = myGraphHud.update();
@@ -1807,10 +1718,9 @@ public class Main extends SimpleApplication implements ScreenController {
         if (!timeFromSUMO && (myNanoTimer.getTimeInSeconds() >= 1)) {
             //System.out.println("updating GraphHUD with xmpp count of " + xmppCountAlt + " and old alt method says " + xmppCount);
             // myGraphHud.addNewPoint(xmppCountAlt, xmppCount);
-            if (!runningAndroid)
-            {
+            if (!runningAndroid) {
                 newGraphHud.addNewPoint(xmppCountAlt, xmppCount);
-            }    
+            }
             xmppCountAlt = 0;
             xmppCount = 0;
             myNanoTimer.reset();
@@ -1921,73 +1831,87 @@ public class Main extends SimpleApplication implements ScreenController {
         // System.out.println("converted " + oldLoc.getX() +","+ oldLoc.getY() + " to " + newX + "," + newY);
         return new MyPoint2D(newX, newY);
     }
-    
-    public void addTerrain()
-    {
-            /** 1. Create terrain material and load four textures into it. */
-            mat_terrain = new Material(assetManager, 
-                    "Common/MatDefs/Terrain/Terrain.j3md");
 
-            /** 1.1) Add ALPHA map (for red-blue-green c
-             * oded splat textures) */
-            mat_terrain.setTexture("Alpha", assetManager.loadTexture(
-                    "Textures/alphamap.png"));
+    public void addTerrain() {
+        /**
+         * 1. Create terrain material and load four textures into it.
+         */
+        mat_terrain = new Material(assetManager,
+                "Common/MatDefs/Terrain/Terrain.j3md");
 
-            /** 1.2) Add GRASS texture into the red layer (Tex1). */
-            Texture grass = assetManager.loadTexture(
-                    "Textures/grass.jpg");
-            grass.setWrap(WrapMode.Repeat);
-            mat_terrain.setTexture("Tex1", grass);
-            mat_terrain.setFloat("Tex1Scale", 64f);
+        /**
+         * 1.1) Add ALPHA map (for red-blue-green c oded splat textures)
+         */
+        mat_terrain.setTexture("Alpha", assetManager.loadTexture(
+                "Textures/alphamap.png"));
 
-            /** 1.3) Add DIRT texture into the green layer (Tex2) */
-            Texture dirt = assetManager.loadTexture(
-                    "Textures/dirt.jpg");
-            dirt.setWrap(WrapMode.Repeat);
-            mat_terrain.setTexture("Tex2", dirt);
-            mat_terrain.setFloat("Tex2Scale", 32f);
+        /**
+         * 1.2) Add GRASS texture into the red layer (Tex1).
+         */
+        Texture grass = assetManager.loadTexture(
+                "Textures/grass.jpg");
+        grass.setWrap(WrapMode.Repeat);
+        mat_terrain.setTexture("Tex1", grass);
+        mat_terrain.setFloat("Tex1Scale", 64f);
 
-            /** 1.4) Add ROAD texture into the blue layer (Tex3) */
-            Texture rock = assetManager.loadTexture(
-                    "Textures/road.jpg");
-            rock.setWrap(WrapMode.Repeat);
-            mat_terrain.setTexture("Tex3", rock);
-            mat_terrain.setFloat("Tex3Scale", 128f);
+        /**
+         * 1.3) Add DIRT texture into the green layer (Tex2)
+         */
+        Texture dirt = assetManager.loadTexture(
+                "Textures/dirt.jpg");
+        dirt.setWrap(WrapMode.Repeat);
+        mat_terrain.setTexture("Tex2", dirt);
+        mat_terrain.setFloat("Tex2Scale", 32f);
 
-            /** 2. Create the height map */
-            AbstractHeightMap heightmap = null;
-            Texture heightMapImage = assetManager.loadTexture(
-                    "Textures/mountains512.png");
-            heightmap = new ImageBasedHeightMap(heightMapImage.getImage());
-            heightmap.setHeightScale(0.000001f);
-            heightmap.load();
+        /**
+         * 1.4) Add ROAD texture into the blue layer (Tex3)
+         */
+        Texture rock = assetManager.loadTexture(
+                "Textures/road.jpg");
+        rock.setWrap(WrapMode.Repeat);
+        mat_terrain.setTexture("Tex3", rock);
+        mat_terrain.setFloat("Tex3Scale", 128f);
 
-            
+        /**
+         * 2. Create the height map
+         */
+        AbstractHeightMap heightmap = null;
+        Texture heightMapImage = assetManager.loadTexture(
+                "Textures/mountains512.png");
+        heightmap = new ImageBasedHeightMap(heightMapImage.getImage());
+        heightmap.setHeightScale(0.000001f);
+        heightmap.load();
 
-            /** 3. We have prepared material and heightmap. 
-             * Now we create the actual terrain:
-             * 3.1) Create a TerrainQuad and name it "my terrain".
-             * 3.2) A good value for terrain tiles is 64x64 -- so we supply 64+1=65.
-             * 3.3) We prepared a heightmap of size 512x512 -- so we supply 512+1=513.
-             * 3.4) As LOD step scale we supply Vector3f(1,1,1).
-             * 3.5) We supply the prepared heightmap itself.
-             */
-            int patchSize = 65;
-            terrain = new TerrainQuad("my terrain", patchSize, 513, heightmap.getHeightMap());
 
-            /** 4. We give the terrain its material, position & scale it, and attach it. */
-            terrain.setMaterial(mat_terrain);
-            terrain.setLocalTranslation(0, 8.8f, 0);
-            terrain.setLocalScale(2f, 1f, 2f);
-            rootNode.attachChild(terrain);
 
-            /** 5. The LOD (level of detail) depends on were the camera is: */
-            TerrainLodControl control = new TerrainLodControl(terrain, getCamera());
-            terrain.addControl(control);
+        /**
+         * 3. We have prepared material and heightmap. Now we create the actual
+         * terrain: 3.1) Create a TerrainQuad and name it "my terrain". 3.2) A
+         * good value for terrain tiles is 64x64 -- so we supply 64+1=65. 3.3)
+         * We prepared a heightmap of size 512x512 -- so we supply 512+1=513.
+         * 3.4) As LOD step scale we supply Vector3f(1,1,1). 3.5) We supply the
+         * prepared heightmap itself.
+         */
+        int patchSize = 65;
+        terrain = new TerrainQuad("my terrain", patchSize, 513, heightmap.getHeightMap());
+
+        /**
+         * 4. We give the terrain its material, position & scale it, and attach
+         * it.
+         */
+        terrain.setMaterial(mat_terrain);
+        terrain.setLocalTranslation(0, 8.8f, 0);
+        terrain.setLocalScale(2f, 1f, 2f);
+        rootNode.attachChild(terrain);
+
+        /**
+         * 5. The LOD (level of detail) depends on were the camera is:
+         */
+        TerrainLodControl control = new TerrainLodControl(terrain, getCamera());
+        terrain.addControl(control);
     }
-    
+
     public Main getSelf() {
         return this;
     }
-   
 }

@@ -88,9 +88,10 @@ public class HouseShapes {
             }
             setupDetectionZones();
            
-            Vector3f v = parentHandle.getCamera().getLocation();
-            Vector3f moveL = new Vector3f(v.x, v.y+20, v.z);
-            parentHandle.getCamera().setLocation(moveL);
+          //  Vector3f v = parentHandle.getCamera().getLocation();
+          //  Vector3f moveL = new Vector3f(v.x, v.y+20, v.z);
+            parentHandle.getCamera().setLocation(new Vector3f(-2.310954f, 23.39234f, 11.726002f));
+            parentHandle.getCamera().setRotation(new Quaternion(0.0f, 0.85316384f, -0.5216431f, 0.0f));
             parentHandle.getRootNode().attachChild(loungeNode);
             parentHandle.getRootNode().attachChild(mainBedNode);
 	    parentHandle.getRootNode().attachChild(secondBedNode);
