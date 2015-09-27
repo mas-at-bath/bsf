@@ -73,7 +73,7 @@
 
      <target name="run" depends="dist" description="Start Face Recogniser BSF" >
 	<echo>${dist}</echo> 
-	<java fork="true" classpath="${dist_cp}" classname="edu.bath.faceRecog.FaceRecognizer"> 
+	<java fork="true" classpath="${dist_cp}" classname="edu.bath.faceRecog.FaceRecogBSF"> 
 		<sysproperty key="java.library.path" path="${dist}"/>
 	</java>
     </target>   

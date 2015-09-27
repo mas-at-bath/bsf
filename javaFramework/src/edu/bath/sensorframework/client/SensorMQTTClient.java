@@ -39,7 +39,7 @@ public class SensorMQTTClient extends SensorClient {
 			connOpts.setCleanSession(true);
 			System.out.println("Connecting sensor: " + clientID + " to broker: "+broker);
 			sensorConnection.connect(connOpts);
-			System.out.println("Connected");
+			System.out.println("Connected: " + checkIsConnected() + ", keep alive: " + connOpts.getKeepAliveInterval());
 			sensorClientCommon(clientID);	
 		}
 
@@ -247,6 +247,12 @@ public class SensorMQTTClient extends SensorClient {
 			System.out.println("couldn't disconnect for some reason");
 			er.printStackTrace();
 		}
+	}
+
+	@Override
+	public boolean checkIsConnected()
+	{
+		return sensorConnection.isConnected();
 	}
 	
 	/**

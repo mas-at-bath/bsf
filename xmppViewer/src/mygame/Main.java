@@ -32,6 +32,7 @@ import de.lessvoid.nifty.screen.Screen;
 import de.lessvoid.nifty.screen.ScreenController;
 
 import com.jme3.app.state.ScreenshotAppState;
+import com.jme3.app.state.VideoRecorderAppState.IsoTimer;
 
 import com.jme3.font.BitmapText;
 import com.jme3.light.PointLight;
@@ -73,7 +74,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-
+import com.aurellem.capture.*;
 import jme3utilities.sky.SkyControl;
 
 public class Main extends SimpleApplication implements ScreenController {
@@ -180,16 +181,24 @@ public class Main extends SimpleApplication implements ScreenController {
         appSet.setRenderer(AppSettings.LWJGL_OPENGL2);
 
         //setup video capture
-        /*File video = File.createTempFile("video-output", ".mp4");
-         app.setTimer(new IsoTimer(30));*/
-        app.setSettings(appSet);
-        app.setShowSettings(false);
-        app.setPauseOnLostFocus(false);
+        try
+        {
+            File video = File.createTempFile("video-output", ".avi");
+            app.setTimer(new IsoTimer(30));
+            app.setSettings(appSet);
+            app.setShowSettings(false);
+            app.setPauseOnLostFocus(false);
 
-        //use below to generate videos
-        //  Capture.captureVideo(app, video);
-        //  System.out.println("WARNING: capturing video, this will eat up disk space...");
-
+            //use below to generate videos
+            Capture.captureVideo(app, video);
+            System.out.println("WARNING: capturing video, this will eat up disk space...");
+            System.out.println("Saving to: " + video.getCanonicalPath());
+        }
+        catch (Exception e)
+        {
+            System.out.println("error setting up video output");
+        }
+          
         app.start();
     }
 
@@ -328,7 +337,7 @@ public class Main extends SimpleApplication implements ScreenController {
         formatterDay = new SimpleDateFormat("dd");
         formatterMonth = new SimpleDateFormat("MM");
 
-        //addTerrain();
+        addTerrain();
 
         if (useSky) {
             sc = new SkyControl(assetManager, cam, 0.9f, true, true);
