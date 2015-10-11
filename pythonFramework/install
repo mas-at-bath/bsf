@@ -2,6 +2,7 @@ tune these appropriately, basically you need pip, and then to install paho-mqtt 
 sudo su
 apt-get update
 apt-get install python-pip
+sudo apt-get install build-essential python-dev
 pip install paho-mqtt
 pip install rdflib
 
