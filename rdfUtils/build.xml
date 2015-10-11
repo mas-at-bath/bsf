@@ -10,6 +10,7 @@
   <!-- Define the Sonar properties -->
 <property name="sonar.projectKey" value="org.codehaus.sonar:rdfUtilities" />
 <property name="sonar.projectName" value="BSF rdfUtilities component" />
+<property name="sonar.host.url" value="http://localhost:9000/sonar" />
 <property name="sonar.projectVersion" value="1.0" />
 <property name="sonar.language" value="java" />
 <property name="sonar.sources" value="src" />
