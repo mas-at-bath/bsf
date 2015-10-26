@@ -23,6 +23,7 @@ xmlns:sonar="antlib:org.sonar.ant">
 <property name="sonar.projectKey" value="org.codehaus.sonar:jasonBSF" />
 <property name="sonar.projectName" value="BSF jasonBSF component" />
 <property name="sonar.projectVersion" value="1.0" />
+<property name="sonar.host.url" value="http://localhost:9000/sonar" />
 <property name="sonar.language" value="java" />
 <property name="sonar.sources" value="java" />
 <property name="sonar.binaries" value="bin" />

@@ -32,6 +32,15 @@
 	<ant antfile="build.xml" dir="./tivo" target="clean" inheritrefs="false" inheritall="false"/>
 	<ant antfile="build.xml" dir="./virtual_agent/norms/inst_manager" target="clean" inheritrefs="false" inheritall="false"/>
    </target>
+
+  <target name="sonar">
+        <ant antfile="build.xml" dir="./javaFramework" target="sonar" inheritrefs="false" inheritall="false"/>
+        <ant antfile="build.xml" dir="./rdfUtils" target="sonar" inheritrefs="false" inheritall="false"/>
+        <ant antfile="build.xml" dir="./xmppViewer" target="sonar" inheritrefs="false" inheritall="false"/>
+        <ant antfile="build.xml" dir="./sumoVehicles" target="sonar" inheritrefs="false" inheritall="false"/>
+        <ant antfile="build.xml" dir="./virtual_agent/norms/inst_manager" target="sonar" inheritrefs="false" inheritall="false"/>
+  </target>
+
    
    <target name="jason-scenario1" depends="build">	
 	<ant antfile="build.xml" dir="./convoyScenario" target="run-scenario1" inheritrefs="false" inheritall="false"/>
