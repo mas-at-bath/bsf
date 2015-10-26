@@ -6,6 +6,7 @@ import edu.bath.sensorframework.client.*;
 import edu.bath.sensorframework.sensor.Sensor;
 import java.util.concurrent.LinkedBlockingQueue;
 
+import org.apache.log4j.Logger;
 import org.jivesoftware.smack.XMPPException;
 import java.util.Random;
 import java.io.BufferedReader;
@@ -175,7 +176,7 @@ public class Asterisk extends Sensor implements ManagerEventListener {
 		}
 
 		System.out.println("trying to connect to asterisk server...");
-		ManagerConnectionFactory factory = new ManagerConnectionFactory("192.168.0.95", "manager", "jas0npassw0rd");
+		ManagerConnectionFactory factory = new ManagerConnectionFactory("192.168.0.8", "manager", "jas0npassw0rd");
 		ManagerConnection managerConnection = factory.createManagerConnection();
 		try
 		{
@@ -244,7 +245,7 @@ public class Asterisk extends Sensor implements ManagerEventListener {
         	//System.out.println("EVENT IS: " + event);
 		String event_name = event.getClass().getSimpleName();
 		//System.out.println("EVENT NAME: " + event_name);
-		if((event_name.equals("DialEvent")) && (event.toString().startsWith("org.asteriskjava.manager.event.DialEvent")))
+		if((event_name.equals("DialEvent"))) //&& (event.toString().startsWith("org.asteriskjava.manager.event.DialEvent")))
 		{
 			DialEvent e=(DialEvent)event;
 			if (e.getCallerId() != null)
