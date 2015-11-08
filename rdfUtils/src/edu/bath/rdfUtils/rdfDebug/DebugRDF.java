@@ -33,6 +33,9 @@ public class DebugRDF extends Sensor {
 	private static String jasonSensorVehiclesCmds = "jasonSensorVehiclesCmds";
 	private static String simSensorName = "simStateSensor";
 	private static String homeSensors = "homeSensor";
+	private static DebugRDF ps;
+	private static boolean useXMPP=false;
+	private static boolean useMQTT=false;
 
 	
 	public DebugRDF(String serverAddress, String id, String password, String nodeName, String currentLocation, String primaryHandle) throws XMPPException {
@@ -40,26 +43,64 @@ public class DebugRDF extends Sensor {
 		this.currentLocation = currentLocation;
 		this.primaryHandle = primaryHandle;
 	}
-	
-	public static void main(String[] args) throws Exception {
-		try {
-		//get IP addressed from config file
-        	BufferedReader br = new BufferedReader(new FileReader("config.txt"));
-       		 String line;
-       		 while((line = br.readLine()) != null) {
-           		 if (line.contains("OPENFIRE"))
-           		 {
-				String[] configArray = line.split("=");
-				XMPPServer = configArray[1];
-				System.out.println("Using config declared IP address of openfire server as: " + XMPPServer);
-            		}
+
+	public DebugRDF(String serverAddress, String id, String password, String nodeName, String currentLocation, String primaryHandle, boolean useMQTT, int qos) throws XMPPException {
+		super(serverAddress, id, password, nodeName, useMQTT, qos);
+		this.currentLocation = currentLocation;
+		this.primaryHandle = primaryHandle;
+	}	
+
+	public static void main(String[] args) throws Exception 
+	{
+		try
+		{
+			BufferedReader br = new BufferedReader(new FileReader("config.txt"));
+			String line;
+			while((line = br.readLine()) != null) 
+			{
+				if (line.contains("OPENFIRE"))
+				{
+					String[] configArray = line.split("=");
+					XMPPServer = configArray[1];
+					//System.out.println("Using config declared IP address of openfire server as: " + XMPPServer);
+				}
+				if (line.contains("COMMUNICATION"))
+				{
+					String[] configArray = line.split("=");
+					if(configArray[1].equals("MQTT"))
+					{
+						useMQTT=true;
+					}
+					else if(configArray[1].equals("XMPP"))
+					{
+						useXMPP=true;
+					}
+					//System.out.println("Using config declared IP address of openfire server as: " + XMPPServer);
+				}
+			}
+			if (!useMQTT && !useXMPP)
+			{
+				System.out.println("no COMMUNICATION value found in config.txt, should be = MQTT or XMPP");
+				System.exit(1);
+			}
 		}
+		catch (Exception e) 
+		{
+			System.out.println("couldnt load config.txt for openfire net address");
 		}
-		catch (Exception e) {System.out.println("couldnt load config.txt for openfire net address");}
-			DebugRDF ps = new DebugRDF(XMPPServer, "debug", "jasonpassword", jasonSensorVehicles, "http://127.0.0.1/vehicleSensors", "http://127.0.0.1/vehilceSensors/test1-vehicle");
-			Thread.currentThread().sleep(500);
-			System.out.println("Created debug sensor, now entering its logic!");
-			ps.run();
+
+		if (useXMPP)
+		{
+			ps = new DebugRDF(XMPPServer, "debug", "jasonpassword", jasonSensorVehicles, "http://127.0.0.1/vehicleSensors", "http://127.0.0.1/vehilceSensors/test1-vehicle");
+		}			
+		else if (useMQTT)
+		{
+			ps = new DebugRDF(XMPPServer, "debug", "jasonpassword", jasonSensorVehicles, "http://127.0.0.1/vehicleSensors", "http://127.0.0.1/vehilceSensors/test1-vehicle", true, 0);
+		}
+
+		Thread.currentThread().sleep(1000);
+		System.out.println("Created debug sensor, now entering its logic!");
+		ps.run();
 
 	}
 	
@@ -72,16 +113,35 @@ public class DebugRDF extends Sensor {
 	}
 
 
-	public void run() throws XMPPException {
-		while(sensorClient == null) {
+	public void run() throws XMPPException 
+	{
+		if (useXMPP)
+		{
+			System.out.println("XMPP subscription");
+			while(sensorClient == null) 
+			{
+				try {
+					sensorClient = new SensorXMPPClient(XMPPServer, "debug-client", "jasonpassword");
+					System.out.println("connected subscriber");
+				} catch (XMPPException e1) 
+				{
+					System.out.println("Exception in establishing client.");
+					e1.printStackTrace();
+				}
+			}
+		}
+		else if (useMQTT)
+		{
+			System.out.println("MQTT subscription");
 			try {
-				sensorClient = new SensorXMPPClient(XMPPServer, "debug-client", "jasonpassword");
-				System.out.println("Guess sensor connected OK then!");
-			} catch (XMPPException e1) {
-				System.out.println("Exception in establishing client.");
+				sensorClient = new SensorMQTTClient(XMPPServer, "debug-client");
+				System.out.println("connected subscriber");
+			} catch (Exception e1) {
+				System.out.println("Exception in establishing MQTT client.");
 				e1.printStackTrace();
 			}
 		}
+
 		sensorClient.addHandler(jasonSensorVehicles, new ReadingHandler() { 
 			@Override
 			public void handleIncomingReading(String node, String rdf) {
