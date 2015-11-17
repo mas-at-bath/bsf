@@ -10,6 +10,12 @@ import org.jivesoftware.smack.XMPPException;
 import java.util.Random;
 import java.io.*;
 
+import com.pi4j.io.serial.Serial;
+import com.pi4j.io.serial.SerialDataEvent;
+import com.pi4j.io.serial.SerialDataListener;
+import com.pi4j.io.serial.SerialFactory;
+import com.pi4j.io.serial.SerialPortException;
+
 
 public class PiDevice extends Sensor {
 
@@ -30,6 +36,7 @@ public class PiDevice extends Sensor {
 	private static long startupTime=0L;
 	private static long startupDelay=3000L;
 	private static ProcessBuilder pythonDHT22pb;
+	private static ProcessBuilder pythonK30pb;
 
  	private static int ADC_CHANNEL0_ldr = MCP3008Reader.MCP3008_input_channels.CH0.ch(); // Between 0 and 7, 8 channels on the MCP3008
 	private static int ADC_CHANNEL2_mics2710 = MCP3008Reader.MCP3008_input_channels.CH2.ch(); // Between 0 and 7, 8 channels on the MCP3008
@@ -39,6 +46,7 @@ public class PiDevice extends Sensor {
 	private static boolean useXMPP=false;
 	private static boolean useMQTT=false;
 	private static PiDevice ps;
+	private int co2result =0 ;
 
 	private BMP085Device device;
 
@@ -127,6 +135,25 @@ public class PiDevice extends Sensor {
 			pbEr.printStackTrace();
 		}
 
+		try
+		{
+			String fileNameLocK30 = new String(System.getProperty("user.dir") + "/K-30.py");
+			System.out.println("calling " + fileNameLocK30);
+			pythonK30pb = new ProcessBuilder(fileNameLocK30);
+
+			Process pk30 = pythonK30pb.start();
+	 
+			BufferedReader in = new BufferedReader(new InputStreamReader(pk30.getInputStream()));
+			String ret = new String(in.readLine());
+			System.out.println("CO2 Value is : "+ret);
+		}
+		catch (Exception pbKEr)
+		{
+			System.out.println("python call for k30 failed...");
+			System.out.println("it might be you're not running with root access, if so there will be a big crash soon...");
+			pbKEr.printStackTrace();
+		}
+
 		ps.run();
 	}
 	
@@ -210,6 +237,36 @@ public class PiDevice extends Sensor {
 		MCP3008Reader.initMCP3008();
 		System.out.println("done init..");
 
+		/*System.out.println("Starting serial port for CO2 sensor..");
+		final Serial serial = SerialFactory.createInstance();
+		serial.addListener(new SerialDataListener() {
+		    @Override
+		    public void dataReceived(SerialDataEvent event) {
+		        // print out the data received to the console
+		       // System.out.print(event.getData());
+			String data = event.getData();
+
+			byte[] array = data.getBytes();
+
+			//System.out.println("Read: ");
+			int high = array[4];
+			int low = array[5];
+			co2result = (high*256)+low;
+			System.out.println("CO2: " + co2result);
+			for (int i = 0; i < array.length; i++) {
+			//	System.out.println(array[i]);
+			    System.out.printf("%02X ", array[i]);
+			}
+		    }            
+		});
+		try {
+		    // open the default serial port provided on the GPIO header
+		    serial.open(Serial.DEFAULT_COM_PORT, 9600);
+		}
+		catch (Exception e)
+		{
+			System.out.println("error opening serial port..");
+		}*/
 
 		while(alive) 
 		{
@@ -260,6 +317,11 @@ public class PiDevice extends Sensor {
 				DataReading testReading = new DataReading(getPrimaryHandle(), getCurrentLocation(), System.currentTimeMillis());
 				testReading.setTakenBy("http://127.0.0.1/components/houseSensors/"+componentName);
 
+				///byte[] bytes = new byte[] {(byte)0xfe, (byte)0x44, (byte)0x00, (byte)0x08, (byte)0x02, (byte)0x9F, (byte)0x25};
+				//byte[] bytes = new byte[] {"\u00fe".getBytes("UTF-8"), "\u0044".getBytes("UTF-8")}
+				//serial.write("\u00fe\u0044\u0000\u0008\u0002\u009f\u0025".getBytes("UTF-8"));
+				///serial.write(bytes);
+
 				double reading[] = device.getReading();
 				double bmpTemp = reading[1];
 				double bmpPressure = reading[0]*0.01;
@@ -290,6 +352,17 @@ public class PiDevice extends Sensor {
 				testReading.addDataValue(null, "http://127.0.0.1/sensors/types#GasCO", CO_res, false);
 				testReading.addDataValue(null, "http://127.0.0.1/sensors/types#noise", mic_res, false);
 
+				Process pK30 = pythonK30pb.start();
+				BufferedReader ink30 = new BufferedReader(new InputStreamReader(pK30.getInputStream()));
+				String retK30= new String(ink30.readLine());
+				if (retK30.startsWith("Co2"))
+				{
+					System.out.println(retK30);
+					String[] resultArray = retK30.split("=");
+					//System.out.println("co2 " + resultArray[1]);
+					testReading.addDataValue(null, "http://127.0.0.1/sensors/types#GasCO2", resultArray[1], false);
+				}
+
 				//dataReading.add all those
 				Process p = pythonDHT22pb.start();
 	 
@@ -302,7 +375,7 @@ public class PiDevice extends Sensor {
 					String tempRes = tempVal[1].substring(0, tempVal[1].length()-2);
 					String[] humiVal= resultArray[1].split("=");
 					String humiRes = humiVal[1].substring(0, humiVal[1].length()-1);
-					//System.out.println("dht22 temp: " + tempRes + ", humidity: " + humiRes);
+					System.out.println("dht22 temp: " + tempRes + ", humidity: " + humiRes);
 					testReading.addDataValue(null, "http://127.0.0.1/sensors/types#DHT22temperature", tempRes, false);
 					testReading.addDataValue(null, "http://127.0.0.1/sensors/types#DHT22humidity", humiRes, false);
 					//then add these as data readings

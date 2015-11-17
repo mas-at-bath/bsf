@@ -3,8 +3,18 @@ sudo su
 apt-get update
 apt-get install python-pip
 sudo apt-get install build-essential python-dev
+sudo apt-get install python-smbus
 pip install paho-mqtt
 pip install rdflib
+
+setup Adafruit component too, outside of the BSF directory
+git clone https://github.com/adafruit/Adafruit_Python_DHT.git
+sudo python setup.py install	
+
+git clone https://github.com/adafruit/Adafruit_Python_BMP
+cd Adafruit_Python_BMP
+sudo python setup.py install
+
 
 copy BSF.py (https://bsf.googlecode.com/svn/trunk/pythonFramework/BSF.py) to same location as python code
 or svn checkout https://bsf.googlecode.com/svn/trunk/pythonFramework pythonBSF
