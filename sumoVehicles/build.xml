@@ -189,14 +189,14 @@
     <target name="runWinM25" depends="dist" if="is_windows">
 	<java fork="true" classpath="${dist_cp}" classname="edu.bath.sumoVehicles.SumoXMPPSim" > 
 		<jvmarg value="-Dit.polito.appeal.traci.sumo_exe=.\sumobin\win\sumo.exe"/>
-		<arg value="m25"/>
+		<arg value="m25-nogui"/>
 	</java>
     </target>  
 	
 	<target name="runUnixM25" depends="dist" if="is_unix">
 	<java fork="true" classpath="${dist_cp}" classname="edu.bath.sumoVehicles.SumoXMPPSim" > 
 		<jvmarg value="-Dit.polito.appeal.traci.sumo_exe=./sumobin/ubuntu/sumo"/>
-		<arg value="m25"/>
+		<arg value="m25-nogui"/>
 	</java>
     </target>  	
 	
@@ -267,6 +267,13 @@
     <target name="run-bath" depends="dist, runWinBath, runUnixBath" description="Run SUMO without GUI and Bath scenario">
 		<!-- messy maybe, works I hope, basically call two targets on the hope that one or the other would work -->
     </target>  
+
+     <target name="runMOEA" depends="dist" description="Start MOEA" >
+	<java fork="true" classpath="${dist_cp}" classname="edu.bath.sumoVehicles.MOEAExperiment"> 
+		<sysproperty key="java.library.path" path="${dist}"/>
+		<jvmarg value="-Dit.polito.appeal.traci.sumo_exe=./sumobin/ubuntu/sumo"/>
+	</java>
+    </target> 
 
 <target name="sonar" depends="compile" description="Perform sonar code analysis">
     <taskdef uri="antlib:org.sonar.ant" resource="org/sonar/ant/antlib.xml">

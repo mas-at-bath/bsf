@@ -82,16 +82,12 @@ def readadc(adcnum, clockpin, mosipin, misopin, cspin):
 
 
 
-newReading = DataReading("http://127.0.0.1/PISensors", "http://127.0.0.1/PiSensors/Pi", BSF.current_milli_time())
-newReading.setTakenBy("http://127.0.0.1/components/houseSensors/piSensor1")
 # Code to get light levels data
 light = readadc(0, SPICLK, SPIMOSI, SPIMISO, SPICS) # Read the analog pin where the LDR is connected
 light = float(light)/1023*vin						# Voltage value from ADC
 light = 10000/((vin/light)-1)						# Ohm value of the LDR, 10k is used as Pull up Resistor
 light = exp((log1p(light/1000)-4.125)/-0.6704)		# Linear aproximation from http://pi.gate.ac.uk/posts/2014/02/25/airpisensors/ to get Lux value
-newReading.addDataValue(None, "http://127.0.0.1/sensors/types#LightLux", light, False)
-if (debug):
-	print "Light: %d lux" % light
+print "Light: %d lux" % light
 	
 # Code to get audio levels from  20 hz frequency
 signalMax = 0
@@ -108,36 +104,27 @@ while (int(round(time.time()*1000))-startMillis<50):    # Collect data for 20hz 
 peakToPeak = signalMax - signalMin
 #print peakToPeak					# Peak to Peak value
 db = float((peakToPeak*vin*1000)/1023)			#Measure in mV
-newReading.addDataValue(None, "http://127.0.0.1/sensors/types#soundDB", db, False)
 #time.sleep(0.1)
-if (debug):
-	print "Sound: %d mV" % db
+print "Sound: %d mV" % db
 	
 # Code to read NO2 and CO concentrations
 no2 = readadc(2, SPICLK, SPIMOSI, SPIMISO, SPICS)	# Read the analog input for the nitrogen value	
 no2 = float(no2)/1023*vin								# Voltage value from the ADC
 no2 = ((10000*vin)/no2)-10000							# Ohm value of the no2 resistor, 10k  is used as pull down resistor 
 #no2 = float(no2/700)					#Reference value
-newReading.addDataValue(None, "http://127.0.0.1/sensors/types#NO2ohms", no2, False)
 #time.sleep(0.1)
-if (debug):		
-	print "NO: %d ohms" % no2
+print "NO: %d ohms" % no2
 	
 co = readadc(3, SPICLK, SPIMOSI, SPIMISO, SPICS)		# Read the analog input for the carbon value
 co = float(co)/1023*vin 								# Voltage value from the ADC
 co = ((360000*vin)/co)-360000							# Ohm Value of the co resistor, 360k is used as pull down resistor
 #co = float(co/30000) 					#Reference value
-newReading.addDataValue(None, "http://127.0.0.1/sensors/types#COohms", co, False)
-if (debug):
-	print "CO: %d ohms" % co
+print "CO: %d ohms" % co
 
 humidity, temperature = Adafruit_DHT.read_retry(22, 4)
 if humidity is not None and temperature is not None:
-	if (debug):
-		print "Humidity: %d%%" % humidity
-		print "Temperate: %dC " % temperature
-	newReading.addDataValue(None, "http://127.0.0.1/sensors/types#DHT22temperature", temperature, False)
-	newReading.addDataValue(None, "http://127.0.0.1/sensors/types#DHT22humidity", humidity, False)
+	print "Humidity: %d%%" % humidity
+	print "Temperate: %dC " % temperature
 
 ##ser.write("\xFE\x44\x00\x08\x02\x9F\x25")
 ##time.sleep(.01)
@@ -146,21 +133,13 @@ if humidity is not None and temperature is not None:
 ##low = ord(resp[4])
 ##if high is not None and low is not None:
 ##	co2 = (high*256) + low
-##	if (debug):
-##		print "CO2: %dppm" % co2
-##	newReading.addDataValue(None, "http://127.0.0.1/sensors/types#CO2", co2, False)
+##	print "CO2: %dppm" % co2
 
 bmpTemp = sensor.read_temperature()
 bmpPressure = sensor.read_pressure()
 if bmpTemp is not None and bmpPressure is not None:
-	if (debug):
-		print "Pressure: %dPa" % bmpPressure
-		print "Temp: %dC" % bmpTemp
-	newReading.addDataValue(None, "http://127.0.0.1/sensors/types#BMP80temperature", bmpTemp, False)
-	newReading.addDataValue(None, "http://127.0.0.1/sensors/types#BMP80pressure", bmpPressure, False)
-
-msgString = "<RDF>"+escape(newReading.toRDF())+"</RDF>"
-publish.single("homeSensor", msgString, hostname="192.168.0.8")
+	print "Pressure: %dPa" % bmpPressure
+	print "Temp: %dC" % bmpTemp
 
 
 GPIO.cleanup()						# Reset the status of the GPIO pins

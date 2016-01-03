@@ -93,7 +93,7 @@ public class RDFReplayAgent {
 	private static String DBServer = "127.0.0.1";
 	private static String sesameServerURL = "http://127.0.0.1:8040";
 	
-	private static boolean useLocalFile=true;
+	private static boolean useLocalFile=false;
 	private static String fileName = "shortHomeSensors.nt";
 
 	private static final long nanoToMili=1000000;
@@ -127,9 +127,12 @@ public class RDFReplayAgent {
 	//private static long houseStart = 1439845200000L;
 	private static long houseStart = 1440362470000L;
 	private static long houseFin = 1440523612000L;
+
+	private static long houseStart2 = 1447789699469L;
+	private static long houseFin2 = 1447799699469L;
 									  
-	private static long simStartTime = houseStart;
-	private static long simFinishTime = houseFin;
+	private static long simStartTime = houseStart2;
+	private static long simFinishTime = houseFin2;
 	
 	private int publishDelayTime=1000;
 	private TimeControl timeStepper = new TimeControl();
@@ -148,6 +151,8 @@ public class RDFReplayAgent {
 	private static boolean useSESAME=false;
 	private static Repository sesameRepo;
 	private static RepositoryConnection sesameRepoConnection;
+	private static boolean generateCSV=true;
+	private static FileWriter fw;
 	
 	public static void main(String[] args) throws Exception 
 	{
@@ -258,6 +263,12 @@ public class RDFReplayAgent {
 			System.out.println("couldn't start sim thread sender");
 			System.out.println(e.getStackTrace());
 		}	
+
+		if (generateCSV)
+		{
+			fw = new FileWriter("results.csv",false);
+		}
+		
 		
 		RDFReplayAgent replayAgent = new RDFReplayAgent();
 		replayAgent.run();
@@ -814,6 +825,21 @@ public class RDFReplayAgent {
 							{
 								System.out.println("couldn't handle: " + locatedAtVal);
 							}
+
+							if (generateCSV)
+							{
+								List<DataReading.Value> foundVals = testReading.findValues(null,null,null);
+								for (DataReading.Value foundV : foundVals)
+								{
+									try {
+										fw.write(takenAtVal + "," + foundV.predicate.toString() + "," + foundV.object.toString() +" \n");
+									}
+									catch (Exception e) 
+									{
+										System.out.println("error writing to file");
+									}
+								}
+							}
 						}	
 						catch (Exception e) 
 						{
@@ -925,7 +951,7 @@ public class RDFReplayAgent {
 	{
 		Serializable completeURIObj = objectValue;
 	
-		if(typeURIval.equals("<http://www.w3.org/2001/XMLSchema#int>") || typeURIval.equals("http://www.w3.org/2001/XMLSchema#int"))
+		if(typeURIval.equals("<http://www.w3.org/2001/XMLSchema#int>") || typeURIval.equals("http://www.w3.org/2001/XMLSchema#int") || typeURIval.equals("<http://www.w3.org/2001/XMLSchema#integer>"))
 			completeURIObj = Integer.parseInt(objectValue);
 		else if(typeURIval.equals("<http://www.w3.org/2001/XMLSchema#long>") || typeURIval.equals("http://www.w3.org/2001/XMLSchema#long"))
 			completeURIObj = Long.parseLong(objectValue);

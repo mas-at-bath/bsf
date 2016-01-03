@@ -85,6 +85,8 @@ public class SumoXMPPSim extends Sensor {
 	private boolean alreadyInsertedJasonVehicles = false;
 	private static boolean useMQTT=false;
 	private static boolean useXMPP=false;
+	private static int simMaxRuntime=-1;
+	private Double lowestEdgeSpeed = 300000000D; //hopefully nothing should go faster than speed of light.. :)
 	
 	public SumoXMPPSim(String serverAddress, String id, String password, String nodeName, String currentLocation, String primaryHandle) throws XMPPException {
 		super(serverAddress, id, password, nodeName);
@@ -98,8 +100,54 @@ public class SumoXMPPSim extends Sensor {
 		this.primaryHandle = primaryHandle;
 	}
 	
-	public static void main(String[] args) throws Exception {
+	public static void main(String[] args) throws Exception 
+	{
+		setup(args);		
 		
+		System.out.println("Using defaults: " + XMPPServer + ", central, jasonpassword, jasonSensor, http://127.0.0.1/vehicleSensors, http://127.0.0.1/vehicleSensors/vehicle1");
+
+		if (useXMPP)
+		{
+			System.out.println("Using XMPP for comms");
+			SumoXMPPSim ps = new SumoXMPPSim(XMPPServer, vehicleName, "jasonpassword", jasonSensorVehicles , "http://127.0.0.1/vehicleSensors", "http://127.0.0.1/vehicleSensors/test1-vehicle");
+			addAOISender();
+			Thread.currentThread().sleep(1000);
+			ps.run();
+		}
+		else if (useMQTT)
+		{
+			System.out.println("Using MQTT for comms");
+			SumoXMPPSim ps = new SumoXMPPSim(XMPPServer, vehicleName, "jasonpassword", jasonSensorVehicles , "http://127.0.0.1/vehicleSensors", "http://127.0.0.1/vehicleSensors/test1-vehicle", true, 0);
+			addAOISender();
+			Thread.currentThread().sleep(1000);
+			ps.run();
+		}
+		
+	}
+
+	public static void addAOISender()
+	{
+		System.out.println("Adding AOI Msg Sender");
+		try
+		{
+			if (useXMPP)
+			{
+				aoiMsgSender = new WorkerNonThreadSender(XMPPServer, "sumo-sender", "jasonpassword", aoiNodeName, "http://127.0.0.1/AOISensors", "http://127.0.0.1/AOISensors/SUMO");
+			}
+			else if (useMQTT)
+			{
+				aoiMsgSender = new WorkerNonThreadSender(XMPPServer, "sumo-sender", "jasonpassword", aoiNodeName, "http://127.0.0.1/AOISensors", "http://127.0.0.1/AOISensors/SUMO", true, 0);
+			}
+		}
+		catch (Exception e)
+		{
+			System.out.println("error starting AOI msg sender");
+			e.printStackTrace();
+		}
+	}
+
+	public static void setup(String[] args)
+	{
 		if (args.length > 0) 
 		{
 			String scenarioFlag = args[0];
@@ -113,6 +161,12 @@ public class SumoXMPPSim extends Sensor {
 			else
 			{
 				scenarioUsed = scenarioFlag;
+			}
+
+			if (args.length > 1)
+			{
+				System.out.println("running for max " + args[1] + " milliseconds");
+				simMaxRuntime = Integer.parseInt(args[1]);
 			}
 		}
 		
@@ -187,29 +241,6 @@ public class SumoXMPPSim extends Sensor {
 			System.out.println("Error loading config.txt file");
 			e.printStackTrace();
 		}
-
-
-		
-		System.out.println("Using defaults: " + XMPPServer + ", central, jasonpassword, jasonSensor, http://127.0.0.1/vehicleSensors, http://127.0.0.1/vehicleSensors/vehicle1");
-
-		if (useXMPP)
-		{
-			System.out.println("Using XMPP for comms");
-			SumoXMPPSim ps = new SumoXMPPSim(XMPPServer, vehicleName, "jasonpassword", jasonSensorVehicles , "http://127.0.0.1/vehicleSensors", "http://127.0.0.1/vehicleSensors/test1-vehicle");
-			aoiMsgSender = new WorkerNonThreadSender(XMPPServer, "sumo-sender", "jasonpassword", aoiNodeName, "http://127.0.0.1/AOISensors", "http://127.0.0.1/AOISensors/SUMO");
-			Thread.currentThread().sleep(1000);
-			ps.run();
-		}
-		else if (useMQTT)
-		{
-			System.out.println("Using MQTT for comms");
-			SumoXMPPSim ps = new SumoXMPPSim(XMPPServer, vehicleName, "jasonpassword", jasonSensorVehicles , "http://127.0.0.1/vehicleSensors", "http://127.0.0.1/vehicleSensors/test1-vehicle", true, 0);
-			System.out.println("Adding AOI Msg Sender");
-			aoiMsgSender = new WorkerNonThreadSender(XMPPServer, "sumo-sender", "jasonpassword", aoiNodeName, "http://127.0.0.1/AOISensors", "http://127.0.0.1/AOISensors/SUMO", true, 0);
-			Thread.currentThread().sleep(1000);
-			ps.run();
-		}
-		
 	}
 	
 	
@@ -279,6 +310,19 @@ public class SumoXMPPSim extends Sensor {
 			{
 				conn = new SumoTraciConnection(
 				"m25vsl.sumo.cfg",  // config file
+				12345,                                 // random seed
+				true                                  // look for geolocalization info in the map
+				);
+				conn.addOption("verbose", null);
+				conn.addOption("lanechange.overtake-right", null);
+				conn.runServer();
+				//conn.setZoom(4000d);
+				//conn.setViewOffset(new Point2D.Double(12500, 4750));
+			}
+			else if (scenarioUsed.equals("m25-nogui"))
+			{
+				conn = new SumoTraciConnection(
+				"m25.sumo.cfg",  // config file
 				12345,                                 // random seed
 				true                                  // look for geolocalization info in the map
 				);
@@ -463,6 +507,17 @@ public class SumoXMPPSim extends Sensor {
 				}
 				continue;
 			}
+
+			publishSimTime();
+			if (simMaxRuntime != -1) 
+			{
+				System.out.println("time " + simTimeVal + " max "+ simMaxRuntime);
+				if (simTimeVal > simMaxRuntime)
+				{
+					System.out.println("Finishing sim run this cycle");
+					alive = false;
+				}
+			}
 			
 			//first add in vehicles that crashed and need to be put back into sim
 			try {
@@ -473,8 +528,6 @@ public class SumoXMPPSim extends Sensor {
 				System.out.println("processVehicleToAdd error");
 				e.printStackTrace();
 			}
-
-			publishSimTime();
 			
 			//in this update cycle, first process pending messages
 			long p1Time = System.nanoTime();
@@ -528,6 +581,9 @@ public class SumoXMPPSim extends Sensor {
 				System.out.println("Error in main update..");
 				e.printStackTrace();
 			}
+
+			//build results if we're holding them internally
+			buildResults();
 
 			try 
 			{
@@ -584,6 +640,11 @@ public class SumoXMPPSim extends Sensor {
 			
 		}
 
+		System.out.println("finished SUMO, cleanup connections");
+		if (useMQTT || useXMPP ) 
+		{
+            		sensorClient.disconnect();
+   		}
 		cleanup();
 	}
 
@@ -2007,6 +2068,7 @@ public class SumoXMPPSim extends Sensor {
 	public void publishSimTime()
 	{
 		simTimeVal = conn.querySimTime();
+		
 		if (debug) {System.out.println("Currently at: " + simTimeVal + " and sent " + numberVehMessagesSent + " veh states in this simstep");}
 		numberVehMessagesSent=0;
 		DataReading timeReading = new DataReading(getPrimaryHandle(), getCurrentLocation(), System.currentTimeMillis());
@@ -2162,6 +2224,47 @@ public class SumoXMPPSim extends Sensor {
 			e.printStackTrace();
 		}					
 
+	}
+
+	private void buildResults()
+	{
+		try
+		{
+			/*Map<String, Edge> edges = conn.getEdgeRepository().getAll();
+			for (Edge edgeV : edges.values()) 
+			{
+				System.out.println("For edge: " + edgeV.getID() + " mean speed is " + edgeV.queryReadMeanSpeed().get());
+			}*/
+			for (AllSpeeds edgeResult : knownSpeedEdges)
+			{
+				//System.out.println("Edge: " + edgeResult.getEdge() + " avg speed " + edgeResult.getMeanSpeed() + " with " + edgeResult.getNumberSpeeds() + " vehicles");
+				if ((edgeResult.getEdge().equals("34706943")) && (edgeResult.getMeanSpeed() < lowestEdgeSpeed))
+				{
+					lowestEdgeSpeed = edgeResult.getMeanSpeed();
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			System.out.println("error building results");
+			e.printStackTrace();
+		}
+	}
+
+	public Double getResults()
+	{
+		System.out.println("lowest avg speed in edge 34706943 for this run was " + lowestEdgeSpeed);
+		return lowestEdgeSpeed;		
+	}
+
+	public void setUseRealtime(boolean state)
+	{
+		runInRealtime = state;
+	}
+
+	public void setUseDebug(boolean state)
+	{
+		debug = state;
 	}
 
 	public void waitUntil(long delayTo)
