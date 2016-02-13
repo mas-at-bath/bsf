@@ -128,6 +128,7 @@ public class SendRDF extends Sensor {
 				String objVal = (String) brKeyb.readLine();
 				System.out.println("obj: " + objVal);
 				testReading.addDataValue(null, predVal, objVal, false);
+				System.out.println(testReading);
 				publish(testReading);
 			} 
 			catch (Exception e) {

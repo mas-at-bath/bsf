@@ -23,4 +23,5 @@ print change
 newReading.addDataValue(None, "http://127.0.0.1/sensors/types#room", room, False)
 newReading.addDataValue(None, "http://127.0.0.1/sensors/types#change", change, False)
 msgString = "<RDF>"+escape(newReading.toRDF())+"</RDF>"
+print msgString
 publish.single("homeSensor", msgString, hostname="192.168.0.8")

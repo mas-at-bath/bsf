@@ -14,6 +14,7 @@ import java.util.List;
 import java.text.DateFormat;
 import java.util.Date;
 import java.text.SimpleDateFormat;
+import java.io.FileWriter;
 
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
@@ -37,6 +38,8 @@ import static org.bytedeco.javacpp.opencv_highgui.*;
 import static org.bytedeco.javacpp.opencv_imgproc.*;
 import static org.bytedeco.javacpp.opencv_objdetect.CvHaarClassifierCascade;
 import static org.bytedeco.javacpp.opencv_objdetect.*;
+import static org.bytedeco.javacpp.avcodec.*;
+import static org.bytedeco.javacpp.avutil.*;
 import org.bytedeco.javacpp.Loader;
 import org.bytedeco.javacpp.opencv_objdetect;
 import org.bytedeco.javacv.*;
@@ -90,18 +93,29 @@ public class FaceRecogBSF extends Sensor {
 	private static boolean useXMPP=false;
 	private static boolean useMQTT=false;
 	private static FaceRecogBSF ps;
-	private static final String CASCADE_FILE = "./data/haarcascade_frontalface_alt.xml";
-	private static final String CASCADE_FILE_OLD = "./data/haarcascade_frontalface_alt_cv2.xml";
-	final CvHaarClassifierCascade cascade_old = new CvHaarClassifierCascade(cvLoad(CASCADE_FILE_OLD));
+	private static final String CASCADE_FILE = "./data/lbpcascade_frontalface.xml";
+	//private static final String CASCADE_FILE_OLD = "./data/haarcascade_frontalface_alt_cv2.xml";
+	//final CvHaarClassifierCascade cascade_old = new CvHaarClassifierCascade(cvLoad(CASCADE_FILE_OLD));
 	private CascadeClassifier cascade;
-	private BasicFaceRecognizer faceRecognitionObj;
-	private CvMemStorage faceStorage;
+	//private BasicFaceRecognizer faceRecognitionObj;
+	private FaceRecognizer faceRecognitionObj;
+	//private FaceRecognizer lbphFaceRecognizer;
+	//private CvMemStorage faceStorage;
 	private OpenCVFrameConverter.ToMat converterToMat = new OpenCVFrameConverter.ToMat();
 	private OpenCVFrameConverter.ToIplImage converter = new OpenCVFrameConverter.ToIplImage();
 	private Java2DFrameConverter converterJ2D = new Java2DFrameConverter();
 	private ArrayList<String> mappedIDs = new ArrayList<String>();
 	private CanvasFrame canvasFrame;
-	private boolean displayLocal = false;
+	private boolean displayLocal = true;
+	private boolean showFaceView = false;
+	private boolean showCamView = true;
+	private RectVector faceRect = new RectVector();
+
+	//this training method was based on earlier lib, and instead now provides the ability to process a number of images, and 
+	//extract the face region out to a predefined width, to be used in the test file of the learn method above
+	boolean trainingImages = false;
+	//build a new training file based on images stored in ./data/NameX
+	boolean trainNew = false;
 
 	public FaceRecogBSF(String serverAddress, String id, String password, String nodeName, String currentLocation, String primaryHandle) throws XMPPException {
 		super(serverAddress, id, password, nodeName);
@@ -221,34 +235,64 @@ public class FaceRecogBSF extends Sensor {
 			}
 		}
 
+		System.out.println("load opencv classes");
 		Loader.load(opencv_objdetect.class);
+		//System.out.println("size: " + Loader.sizeof(CvPoint.class));
+		//System.out.println("size: " + Loader.sizeof(CvSeq.class));	
+		//System.out.println("size cvcontour: " + Loader.sizeof(CvContour.class));
+		//System.out.println("size cvcontour: " + Loader.sizeof(opencv_core.CvContour.class));
 		cascade = new CascadeClassifier(CASCADE_FILE);
 
 		sdfDate = new SimpleDateFormat("yyyyMMdd-HHmmssSSS");
 		sdfPrintDate = new SimpleDateFormat("dd-MM-yyyy-HH:mm:ss.SSS");
 
 		CvMemStorage storage = CvMemStorage.create();
-		faceStorage = CvMemStorage.create();
+		//faceStorage = CvMemStorage.create();
 
-		//this training method was based on earlier lib, and instead now provides the ability to process a number of images, and 
-		//extract the face region out to a predefined width, to be used in the test file of the learn method above
-		boolean trainingImages = false;
 		if (trainingImages)
 		{
 			createFaceSamples();
 		}
 
-		//build a new training file based on images stored in ./data/NameX
-		boolean trainNew = true;
 		if (trainNew)
 		{
 			trainFromSamples();
 		}
 		else
 		{
-			faceRecognitionObj = createFisherFaceRecognizer();
-			//BasicFaceRecognizer faceRecognitionObj = createEigenFaceRecognizer();
-			faceRecognitionObj.load("trainingResult.set");
+			String trainingSetFile = "trainingResult.set";
+			String IDFile = "mappedIDs.txt";
+			try
+			{
+				File fID = new File(IDFile);
+				File fTraining = new File(trainingSetFile);
+				if (fID.exists() && fTraining.exists())
+				{
+					//faceRecognitionObj = createFisherFaceRecognizer();
+					//faceRecognitionObj = createEigenFaceRecognizer();
+					faceRecognitionObj = createLBPHFaceRecognizer();
+					faceRecognitionObj.load(trainingSetFile);
+					FileReader fr = new FileReader(IDFile);
+    					BufferedReader bf = new BufferedReader(fr);
+					String line;
+					while((line = bf.readLine()) != null)
+					{
+						//System.out.println("read ID: " + line);
+						mappedIDs.add(line);
+					}
+					
+					bf.close();
+				}
+				else
+				{
+					System.out.println("cannot find training results or mapping IDs, did training run OK at least once?");
+				}
+			}
+			catch (Exception e) 
+			{
+				System.out.println("error loading training data");
+				e.printStackTrace();
+			}
 		}
 
 		//test recognitiion
@@ -302,10 +346,10 @@ public class FaceRecogBSF extends Sensor {
                    	grabber.setOption("max_picture_buffer", "1024*100");
                   	grabber.setOption("probesize","192");
                    	grabber.setOption("max_index_size","1024*50");*/
-			//grabber.setImageWidth(1280);
-			//grabber.setImageHeight(720);
-			grabber.setImageWidth(640);
-			grabber.setImageHeight(480);
+			grabber.setImageWidth(1024);
+			grabber.setImageHeight(768);
+			//grabber.setFrameRate(10);;
+
         		grabber.start();
 			nativeFrame = grabber.grab();
 			frame = converter.convert(nativeFrame);
@@ -323,6 +367,7 @@ public class FaceRecogBSF extends Sensor {
 		IplImage grayImage = null;
 		IplImage diffImage = null;
 		IplImage tempFrame = null;
+		Mat greyMatHolder = new Mat();
 
 		//use these if you want to see local view
 		if (displayLocal)
@@ -377,16 +422,21 @@ public class FaceRecogBSF extends Sensor {
 				
 			}
 
-			try
+			if (frame != null)
 			{
-
-				if (frame != null)
+				try
 				{
 					nativeFrame = grabber.grab();
 					webHandler.updateImage(converterJ2D.convert(nativeFrame));
 					frame = converter.convert(nativeFrame);
 		    			cvClearMemStorage(storage);
 					cvSmooth(grayImage, grayImage, CV_GAUSSIAN, 9, 9, 2, 2);
+
+					if (displayLocal)
+					{	
+						//use this to show the detected face				
+						if (showCamView) { canvasFrame.showImage(nativeFrame); }
+					}
 
 					if (grayImage == null)
 					{
@@ -397,66 +447,78 @@ public class FaceRecogBSF extends Sensor {
 						diffImage = IplImage.create(frame.width(), frame.height(), IPL_DEPTH_8U, 1);
 					}
 		                	cvCvtColor(frame, grayImage, CV_BGR2GRAY);
-					
+				}
+				catch (Exception e) 
+				{ 
+					System.out.println("error in initial grab"); 
+					e.printStackTrace();
+				}
 
-					if (firstFrame)
+				if (firstFrame)
+				{
+					try
 					{
 						tempFrame = IplImage.create(frame.width(), frame.height(), IPL_DEPTH_8U, 1);
 						firstFrame=false;
 						saveImage(frame);
 					}
-					else
+					catch (Exception e) 
+					{ 
+						System.out.println("error in first frame"); 
+						e.printStackTrace();
+					}
+				}
+				else
+				{
+					cvAbsDiff(grayImage, tempFrame, diffImage);
+					cvThreshold(diffImage, diffImage, 64, 255, CV_THRESH_BINARY);			
+
+					// recognize contours
+					CvSeq contour = new CvSeq(null);
+					cvFindContours(diffImage, storage, contour, 128/*Loader.sizeof(CvContour.class)*/, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
+
+					int contourCount=0;
+					while (contour != null && !contour.isNull()) 
 					{
-						cvAbsDiff(grayImage, tempFrame, diffImage);
-						cvThreshold(diffImage, diffImage, 64, 255, CV_THRESH_BINARY);			
-
-						// recognize contours
-						CvSeq contour = new CvSeq(null);
-						cvFindContours(diffImage, storage, contour, Loader.sizeof(CvContour.class), CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
-
-						int contourCount=0;
-						while (contour != null && !contour.isNull()) 
+					    	if (contour.elem_size() > 0) 
 						{
-						    	if (contour.elem_size() > 0) 
-							{
-								contourCount++;
-								//drawContours(diffImage, contour, 4, new Scalar(40, 233, 45,0 ));
-						   	}
-						    	contour = contour.h_next();
-						}
-						if (contourCount > 0)
+							contourCount++;
+							//drawContours(diffImage, contour, 4, new Scalar(40, 233, 45,0 ));
+					   	}
+					    	contour = contour.h_next();
+					}
+					if (contourCount > 0)
+					{
+						try 
 						{
 							Date now = new Date();
 							String strDateToPrint = sdfPrintDate.format(now);
-							//System.out.println(strDateToPrint + ", Detected Movement!! Contours: " + contourCount);
 							Mat mat = converterToMat.convertToMat(nativeFrame);
-							//try to recognise anyone
-           						CvSeq faces = detectFace(mat, grayImage);
-							if (faces.total() > 0)
+							Mat greyMat = new Mat();
+							cvtColor(mat, greyMat, COLOR_BGRA2GRAY);
+							equalizeHist(greyMat, mat);
+							cascade.detectMultiScale(greyMat, faceRect);
+							System.out.println("found " + faceRect.size());
+							if (faceRect.size() == 1)
 							{
 								boolean foundKnownFace = false;
+								Rect face_i = faceRect.get(0);
+								Mat face = new Mat(greyMat, face_i);
 
-								CvRect r = new CvRect(cvGetSeqElem(faces, faces.total()-1));
-	 							int x = r.x(), y = r.y(), w = r.width(), h = r.height();
-								IplImage foundFace = preprocessImage(frame, r);
-								//BufferedImage bf = converterJ2D.convert(converter.convert(foundFace));
-								Mat faceResized = converterToMat.convertToMat(converter.convert(foundFace));
-								
 								if (displayLocal)
-								{					
-									canvasFrame.showImage(converter.convert(foundFace));
+								{	
+									//use this to show the detected face				
+									//if (showFaceView) { canvasFrame.showImage(converter.convert(foundFace)); }
 								}
 							
 								int[] plabel = new int[1];
 								double[] pconfidence = new double[1];
 								//int predictedLabel = faceRecognitionObj.predict(faceResized);
-								faceRecognitionObj.predict(faceResized, plabel, pconfidence);
+								faceRecognitionObj.predict(face, plabel, pconfidence);
 								int predictedLabel = plabel[0];
 								double confidence = pconfidence[0];
-
-								System.out.println("Predicted label: " + mappedIDs.get(predictedLabel-1) + " at " + confidence + " confidence");
 							
-								if (confidence < 1000)
+								if (confidence < 110)
 								{
 		    							System.out.print(strDateToPrint + ", seen: " + mappedIDs.get(predictedLabel-1) + " with " + confidence + " confidence");
 									generateAndSendMsg("http://127.0.0.1/detections/people", mappedIDs.get(predictedLabel-1));
@@ -468,21 +530,24 @@ public class FaceRecogBSF extends Sensor {
 									generateAndSendMsg("http://127.0.0.1/detections/movement", "unknown");
 								}
 							}
+							else if (faceRect.size() > 1)
+							{
+								System.out.println("detected multiple faces and not handling this yet");
+							}
 							else
 							{
 								//System.out.println("no movement..");
 							}
 						}
+						catch (Exception e) 
+						{ 
+							System.out.println("error in processing contours"); 
+							e.printStackTrace();
+						}
 					}
-					cvCopy(grayImage, tempFrame, null);
-				
 				}
-
-			}
-			catch (Exception cvE)
-			{
-				System.out.println("error grabbing image");
-				cvE.printStackTrace();
+				cvCopy(grayImage, tempFrame, null);
+				
 			}
 
 		}
@@ -577,12 +642,32 @@ public class FaceRecogBSF extends Sensor {
 			}
 
 		}
- 		faceRecognitionObj = createFisherFaceRecognizer();
+ 		//faceRecognitionObj = createFisherFaceRecognizer();
         	//faceRecognitionObj = createEigenFaceRecognizer();
-        	//faceRecognitionObj = createLBPHFaceRecognizer()
+        	faceRecognitionObj = createLBPHFaceRecognizer();
 
         	faceRecognitionObj.train(images, labels);
 		faceRecognitionObj.save("trainingResult.set");
+		System.out.println("saved new training results file");
+		if (mappedIDs.size() > 0)
+		{
+			try
+			{
+				FileWriter writer = new FileWriter("mappedIDs.txt"); 
+				for(String str: mappedIDs) 
+				{
+					writer.write(str);
+					writer.write(System.getProperty( "line.separator" ));
+				}
+				System.out.println("Written ID mapping file");
+				writer.close();
+			}
+			catch (Exception er)
+			{
+				System.out.println("error writing ID file");
+				er.printStackTrace();
+			}
+		}
 	}
 
 	private void createFaceSamples()
@@ -602,6 +687,7 @@ public class FaceRecogBSF extends Sensor {
 
 				int foundImages = 0;
 				IplImage[] totalImages = new IplImage[maxImages];
+				Mat videoMatGray = new Mat();
 
 				try {
 					for (int im=0; im <maxImages; im++)
@@ -614,25 +700,31 @@ public class FaceRecogBSF extends Sensor {
 							IplImage snapshot = cvCreateImage(cvGetSize(origImg), origImg.depth(), origImg.nChannels());
 							cvFlip(origImg, snapshot, 1);
 							Mat mat = converterToMat.convertToMat(converter.convert(origImg));
-							IplImage grayImage = IplImage.create(origImg.width(), origImg.height(), IPL_DEPTH_8U, 1);
-		                			cvCvtColor(origImg, grayImage, CV_BGR2GRAY);
-           						CvSeq faces = detectFace(mat, grayImage);
+							//IplImage grayImage = IplImage.create(origImg.width(), origImg.height(), IPL_DEPTH_8U, 1);
+		                			//cvCvtColor(origImg, grayImage, CV_BGR2GRAY);
 
-							System.out.println("found " + faces.total() + " faces");
-							if (faces.total() >= 1)
+							System.out.println("THIS NEEDS FIXING! may not be necessary to resize images now");
+           						//RectVector faces = detectFace(mat);
+
+							/*System.out.println("found " + faces.size() + " faces");
+
+							if (faces.size() == 1)
 							{
-            							CvRect r = new CvRect(cvGetSeqElem(faces, faces.total()-1));
- 								int x = r.x(), y = r.y(), w = r.width(), h = r.height();
-								totalImages[foundImages] = preprocessImage(origImg, r);
+								Rect face_i = faces.get(0);
+								Mat face = new Mat(videoMatGray, face_i);
+            							//CvRect r = new CvRect(cvGetSeqElem(faces, faces.total()-1));
+ 								//int x = r.x(), y = r.y(), w = r.width(), h = r.height();
+								//totalImages[foundImages] = preprocessImage(origImg, r);
+								totalImages[foundImages] = converter.convertToIplImage(converter.convert(face));
 								cvSaveImage(name+"_"+im+".jpg", totalImages[foundImages]);
-                						cvRectangle(origImg, cvPoint(x, y), cvPoint(x+w, y+h), CvScalar.RED, 1, CV_AA, 0);
+                						//cvRectangle(origImg, cvPoint(x, y), cvPoint(x+w, y+h), CvScalar.RED, 1, CV_AA, 0);
 								cvSaveImage("original"+name+"_"+im+".jpg", origImg);
 								foundImages++;
 							}
 							else
 							{
-								System.out.println("no faces found in " + fileName);
-							}
+								System.out.println("none or multiple faces found in " + fileName + " !!");
+							}*/
 						}
 						else
 						{
@@ -704,52 +796,6 @@ public class FaceRecogBSF extends Sensor {
 			}	
 		}
 	}
-
-	protected CvSeq detectFace(Mat originalImageMat, IplImage greyImgIpl) {
-                CvSeq faces = null;
-		cvClearMemStorage(faceStorage);
-		//VB: TODO tidy this up! alot of wasted processing, maybe put it in an alternative method that just doesnt get used..
-			
-                try {
-			CvRect facesDetection = new CvRect(null);
-			Mat greyMat = new Mat();
-			cvtColor(originalImageMat, greyMat, COLOR_BGRA2GRAY);
-			equalizeHist(greyMat, originalImageMat);
-			RectVector faceRect = new RectVector();
-
-			//OLD
-			//cascade.detectMultiScale(originalImage, faceRect);
-			//cascade.detectMultiScale(greyMat, faceRect, 1.1, 2, CV_HAAR_FIND_BIGGEST_OBJECT | CV_HAAR_DO_ROUGH_SEARCH, new Size(), new Size(greyMat.cols(), greyMat.rows()));
-                        //faces = cvHaarDetectObjects(originalImage, cascade, faceStorage, 1.1, 3, CV_HAAR_DO_CANNY_PRUNING);
-			//faces = cvHaarDetectObjects(originalImage, cascade, storage, 1.2, 2, CV_HAAR_DO_CANNY_PRUNING);
-
-
-			faces = cvHaarDetectObjects(greyImgIpl, cascade_old, faceStorage, 1.1, 2, CV_HAAR_DO_ROUGH_SEARCH | CV_HAAR_FIND_BIGGEST_OBJECT);
-			faces = cvHaarDetectObjects(greyImgIpl, cascade_old, faceStorage, 1.1, 2, CV_HAAR_DO_CANNY_PRUNING);
-
-		
-
-                } catch (Exception e) {
-			System.out.println("Error in detectFace method");
-                        e.printStackTrace();
-                }
-                return faces;
-        }
-
-        public IplImage preprocessImage(IplImage image, CvRect r){
-                IplImage gray = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
-                //IplImage roi = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
-		//VB: TODO: eugh hardcoded..
-		IplImage roi = IplImage.create(92,112, IPL_DEPTH_8U, 1);
-
-                CvRect r1 = cvRect(r.x()-20, r.y()-50, r.width()+40, r.height()+100);
-                cvCvtColor(image, gray, CV_BGR2GRAY);
-                cvSetImageROI(gray, r1);
-                cvResize(gray, roi, CV_INTER_LINEAR);
-                cvEqualizeHist(roi, roi);
-                return roi;
-        }
-
 	
 	public void saveImage(IplImage recFrame)
 	{

@@ -325,7 +325,7 @@ public class remoteXMPPSim extends Sensor {
 						String posResult = tidyPosInfo.substring(1, tidyPosInfo.length()-1);
 						String spatialInfo = (posResult + "," + currentOrientation);
 						testReading.addDataValue(null, "http://127.0.0.1/sensors/types#spatial", spatialInfo, false);
-
+						System.out.println(testReading.toRDF());
 						publish(testReading);
 
 					} 
