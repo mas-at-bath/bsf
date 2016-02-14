@@ -106,16 +106,16 @@ public class FaceRecogBSF extends Sensor {
 	private Java2DFrameConverter converterJ2D = new Java2DFrameConverter();
 	private ArrayList<String> mappedIDs = new ArrayList<String>();
 	private CanvasFrame canvasFrame;
-	private boolean displayLocal = true;
+	private boolean displayLocal = false;
 	private boolean showFaceView = false;
-	private boolean showCamView = true;
+	private boolean showCamView = false;
 	private RectVector faceRect = new RectVector();
 
 	//this training method was based on earlier lib, and instead now provides the ability to process a number of images, and 
 	//extract the face region out to a predefined width, to be used in the test file of the learn method above
 	boolean trainingImages = false;
 	//build a new training file based on images stored in ./data/NameX
-	boolean trainNew = false;
+	boolean trainNew = true;
 
 	public FaceRecogBSF(String serverAddress, String id, String password, String nodeName, String currentLocation, String primaryHandle) throws XMPPException {
 		super(serverAddress, id, password, nodeName);
@@ -376,9 +376,16 @@ public class FaceRecogBSF extends Sensor {
 			canvasFrame.setCanvasSize(frame.width(), frame.height());
 		}
 
+		int framesGenerated=0;
+		long currentLoopStartedNanoTime = System.nanoTime();
 		while(alive) 
 		{
-			long currentLoopStartedNanoTime = System.nanoTime();
+			if (System.nanoTime() > (currentLoopStartedNanoTime + nanoToMili*1000))
+			{
+				//System.out.println("1 second elapsed, " + framesGenerated + " fps");
+				currentLoopStartedNanoTime = System.nanoTime();
+				framesGenerated=0;
+			}
 			//debug purposes only 
 			//generateAndSendMsg("http://127.0.0.1/detections/people", "vin");
 
@@ -427,6 +434,7 @@ public class FaceRecogBSF extends Sensor {
 				try
 				{
 					nativeFrame = grabber.grab();
+					framesGenerated++;
 					webHandler.updateImage(converterJ2D.convert(nativeFrame));
 					frame = converter.convert(nativeFrame);
 		    			cvClearMemStorage(storage);
@@ -492,6 +500,7 @@ public class FaceRecogBSF extends Sensor {
 						try 
 						{
 							Date now = new Date();
+							saveImage(frame);
 							String strDateToPrint = sdfPrintDate.format(now);
 							Mat mat = converterToMat.convertToMat(nativeFrame);
 							Mat greyMat = new Mat();
@@ -687,7 +696,6 @@ public class FaceRecogBSF extends Sensor {
 
 				int foundImages = 0;
 				IplImage[] totalImages = new IplImage[maxImages];
-				Mat videoMatGray = new Mat();
 
 				try {
 					for (int im=0; im <maxImages; im++)
@@ -703,28 +711,22 @@ public class FaceRecogBSF extends Sensor {
 							//IplImage grayImage = IplImage.create(origImg.width(), origImg.height(), IPL_DEPTH_8U, 1);
 		                			//cvCvtColor(origImg, grayImage, CV_BGR2GRAY);
 
-							System.out.println("THIS NEEDS FIXING! may not be necessary to resize images now");
-           						//RectVector faces = detectFace(mat);
-
-							/*System.out.println("found " + faces.size() + " faces");
-
-							if (faces.size() == 1)
+							Mat greyMat = new Mat();
+							cvtColor(mat, greyMat, COLOR_BGRA2GRAY);
+							equalizeHist(greyMat, mat);
+							cascade.detectMultiScale(greyMat, faceRect);
+							System.out.println("found " + faceRect.size() + " in image");
+							if (faceRect.size() == 1)
 							{
-								Rect face_i = faces.get(0);
-								Mat face = new Mat(videoMatGray, face_i);
-            							//CvRect r = new CvRect(cvGetSeqElem(faces, faces.total()-1));
- 								//int x = r.x(), y = r.y(), w = r.width(), h = r.height();
-								//totalImages[foundImages] = preprocessImage(origImg, r);
-								totalImages[foundImages] = converter.convertToIplImage(converter.convert(face));
-								cvSaveImage(name+"_"+im+".jpg", totalImages[foundImages]);
-                						//cvRectangle(origImg, cvPoint(x, y), cvPoint(x+w, y+h), CvScalar.RED, 1, CV_AA, 0);
-								cvSaveImage("original"+name+"_"+im+".jpg", origImg);
+								Rect face_i = faceRect.get(0);
+								Mat face = new Mat(greyMat, face_i);
+								cvSaveImage("original"+name+"_"+im+".jpg", converter.convertToIplImage(converter.convert(face)));
 								foundImages++;
 							}
-							else
+							else if (faceRect.size () > 1)
 							{
-								System.out.println("none or multiple faces found in " + fileName + " !!");
-							}*/
+								System.out.println("multiple faces detected, not handling this yet");
+							}
 						}
 						else
 						{
@@ -798,8 +800,7 @@ public class FaceRecogBSF extends Sensor {
 	}
 	
 	public void saveImage(IplImage recFrame)
-	{
-							
+	{				
 		//save the image with stamp
 		Date now = new Date();
 		String strDateToPrint = sdfPrintDate.format(now);
@@ -807,9 +808,24 @@ public class FaceRecogBSF extends Sensor {
                 CvFont font = new CvFont();
                 cvInitFont(font, CV_FONT_HERSHEY_COMPLEX, 0.5, 0.5, 1.0, 1, CV_AA);
                 cvPutText(recFrame,strDateToPrint,cvPoint(recFrame.width()-230, recFrame.height()-10),font,CvScalar.RED);   
-
 		cvSaveImage("Detection-"+strDate+".jpg", recFrame);
 	}
+
+	//probably dont need this method any more if new cascade isnt worried about image size
+        /*public IplImage preprocessImage(IplImage image, CvRect r){
+                IplImage gray = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
+                //IplImage roi = cvCreateImage(cvGetSize(image), IPL_DEPTH_8U, 1);
+		//VB: TODO: eugh hardcoded..
+		IplImage roi = IplImage.create(92,112, IPL_DEPTH_8U, 1);
+
+                CvRect r1 = cvRect(r.x()-20, r.y()-50, r.width()+40, r.height()+100);
+                cvCvtColor(image, gray, CV_BGR2GRAY);
+                cvSetImageROI(gray, r1);
+                cvResize(gray, roi, CV_INTER_LINEAR);
+                cvEqualizeHist(roi, roi);
+                return roi;
+        }*/
+
 }
 
 
