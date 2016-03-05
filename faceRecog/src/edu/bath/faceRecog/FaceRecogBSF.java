@@ -44,19 +44,6 @@ import org.bytedeco.javacpp.Loader;
 import org.bytedeco.javacpp.opencv_objdetect;
 import org.bytedeco.javacv.*;
 
-//for 0.3 or so
-/*import com.googlecode.javacv.cpp.opencv_core;
-import static com.googlecode.javacv.cpp.opencv_highgui.*;
-import static com.googlecode.javacv.cpp.opencv_core.*;
-import static com.googlecode.javacv.cpp.opencv_imgproc.*;
-import static com.googlecode.javacv.cpp.opencv_contrib.*;
-import com.googlecode.javacpp.*;
-import com.googlecode.javacv.*;
-import com.googlecode.javacv.FFmpegFrameGrabber;
-import static com.googlecode.javacpp.Loader.*;
-import static com.googlecode.javacv.cpp.opencv_core.*;
-import static com.googlecode.javacv.cpp.opencv_imgproc.*;*/
-
 import java.io.File;
 import java.io.FilenameFilter;
 import java.awt.image.BufferedImage;
@@ -115,7 +102,7 @@ public class FaceRecogBSF extends Sensor {
 	//extract the face region out to a predefined width, to be used in the test file of the learn method above
 	boolean trainingImages = false;
 	//build a new training file based on images stored in ./data/NameX
-	boolean trainNew = true;
+	boolean trainNew = false;
 
 	public FaceRecogBSF(String serverAddress, String id, String password, String nodeName, String currentLocation, String primaryHandle) throws XMPPException {
 		super(serverAddress, id, password, nodeName);
@@ -130,7 +117,7 @@ public class FaceRecogBSF extends Sensor {
 	}
 	
 	public static void main(String[] args) throws Exception {
-
+		System.out.println("here");
     		InetSocketAddress addr = new InetSocketAddress(8080);
     		HttpServer server = HttpServer.create(addr, 0);
 
@@ -348,7 +335,6 @@ public class FaceRecogBSF extends Sensor {
                    	grabber.setOption("max_index_size","1024*50");*/
 			grabber.setImageWidth(1024);
 			grabber.setImageHeight(768);
-			//grabber.setFrameRate(10);;
 
         		grabber.start();
 			nativeFrame = grabber.grab();
@@ -384,6 +370,7 @@ public class FaceRecogBSF extends Sensor {
 			{
 				//System.out.println("1 second elapsed, " + framesGenerated + " fps");
 				currentLoopStartedNanoTime = System.nanoTime();
+				webHandler.updateImage(converterJ2D.convert(nativeFrame)); //seems to take up 2fps in main loop!
 				framesGenerated=0;
 			}
 			//debug purposes only 
@@ -435,7 +422,6 @@ public class FaceRecogBSF extends Sensor {
 				{
 					nativeFrame = grabber.grab();
 					framesGenerated++;
-					webHandler.updateImage(converterJ2D.convert(nativeFrame));
 					frame = converter.convert(nativeFrame);
 		    			cvClearMemStorage(storage);
 					cvSmooth(grayImage, grayImage, CV_GAUSSIAN, 9, 9, 2, 2);
@@ -483,7 +469,7 @@ public class FaceRecogBSF extends Sensor {
 
 					// recognize contours
 					CvSeq contour = new CvSeq(null);
-					cvFindContours(diffImage, storage, contour, 128/*Loader.sizeof(CvContour.class)*/, CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
+					cvFindContours(diffImage, storage, contour, Loader.sizeof(CvContour.class), CV_RETR_LIST, CV_CHAIN_APPROX_SIMPLE);
 
 					int contourCount=0;
 					while (contour != null && !contour.isNull()) 
@@ -507,7 +493,7 @@ public class FaceRecogBSF extends Sensor {
 							cvtColor(mat, greyMat, COLOR_BGRA2GRAY);
 							equalizeHist(greyMat, mat);
 							cascade.detectMultiScale(greyMat, faceRect);
-							System.out.println("found " + faceRect.size());
+							//System.out.println("found " + faceRect.size());
 							if (faceRect.size() == 1)
 							{
 								boolean foundKnownFace = false;
@@ -526,10 +512,11 @@ public class FaceRecogBSF extends Sensor {
 								faceRecognitionObj.predict(face, plabel, pconfidence);
 								int predictedLabel = plabel[0];
 								double confidence = pconfidence[0];
+		    						System.out.print(strDateToPrint + ", seen: " + mappedIDs.get(predictedLabel-1) + " with " + confidence + " confidence");
 							
-								if (confidence < 110)
+								if (confidence < 100)
 								{
-		    							System.out.print(strDateToPrint + ", seen: " + mappedIDs.get(predictedLabel-1) + " with " + confidence + " confidence");
+									System.out.println("confident on match for " + mappedIDs.get(predictedLabel-1));	
 									generateAndSendMsg("http://127.0.0.1/detections/people", mappedIDs.get(predictedLabel-1));
 									foundKnownFace=true;
 								}
