@@ -69,7 +69,7 @@ public class InstEthManager {
 	private long startupTime=0L;
 	private long startupDelay=10000L;
 	private static boolean useXMPP=false;
-	private static boolean useMQTT=false;
+	private static boolean useMQTT=true;
 	
 	/*
 	 * Percept node reading handler 
@@ -78,7 +78,7 @@ public class InstEthManager {
 		@Override
 		public void handleIncomingReading(String node, String rdf) {
 
-			System.out.println("got a message..");
+			System.out.println("got a message: " + rdf);
 			try {
 				if ((rdf != null) && (rdf.isEmpty() != true)) 
 				{
@@ -205,13 +205,11 @@ public class InstEthManager {
 		}*/
 		
 		//preamble.. 
-		//String emptyAddress = "0x0000000000000000000000000000000000000000000000000000000000000000";
 		String envContractAddress = "0x25e3a768f6a4810b031af819ee0a709493edb596";
 		EthWorker myEthWorker = new EthWorker("http://127.0.0.1:8100");
 		String myAccount = myEthWorker.getAccountNumber();
 		String myAccountBal = myEthWorker.getEthBalance(myAccount);
 		System.out.println("balance for account " + myAccount + " is " + myAccountBal);
-		//String currentRDFContract = myEthWorker.getLatestRDFContract();
 
 		//add a filter to pick up new blocks (as they may have contract details)
 		String newBlockFilterID = myEthWorker.addNewBlockFilter();
@@ -219,9 +217,7 @@ public class InstEthManager {
 		String generalFilterID = myEthWorker.addGeneralFilter();
 
 		sleep(2000);
-		//System.out.println("creating new RDF contract");
-		//myEthWorker.createNewRDFContract();
-	
+
 		String req;
 		while (true)
 		{
@@ -243,70 +239,28 @@ public class InstEthManager {
 				//System.out.println("mreq is empty");
 			}
 
-		//check for changes..
-		//System.out.println("checking for changes.. ") ;
-
-		JSONObject generalChanges = myEthWorker.getFilterChanges(generalFilterID);
-		//System.out.println("changes: " + generalChanges.toString());	
-		String addressChange = myEthWorker.findResultOfArray(generalChanges, "address");
-		if (addressChange.equals (envContractAddress))
-		{
-			System.out.println("change to environment contract!!");
-			String dataChange = myEthWorker.findResultOfArray(generalChanges, "data");
-			if (!dataChange.equals("none"))
+			//check for changes..
+			JSONObject generalChanges = myEthWorker.getFilterChanges(generalFilterID);
+			String addressChange = myEthWorker.findResultOfArray(generalChanges, "address");
+			if (addressChange.equals (envContractAddress))
 			{
-				System.out.println("changes: " + generalChanges.toString());	
-				System.out.println(dataChange);
-				System.out.println(myEthWorker.convertHexToString(dataChange));
+				System.out.println("change to environment contract!!");
+				String dataChange = myEthWorker.findResultOfArray(generalChanges, "data");
+				if (!dataChange.equals("none"))
+				{
+					SimpleRDF foundRDF = myEthWorker.getRDF(dataChange);
+					System.out.println(foundRDF.getPred());
+					if (foundRDF.getPred().contains("vehicleAction"))
+					{
+						System.out.println(foundRDF.getObj() + " !!");
+						m_req.add(foundRDF.getObj());
+					}
+				}
 			}
-		}
-		/*else
-		{
-			System.out.println("change detected but not to env contract so ignoring..");
-		}*/
-
-		
-		//seems we dont actually need to look at the transaction details, should be in the data returned
-		/*String txChange = myEthWorker.findResultOfArray(generalChanges, "transactionHash");
-		JSONObject recReceipt = myEthWorker.getTxReceipt(txChange);
-		System.out.println(recReceipt.toString());*/
-		//System.out.println("end looking at changes");
-
-			/*String subjHexVal = myEthWorker.sendCall(addressChange, "0x4705f121");
-			String predHexVal = myEthWorker.sendCall(addressChange, "0x04b07e3a");
-			String objHexVal = myEthWorker.sendCall(addressChange, "0xeb9ee256");
-			System.out.println("new RDF: " + myEthWorker.convertHexToString(subjHexVal) + ", " + myEthWorker.convertHexToString(predHexVal) + ", " + myEthWorker.convertHexToString(objHexVal));*/
-
-		/* this was trying linked list idea.. not so good..
-		String addressChange = myEthWorker.findResultOfArray(generalChanges, "address");
-		if (!addressChange.equals("none"))
-		{
-			System.out.println("contract at address has changed: " + addressChange);
-			String nextContractValue = myEthWorker.sendCall(addressChange, "0xb8568c6f");
-			System.out.println("points to.. " + nextContractValue);
-			String latestContractID = myEthWorker.findLatestRDFContract();
-			System.out.println(latestContractID + " , " + nextContractValue);
-			if (latestContractID.equals(addressChange) && !nextContractValue.equals(emptyAddress))
-			{
-				System.out.println("new contract added!!!");
-			}
-			else
-			{
-				System.out.println("not sure..");
-			}
-
-			String subjHexVal = myEthWorker.sendCall(addressChange, "0x4705f121");
-			String predHexVal = myEthWorker.sendCall(addressChange, "0x04b07e3a");
-			String objHexVal = myEthWorker.sendCall(addressChange, "0xeb9ee256");
-			System.out.println("new RDF: " + myEthWorker.convertHexToString(subjHexVal) + ", " + myEthWorker.convertHexToString(predHexVal) + ", " + myEthWorker.convertHexToString(objHexVal));
-			//if the address changed is the same as the current last RDF contract, then its a new detection?
-		}*/
-
 
 			//VB added a small sleep, I seem to have messages lost/not processed if this isn't present.. strangely
-			sleep(5000);
+			sleep(1000);
 
-			///myEthWorker.createNewRDFContract();
 		}
 
 	}

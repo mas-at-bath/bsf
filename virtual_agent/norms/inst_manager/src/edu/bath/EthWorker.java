@@ -315,6 +315,20 @@ public class EthWorker {
     		return output.toString();
 	}
 
+	public String convertHexToString(String hex, int len)
+	{
+		//http://stackoverflow.com/questions/4785654/convert-a-string-of-hex-into-ascii-in-java
+    		StringBuilder output = new StringBuilder();
+    		for (int i = 0; i < len; i+=2) {
+        		String str = hex.substring(i, i+2);
+			if (!str.equals("0x"))
+			{
+        			output.append((char)Integer.parseInt(str, 16));
+			}
+   		}
+    		return output.toString();
+	}
+
 	public void createNewRDFContract()
 	{
 		//try creating an RDF contract, these would act as environment observations
@@ -387,6 +401,67 @@ public class EthWorker {
 	{
 		return environmentCurrentContract;
 	}*/
+
+	//http://stackoverflow.com/questions/3760152/split-string-to-equal-length-substrings-in-java/3760193#3760193
+	public static List<String> splitEqually(String text, int size) {
+		// Give the list the right capacity to start with. You could use an array
+		// instead if you wanted.
+		List<String> ret = new ArrayList<String>((text.length() + size - 1) / size);
+
+		for (int start = 0; start < text.length(); start += size) {
+			ret.add(text.substring(start, Math.min(text.length(), start + size)));
+		}
+		return ret;
+	}
+
+	public SimpleRDF getRDF(String dataChange)
+	{
+		SimpleRDF foundRDF = new SimpleRDF("void","void","void");
+		if ( (dataChange.length()-2) %64 == 0)
+		{
+			//TODO: add the logic around data start pointer and data length pointer
+			int numberLines = (dataChange.length()-2) / 64;
+			System.out.println("changes has " + numberLines  + " lines");	
+			List<String> ret = splitEqually(dataChange.substring(2), 64);
+			if (numberLines == 9)
+			{
+				String subj = convertHexToString(ret.get(4));
+				String pred = convertHexToString(ret.get(6));
+				String obj = convertHexToString(ret.get(8));
+				System.out.println("Got RDF: " + subj + ", " + pred + ", " + obj);
+				foundRDF.setSubj(subj);
+				foundRDF.setPred(pred);
+				foundRDF.setObj(obj);
+			}
+			if (numberLines == 11)
+			{
+				String subj = convertHexToString(ret.get(4));
+				String pred = convertHexToString(ret.get(6));
+				String objLenStr = ret.get(8);
+				int objLen = Integer.parseInt(objLenStr, 16 );
+				System.out.println("length of string (x2) " + objLen);
+				String obj = convertHexToString(ret.get(9), objLen);
+				System.out.println("Got RDF: " + subj + ", " + pred + ", " + obj);
+				foundRDF.setSubj(subj);
+				foundRDF.setPred(pred);
+				foundRDF.setObj(obj);
+			}
+			else
+			{
+				System.out.println("got multiple lines?");
+				for (String s: ret)
+				{
+					System.out.println(s);
+					System.out.println(convertHexToString(s));
+				}
+			}
+		}
+		else
+		{
+			System.out.println("WARNING: Couldn't process into RDF properly..");
+		}
+		return foundRDF;
+	}
 
 	public void sleep(long mili) {
 		try {
