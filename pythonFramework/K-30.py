@@ -4,6 +4,7 @@
 import serial
 import time
 ser = serial.Serial("/dev/ttyAMA0")
+#ser.setBaudrate(9600)
 ser.flushInput()
 time.sleep(1)
 
