@@ -14,5 +14,5 @@ resp = ser.read(7)
 high = ord(resp[3])
 low = ord(resp[4])
 co2 = (high*256) + low
-print "Co2=" + str(co2)
+print "CO2:" + str(co2)
 time.sleep(1)

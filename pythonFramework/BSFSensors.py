@@ -135,7 +135,7 @@ humidity, temperature = Adafruit_DHT.read_retry(22, 4)
 if humidity is not None and temperature is not None:
 	if (debug):
 		print "Humidity: %d %%" % humidity
-		print "Temperate: %d C " % temperature
+		print "Temperature: %d C " % temperature
 	newReading.addDataValue(None, "http://127.0.0.1/sensors/types#DHT22temperature", temperature, False)
 	newReading.addDataValue(None, "http://127.0.0.1/sensors/types#DHT22humidity", humidity, False)
 
