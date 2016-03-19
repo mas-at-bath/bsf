@@ -69,7 +69,9 @@ public class InstEthManager {
 	private long startupTime=0L;
 	private long startupDelay=10000L;
 	private static boolean useXMPP=false;
-	private static boolean useMQTT=true;
+	private static boolean useMQTT=false;
+
+	private EthWorker myEthWorker = new EthWorker("http://127.0.0.1:8100");
 	
 	/*
 	 * Percept node reading handler 
@@ -186,7 +188,22 @@ public class InstEthManager {
 			}
 			List<String> norms = factory.getCurrentStates();
 			if ((norms != null) && (norms.isEmpty() != true)) {
-				pubNorm.releaseNorm(norms);
+				//pubNorm.releaseNorm(norms); //publish to MQTT-XMPP node, old way
+				//assumes obl string is going to look like this
+				//(changeLane(centralMember2),deadline,vioMove(centralMember2)),roadusers
+				for (String pubStr : norms)
+				{
+					pubStr = pubStr.substring(4);
+					String[] parts = pubStr.split(",");
+					String firstPart = parts[0].substring(0,parts[0].length()-1);				
+					String[] innerParts = firstPart.split("\\(");
+					String subj = innerParts[1];
+					String content = innerParts[0];
+					String dline = parts[1];
+					String instName = parts[3];
+					String vio = parts[2];
+					myEthWorker.createNewOblContract(subj, content,dline, instName,vio);
+				}
 			}
 		}
 	}
@@ -205,18 +222,17 @@ public class InstEthManager {
 		}*/
 		
 		//preamble.. 
-		String envContractAddress = "0x25e3a768f6a4810b031af819ee0a709493edb596";
-		EthWorker myEthWorker = new EthWorker("http://127.0.0.1:8100");
+		String envContractAddress = "0xd19eb2281956189b3df3d10d599674155653fa0c";
 		String myAccount = myEthWorker.getAccountNumber();
-		String myAccountBal = myEthWorker.getEthBalance(myAccount);
+		float myAccountBal = myEthWorker.getEthBalance(myAccount);
 		System.out.println("balance for account " + myAccount + " is " + myAccountBal);
 
 		//add a filter to pick up new blocks (as they may have contract details)
 		String newBlockFilterID = myEthWorker.addNewBlockFilter();
 		//add a general filter 
 		String generalFilterID = myEthWorker.addGeneralFilter();
-
-		sleep(2000);
+		//myEthWorker.createNewRDFContract();
+		//myEthWorker.createNewOblContract();
 
 		String req;
 		while (true)
@@ -254,6 +270,35 @@ public class InstEthManager {
 					{
 						System.out.println(foundRDF.getObj() + " !!");
 						m_req.add(foundRDF.getObj());
+					}
+				}
+			}
+			else if (!generalChanges.toString().equals("{\"id\":73,\"result\":null,\"jsonrpc\":\"2.0\"}"))
+			{
+				System.out.println("unknown change..");
+				System.out.println(generalChanges);
+			}
+
+			JSONObject blockChanges = myEthWorker.getFilterChanges(newBlockFilterID);
+			if (!blockChanges.toString().equals("{\"id\":73,\"result\":[],\"jsonrpc\":\"2.0\"}"))
+			{
+				System.out.println("block change..");
+				JSONArray jArrayChanges = myEthWorker.findSingleArrayResult(blockChanges);
+				for (int i = 0 ; i < jArrayChanges.size(); i++) 
+				{
+					String rStr = (String) jArrayChanges.get(i);
+					JSONArray jArrTX = myEthWorker.getBlockTransactions(rStr);
+					for (int j = 0 ; j < jArrTX.size(); j++) 
+					{
+						JSONObject rObj = (JSONObject) jArrTX.get(j);
+						if (myEthWorker.checkIfNewOblContract(rObj))
+						{
+							myEthWorker.getOblDetails(rObj);
+						}
+						else
+						{
+							System.out.println("new block / tx but not obligation?");
+						}
 					}
 				}
 			}

@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Queue;
+import java.math.BigInteger;
 import java.io.UnsupportedEncodingException;
 
 import org.apache.http.*;
@@ -30,17 +31,38 @@ import org.json.simple.JSONObject;
 import org.json.simple.JSONArray;
 import org.json.simple.parser.JSONParser;
 import com.google.gson.Gson;
+import java.nio.file.Paths;
+import java.nio.file.Files;
 
 public class EthWorker {
 
 	private String ethRPCAddress = "http://127.0.0.1:8100";
 	private String myAccount = "";
+	private String compiledObligationContract = "";
 	//String environmentCurrentContract = "";
 	//String environmentFirstContract = "";
 	
 	public EthWorker(String address) {
 		ethRPCAddress = address;
 		myAccount = getCoinBase();
+
+		String contractString = "";		
+		try
+		{
+			contractString = new String(Files.readAllBytes(Paths.get("Obligation.sl")));
+			contractString=contractString.replaceAll("[\r\n]+", " ");
+		}
+		catch (Exception e)
+		{
+			System.out.println("Couldnt load contract file!");
+			e.printStackTrace();
+		}
+
+		EthCompileContract newContract = new EthCompileContract(contractString);
+		JSONObject recObj = send(newContract.toJSONString());
+		compiledObligationContract = findContractCode(recObj, "Obligation");
+		//System.out.println("obl: " + compiledObligationContract);
+
 		/*try
 		{
 			FileReader fr = new FileReader("startRDFContract.log"); 
@@ -141,6 +163,19 @@ public class EthWorker {
 		return foundres;
 	}
 
+	public JSONArray findSingleArrayResult(JSONObject jObj)
+	{
+		JSONArray jsonRes = (JSONArray) jObj.get("result");
+		return jsonRes;
+	}
+
+	public JSONArray findArrayResultInArray(JSONObject jObj, String findValue)
+	{
+		JSONObject jsonRes = (JSONObject) jObj.get("result");
+		JSONArray jsonArr = (JSONArray) jsonRes.get(findValue);
+		return jsonArr;
+	}
+
 	public String findResultOfArray(JSONObject jObj, String findValue)
 	{
 		String foundres = "none";
@@ -156,18 +191,44 @@ public class EthWorker {
 		return foundres;
 	}
 
-	public String findContractCode(JSONObject jObj)
+	public String findContractCode(JSONObject jObj, String contrName)
 	{
 		JSONObject jsonRes = (JSONObject) jObj.get("result");
-		JSONObject cont = (JSONObject) jsonRes.get("TripleObservationContract");
+		JSONObject cont = (JSONObject) jsonRes.get(contrName);
 		String foundres = (String) cont.get("code");
 		return foundres;
 	}
+
+	public JSONArray getBlockTransactions(String hash)
+	{
+		EthGetBlockByHash hashBlock = new EthGetBlockByHash(hash);
+		JSONArray foundTxArray = findArrayResultInArray(send(hashBlock.toJSONString()), "transactions" );
+		return foundTxArray;
+		
+	}
+
+	public boolean checkIfNewOblContract(JSONObject testObj)
+	{
+		boolean newObl = false;
+		String toAddress = findResult(testObj, "to");
+		String contByteCode = findResult(testObj, "input");
+		if (contByteCode.startsWith(compiledObligationContract) && (toAddress == null))
+		{
+			newObl=true;
+		}
+		return newObl;
+	}
 	
-	public String getEthBalance(String account)
+	public float getEthBalance(String account)
 	{
 		EthBalance ethBal = new EthBalance(account);
-		return findResult(send(ethBal.toJSONString()),"result");
+		String ethWeiHex = findResult(send(ethBal.toJSONString()),"result");
+		System.out.println(ethWeiHex);
+		BigInteger bi = new BigInteger(ethWeiHex.substring(2), 16);
+		
+		float ethGas = bi.floatValue() / 1000000000000000000f;
+		System.out.println(ethGas);
+		return ethGas;
 	}
 
 	private String getCoinBase()
@@ -290,7 +351,7 @@ public class EthWorker {
 		//System.out.println(newContract.toJSONString());
 		JSONObject recObj = send(newContract.toJSONString());
 		//System.out.println(recObj.toString());
-		return findContractCode(recObj);
+		return findContractCode(recObj, "TripleObservationContract");
 	}
 
 	public JSONObject getFilterChanges(String id)
@@ -329,6 +390,20 @@ public class EthWorker {
     		return output.toString();
 	}
 
+	public void createNewOblContract(String subject, String content, String deadline, String instName, String vio)
+	{
+		System.out.println("trying to send obligation contract, first generate bytecode..");
+		StringHexParam oblParams = new StringHexParam();
+		oblParams.addStringItem(subject);
+		oblParams.addStringItem(content);
+		oblParams.addStringItem(deadline);
+		oblParams.addStringItem(instName);
+		oblParams.addStringItem(vio);
+
+		String txResultHash = sendTransaction(myAccount, compiledObligationContract+oblParams.getHexParam(), 5000000);	
+		System.out.println("sent obligation contract! got back: " + txResultHash + " (wait a little for tx to be mined)");
+	}
+
 	public void createNewRDFContract()
 	{
 		//try creating an RDF contract, these would act as environment observations
@@ -337,7 +412,7 @@ public class EthWorker {
 		//remember if generating contract bytecode via https://chriseth.github.io/browser-solidity/, to enable optimisation
 		//to match code generated locally here
 		String contractByteCode2 = createRDFContract("http://127.0.0.1/subj/testSubj2", "http://127.0.0.1/pred/testPred2", "testObj2");
-		String txResultHash = sendTransaction(myAccount, contractByteCode2, 5000000);
+		String txResultHash = sendTransaction(myAccount, contractByteCode2, 500000000);
 		System.out.println("sent! got back: " + txResultHash);
 		
 		//wait until its been mined, then see if we can call a function on it 
@@ -355,7 +430,8 @@ public class EthWorker {
 			System.out.println("new contract address is " + contractAddress);
 			//call this function to put the contracts pred,obj,subj into the event log of that contract, so change filter will detect it
 			//TODO: so many better ways to do this!
-			sendTransaction(myAccount, contractAddress, "c33fb877");
+			String testStr = sendTransaction(myAccount, contractAddress, "c33fb877");
+			System.out.println("got back testString: " + testStr);
 
 
 
@@ -461,6 +537,29 @@ public class EthWorker {
 			System.out.println("WARNING: Couldn't process into RDF properly..");
 		}
 		return foundRDF;
+	}
+
+	public void getOblDetails(JSONObject rObj)
+	{
+		String txHash = findResult(rObj,"hash");
+		JSONObject recReceipt = getTxReceipt(txHash);
+		if (recReceipt.get("result") == null)
+		{
+			System.out.println("no tx receipt...?");
+		}
+		else
+		{
+			String contractAddress = findArrayResult(recReceipt, "contractAddress");
+			System.out.println("new obligation contract found at address" + contractAddress);
+			//TODO: get sha3 calculation of function hex vals rather than hardcoded
+			String retSubjHex = sendCall(contractAddress, "0x40f596a8");
+			String retContentHex = sendCall(contractAddress, "0x59016c79");
+			String retDeadlineHex = sendCall(contractAddress, "0x5f8d96de");
+			String retInstHex = sendCall(contractAddress, "0x68882d77");
+			String retVioHex = sendCall(contractAddress, "0x053313d1");
+			System.out.println(retSubjHex);
+			System.out.println("got back: " + convertHexToString(retSubjHex) + " , " + convertHexToString(retContentHex)+ " , " + convertHexToString(retDeadlineHex)+ " , " + convertHexToString(retInstHex)+ " , " + convertHexToString(retVioHex));
+		}
 	}
 
 	public void sleep(long mili) {
