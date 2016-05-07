@@ -79,6 +79,7 @@ public class FaceRecogBSF extends Sensor {
 	private static MyHandler webHandler;
 	private static boolean useXMPP=false;
 	private static boolean useMQTT=false;
+	private static boolean useNone=false;
 	private static FaceRecogBSF ps;
 	private static final String CASCADE_FILE = "./data/lbpcascade_frontalface.xml";
 	//private static final String CASCADE_FILE_OLD = "./data/haarcascade_frontalface_alt_cv2.xml";
@@ -115,6 +116,11 @@ public class FaceRecogBSF extends Sensor {
 		this.currentLocation = currentLocation;
 		this.primaryHandle = primaryHandle;
 	}
+
+	public FaceRecogBSF(String name)  {
+		super(name);
+		System.out.println("WARNING: Running with no server connection");
+	}
 	
 	public static void main(String[] args) throws Exception {
 		System.out.println("here");
@@ -150,10 +156,14 @@ public class FaceRecogBSF extends Sensor {
 					{
 						useXMPP=true;
 					}
+					else if(configArray[1].equals("NONE"))
+					{
+						useNone=true;
+					}
 					//System.out.println("Using config declared IP address of openfire server as: " + XMPPServer);
 				}
 			}
-			if (!useMQTT && !useXMPP)
+			if (!useMQTT && !useXMPP && !useNone)
 			{
 				System.out.println("no COMMUNICATION value found in config.txt, should be = MQTT or XMPP");
 				System.exit(1);
@@ -177,6 +187,11 @@ public class FaceRecogBSF extends Sensor {
 			System.out.println("Using MQTT");
 			ps = new FaceRecogBSF(XMPPServer, componentName, "jasonpassword", homeSensors , "http://127.0.0.1/ID", "http://127.0.0.1/ID/FaceRecog", true, 0);
 		}
+		else if (useNone)
+		{
+			ps = new FaceRecogBSF("nullSensor");
+		}
+
 
 		Thread.currentThread().sleep(1000);
 		System.out.println("Created faceSensor, now entering its logic!");
@@ -220,6 +235,10 @@ public class FaceRecogBSF extends Sensor {
 				System.out.println("Exception in establishing MQTT client.");
 				e1.printStackTrace();
 			}
+		}
+		else if (useNone)
+		{
+			System.out.println("running with no server connection");
 		}
 
 		System.out.println("load opencv classes");
@@ -293,31 +312,34 @@ public class FaceRecogBSF extends Sensor {
 	
 		startupTime=System.currentTimeMillis();
 
-		System.out.println("is connected? " + sensorClient.checkIsConnected());
-
-		sensorClient.addHandler(homeSensors, new ReadingHandler() 
+		if(!useNone)
 		{
-			@Override
-			public void handleIncomingReading(String node, String rdf) 
+			System.out.println("is connected? " + sensorClient.checkIsConnected());
+
+			sensorClient.addHandler(homeSensors, new ReadingHandler() 
 			{
-				if ((startupTime + startupDelay) < System.currentTimeMillis())
+				@Override
+				public void handleIncomingReading(String node, String rdf) 
 				{
-					try {
-						pendingMessages.put(rdf);
-					}
-					catch (Exception e)
+					if ((startupTime + startupDelay) < System.currentTimeMillis())
 					{
-						System.out.println("Error adding new message to queue..");
-						e.printStackTrace();
+						try {
+							pendingMessages.put(rdf);
+						}
+						catch (Exception e)
+						{
+							System.out.println("Error adding new message to queue..");
+							e.printStackTrace();
+						}
 					}
 				}
+			});
+			try {
+				sensorClient.subscribe(homeSensors);
+			} catch (Exception e1) {
+				System.out.println("Exception while subscribing to " + homeSensors);
+				e1.printStackTrace();
 			}
-		});
-		try {
-			sensorClient.subscribe(homeSensors);
-		} catch (Exception e1) {
-			System.out.println("Exception while subscribing to " + homeSensors);
-			e1.printStackTrace();
 		}
 
 		System.out.println("starting webcam");
@@ -328,11 +350,10 @@ public class FaceRecogBSF extends Sensor {
 		
 		try
 		{
-              		/*grabber.setFormat("V4L2");
-                   	grabber.setFrameRate(10);
-                   	grabber.setOption("max_picture_buffer", "1024*100");
-                  	grabber.setOption("probesize","192");
-                   	grabber.setOption("max_index_size","1024*50");*/
+                   	grabber.setFrameRate(20);
+                   	//grabber.setOption("max_picture_buffer", "1024*100");
+                  	//grabber.setOption("probesize","192");
+                   	///grabber.setPixelFormat(4);
 			grabber.setImageWidth(1024);
 			grabber.setImageHeight(768);
 
@@ -350,8 +371,8 @@ public class FaceRecogBSF extends Sensor {
 
 		//setup image vars before entering main loop
 		boolean firstFrame = true;	
-		IplImage grayImage = null;
-		IplImage diffImage = null;
+		IplImage grayImage = grayImage = IplImage.create(frame.width(), frame.height(), IPL_DEPTH_8U, 1);
+		IplImage diffImage = diffImage = IplImage.create(frame.width(), frame.height(), IPL_DEPTH_8U, 1);
 		IplImage tempFrame = null;
 		Mat greyMatHolder = new Mat();
 
@@ -376,7 +397,7 @@ public class FaceRecogBSF extends Sensor {
 			//debug purposes only 
 			//generateAndSendMsg("http://127.0.0.1/detections/people", "vin");
 
-                        try {
+                    /*    try {
                                 if(sensorClient.checkReconnect())
                                 sensorClient.subscribe(homeSensors);
                         } catch (Exception e1) {
@@ -414,7 +435,7 @@ public class FaceRecogBSF extends Sensor {
 				}
 				rdfFaceRecogition = pendingMessages.poll();
 				
-			}
+			}*/
 
 			if (frame != null)
 			{
@@ -426,20 +447,13 @@ public class FaceRecogBSF extends Sensor {
 		    			cvClearMemStorage(storage);
 					cvSmooth(grayImage, grayImage, CV_GAUSSIAN, 9, 9, 2, 2);
 
-					if (displayLocal)
+					/*if (displayLocal)
 					{	
 						//use this to show the detected face				
 						if (showCamView) { canvasFrame.showImage(nativeFrame); }
-					}
+					}*/
 
-					if (grayImage == null)
-					{
-						grayImage = IplImage.create(frame.width(), frame.height(), IPL_DEPTH_8U, 1);
-					}
-					if (diffImage == null)
-					{
-						diffImage = IplImage.create(frame.width(), frame.height(), IPL_DEPTH_8U, 1);
-					}
+
 		                	cvCvtColor(frame, grayImage, CV_BGR2GRAY);
 				}
 				catch (Exception e) 

@@ -141,7 +141,11 @@ public abstract class Sensor {
         	}	
 	}
 
-
+	//null sensor, so we can still use largely the same code with sensors inplace, just point them to nothing if we are running disconnected from a network / testing
+	public Sensor(String name)
+	{
+		this.nodeName=name;
+	}
 	
 	/**
 	 * Creates a sensor from an existing connection.
