@@ -11,20 +11,17 @@ agent(centralMember4).
 %
 % Standard prelude for roadusers
 %
-% instant ordering
-% removed for MDV 20130117
-%%% before(I1,I2):- next(I1,I2),instant(I1), instant(I2).
-%%% before(I1,I3):- before(I1,I2),before(I2,I3),
-%%%    instant(I1),instant(I2),instant(I3).
+% suppress clingo warnings in absence of inertials, non-inertials or obligations
+ifluent(0,0).
+nifluent(0,0).
+oblfluent(0,0). 
 % fluent rules
 holdsat(P,In,J):- holdsat(P,In,I),not terminated(P,In,I),
-    next(I,J),fluent(P, In),instant(I),instant(J), inst(In).
+    next(I,J),ifluent(P, In),instant(I),instant(J), inst(In).
 holdsat(P,In,J):- initiated(P,In,I),next(I,J),
     ifluent(P, In),instant(I),instant(J), inst(In).
 holdsat(P,In,J):- initiated(P,In,I),next(I,J), 
     oblfluent(P, In),instant(I),instant(J), inst(In).
-holdsat(P,In,J):- initiated(P,In,I),next(I,J), 
-    nifluent(P, In),instant(I),instant(J), inst(In).
 % all observed events occur
 occurred(E,In,I):- evtype(E,In,ex),observed(E,In,I),instant(I), inst(In).
 % produces null for unknown events 
@@ -57,7 +54,7 @@ true.
 %
 % Constraints for obserable events depending on mode option
 %
-%%  mode DEFAULT is chosen:
+%%  mode SINGLE is chosen:
 {observed(E,In,J)}:- evtype(E,In,ex),instant(J), not final(J), inst(In).
 :- observed(E,In,J),observed(F,In,J),instant(J),evtype(E,In,ex),
 evtype(F,In,ex), E!=F,inst(In). 
@@ -77,7 +74,7 @@ obs(In,I):- observed(E,In,I),evtype(E,In,ex),instant(I),inst(In).
   ifluent(perm(changeLane(Agent0)), roadusers) :- agent(Agent0).
   fluent(perm(changeLane(Agent0)), roadusers) :- agent(Agent0).
   event(viol(changeLane(Agent0))) :- agent(Agent0).
-  evtype(viol(changeLane(Agent0)),roadusers,viol) :- agent(Agent0).
+  evtype(viol(changeLane(Agent0)), roadusers, viol) :- agent(Agent0).
   evinst(viol(changeLane(Agent0)),roadusers) :- agent(Agent0).
 % Event: deadline (type: ex)
   event(deadline) :- true.
@@ -86,7 +83,7 @@ obs(In,I):- observed(E,In,I),evtype(E,In,ex),instant(I),inst(In).
   ifluent(perm(deadline), roadusers) :- true.
   fluent(perm(deadline), roadusers) :- true.
   event(viol(deadline)) :- true.
-  evtype(viol(deadline),roadusers,viol) :- true.
+  evtype(viol(deadline), roadusers, viol) :- true.
   evinst(viol(deadline),roadusers) :- true.
 % Event: flashLights (type: ex)
   event(flashLights(Agent0)) :- agent(Agent0).
@@ -95,7 +92,7 @@ obs(In,I):- observed(E,In,I),evtype(E,In,ex),instant(I),inst(In).
   ifluent(perm(flashLights(Agent0)), roadusers) :- agent(Agent0).
   fluent(perm(flashLights(Agent0)), roadusers) :- agent(Agent0).
   event(viol(flashLights(Agent0))) :- agent(Agent0).
-  evtype(viol(flashLights(Agent0)),roadusers,viol) :- agent(Agent0).
+  evtype(viol(flashLights(Agent0)), roadusers, viol) :- agent(Agent0).
   evinst(viol(flashLights(Agent0)),roadusers) :- agent(Agent0).
 %
 % null event for unknown events
@@ -152,6 +149,10 @@ oblfluent(obl(changeLane(Agent0),deadline,vioMove(Agent1)), roadusers) :-
    event(changeLane(Agent0)),
    event(deadline),
    event(vioMove(Agent1)), agent(Agent0),true,agent(Agent1),inst(roadusers).
+ifluent(obl(changeLane(Agent0),deadline,vioMove(Agent1)), roadusers) :-
+   event(changeLane(Agent0)),
+   event(deadline),
+   event(vioMove(Agent1)), agent(Agent0),true,agent(Agent1),inst(roadusers).
 fluent(obl(changeLane(Agent0),deadline,vioMove(Agent1)), roadusers) :-
    event(changeLane(Agent0)),
    event(deadline),
@@ -174,12 +175,11 @@ occurred(vioMove(Agent1),roadusers,I) :-
 %
 % -------------------------------PART 2-------------------------------
 %
-% generates: [[['flashLights', ['Agent']], [['iniOblChangeLane', ['Agent']]], [], []]]
 %
 % generate rules
 %
 %
-% Translation of flashLights(Agent) generates iniOblChangeLane(Agent) if [] in  
+% Translation of flashLights(Agent) generates iniOblChangeLane(Agent) if [] in 
 occurred(iniOblChangeLane(Agent),roadusers,I) :- occurred(flashLights(Agent),roadusers,I),
    holdsat(pow(roadusers,iniOblChangeLane(Agent)),roadusers,I),
    agent(Agent),
@@ -221,12 +221,12 @@ holdsat(perm(null),roadusers,I) :- start(I), inst(roadusers).
 % initially: perm(deadline)
 holdsat(perm(deadline),roadusers,I) :-
    inst(roadusers), start(I).
-% initially: pow(roadusers,iniOblChangeLane(Agent))
-holdsat(pow(roadusers,iniOblChangeLane(Agent)),roadusers,I) :-
-   agent(Agent),
-   inst(roadusers), start(I).
 % initially: perm(iniOblChangeLane(Agent))
 holdsat(perm(iniOblChangeLane(Agent)),roadusers,I) :-
+   agent(Agent),
+   inst(roadusers), start(I).
+% initially: pow(roadusers,iniOblChangeLane(Agent))
+holdsat(pow(roadusers,iniOblChangeLane(Agent)),roadusers,I) :-
    agent(Agent),
    inst(roadusers), start(I).
 %

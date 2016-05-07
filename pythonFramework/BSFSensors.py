@@ -134,8 +134,8 @@ if (debug):
 humidity, temperature = Adafruit_DHT.read_retry(22, 4)
 if humidity is not None and temperature is not None:
 	if (debug):
-		print "Humidity: %d%%" % humidity
-		print "Temperate: %dC " % temperature
+		print "Humidity: %d %%" % humidity
+		print "Temperature: %d C " % temperature
 	newReading.addDataValue(None, "http://127.0.0.1/sensors/types#DHT22temperature", temperature, False)
 	newReading.addDataValue(None, "http://127.0.0.1/sensors/types#DHT22humidity", humidity, False)
 
@@ -147,15 +147,15 @@ if humidity is not None and temperature is not None:
 ##if high is not None and low is not None:
 ##	co2 = (high*256) + low
 ##	if (debug):
-##		print "CO2: %dppm" % co2
+##		print "CO2: %d ppm" % co2
 ##	newReading.addDataValue(None, "http://127.0.0.1/sensors/types#CO2", co2, False)
 
 bmpTemp = sensor.read_temperature()
 bmpPressure = sensor.read_pressure()
 if bmpTemp is not None and bmpPressure is not None:
 	if (debug):
-		print "Pressure: %dPa" % bmpPressure
-		print "Temp: %dC" % bmpTemp
+		print "Pressure: %d Pa" % bmpPressure
+		print "Temp: %d C" % bmpTemp
 	newReading.addDataValue(None, "http://127.0.0.1/sensors/types#BMP80temperature", bmpTemp, False)
 	newReading.addDataValue(None, "http://127.0.0.1/sensors/types#BMP80pressure", bmpPressure, False)
 

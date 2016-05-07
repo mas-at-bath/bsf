@@ -1,1 +1,1 @@
-observed(flashLights(centralMember1),roadusers,0).
+observed(flashLights(centralMember2),roadusers,0).

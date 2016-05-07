@@ -321,7 +321,6 @@ distanceToLight(r, 170,220, shortCruise).
 						.my_name(N);
 						.print("adding SUMO vehicle ", N);
 						addSUMOVehicle(N, m25, 2, 29, T);	
-						
 						.create_agent(CAgentName, "asl/convoyMember.asl");	
 						.create_agent(DAgentName, "asl/driver.asl");
 						.send(DAgentName, tell, usingVehicleSim(sumo));
