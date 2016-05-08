@@ -91,7 +91,7 @@ light = 10000/((vin/light)-1)						# Ohm value of the LDR, 10k is used as Pull u
 light = exp((log1p(light/1000)-4.125)/-0.6704)		# Linear aproximation from http://pi.gate.ac.uk/posts/2014/02/25/airpisensors/ to get Lux value
 newReading.addDataValue(None, "http://127.0.0.1/sensors/types#LightLux", light, False)
 if (debug):
-	print "Light: %d lux" % light
+	print "Light: %.2f lux" % light
 	
 # Code to get audio levels from  20 hz frequency
 signalMax = 0
@@ -111,7 +111,7 @@ db = float((peakToPeak*vin*1000)/1023)			#Measure in mV
 newReading.addDataValue(None, "http://127.0.0.1/sensors/types#soundDB", db, False)
 #time.sleep(0.1)
 if (debug):
-	print "Sound: %d mV" % db
+	print "Sound: %.2f mV" % db
 	
 # Code to read NO2 and CO concentrations
 no2 = readadc(2, SPICLK, SPIMOSI, SPIMISO, SPICS)	# Read the analog input for the nitrogen value	
@@ -121,7 +121,7 @@ no2 = ((10000*vin)/no2)-10000							# Ohm value of the no2 resistor, 10k  is use
 newReading.addDataValue(None, "http://127.0.0.1/sensors/types#NO2ohms", no2, False)
 #time.sleep(0.1)
 if (debug):		
-	print "NO: %d ohms" % no2
+	print "NO: %.2f ohms" % no2
 	
 co = readadc(3, SPICLK, SPIMOSI, SPIMISO, SPICS)		# Read the analog input for the carbon value
 co = float(co)/1023*vin 								# Voltage value from the ADC
@@ -129,13 +129,13 @@ co = ((360000*vin)/co)-360000							# Ohm Value of the co resistor, 360k is used
 #co = float(co/30000) 					#Reference value
 newReading.addDataValue(None, "http://127.0.0.1/sensors/types#COohms", co, False)
 if (debug):
-	print "CO: %d ohms" % co
+	print "CO: %.2f ohms" % co
 
 humidity, temperature = Adafruit_DHT.read_retry(22, 4)
 if humidity is not None and temperature is not None:
 	if (debug):
-		print "Humidity: %d %%" % humidity
-		print "Temperature: %d C " % temperature
+		print "Humidity: %.2f %%" % humidity
+		print "Temperature: %.2f C " % temperature
 	newReading.addDataValue(None, "http://127.0.0.1/sensors/types#DHT22temperature", temperature, False)
 	newReading.addDataValue(None, "http://127.0.0.1/sensors/types#DHT22humidity", humidity, False)
 
@@ -155,7 +155,7 @@ bmpPressure = sensor.read_pressure()
 if bmpTemp is not None and bmpPressure is not None:
 	if (debug):
 		print "Pressure: %d Pa" % bmpPressure
-		print "Temp: %d C" % bmpTemp
+		print "Temp: %.2f C" % bmpTemp
 	newReading.addDataValue(None, "http://127.0.0.1/sensors/types#BMP80temperature", bmpTemp, False)
 	newReading.addDataValue(None, "http://127.0.0.1/sensors/types#BMP80pressure", bmpPressure, False)
 
